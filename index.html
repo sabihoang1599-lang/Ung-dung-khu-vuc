@@ -160,7 +160,7 @@
                     <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
 
-                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU (Chủ 1 & Cấp 1 tùy ý, thông tin tự động hiển thị cho 2 chủ) -->
+                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU -->
                     <div id="change-credentials-box" class="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border space-y-2">
                         <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-key mr-1"></i> Thay Đổi Tên Đăng Nhập & Mật Khẩu Cá Nhân</h4>
                         <form onsubmit="updateMyCredentials(event)" class="space-y-2">
@@ -170,16 +170,16 @@
                         </form>
                     </div>
 
-                    <!-- LIÊN KẾT EMAIL & NHẬN MÃ OTP (Chủ 1 và Cấp 1) -->
+                    <!-- THAY ĐỔI VÀ LIÊN KẾT EMAIL (BẮT BUỘC XÁC THỰC OTP MỚI ĐỔI ĐƯỢC) -->
                     <div id="handover-section" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-2">
-                        <h4 class="font-bold text-teal-900"><i class="fa-solid fa-envelope mr-1"></i> Xác Thực & Nhận OTP Qua Email</h4>
+                        <h4 class="font-bold text-teal-900"><i class="fa-solid fa-envelope mr-1"></i> Quản Lý & Thay Đổi Email (Xác Thực OTP)</h4>
                         <form onsubmit="verifyHandoverOtp(event)" class="space-y-2">
-                            <input type="email" id="user-email-input" required placeholder="Nhập địa chỉ Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="email" id="user-email-input" required placeholder="Nhập Email mới muốn thay đổi..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <div class="flex gap-2">
                                 <button type="button" onclick="sendHandoverOtp()" class="bg-teal-700 text-white px-3 py-2 rounded-xl font-bold whitespace-nowrap">Gửi Mã OTP Email</button>
                                 <input type="text" id="handover-otp-input" placeholder="Nhập mã OTP..." class="flex-grow bg-white border rounded-xl px-3 py-2">
                             </div>
-                            <button type="submit" class="w-full bg-teal-600 text-white py-2 rounded-xl font-bold">Xác Nhận OTP</button>
+                            <button type="submit" class="w-full bg-teal-600 text-white py-2 rounded-xl font-bold">Xác Nhận Đổi Email Mới</button>
                         </form>
                     </div>
                     
@@ -207,7 +207,6 @@
                         <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2"></select>
                     </div>
 
-                    <!-- TẠO KHU VỰC MỚI (BỎ TIÊU ĐỀ) -->
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
                         <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Chủ Hệ Thống] Tạo Khu Vực Mới</h4>
                         <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
@@ -222,7 +221,6 @@
                         </form>
                     </div>
 
-                    <!-- QUYỀN XÓA KHU VỰC RIÊNG CHO TÀI KHOẢN CHỦ -->
                     <div id="chu-delete-area-box" class="hidden p-3 bg-red-50 rounded-2xl border border-red-200 space-y-2">
                         <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Chủ Hệ Thống] Xóa Khu Vực Đang Chọn</h4>
                         <p class="text-[11px] text-red-700">Hành động này sẽ xóa toàn bộ dữ liệu tin tức, phản ánh và tài khoản của khu vực này vĩnh viễn.</p>
@@ -277,7 +275,6 @@
         </div>
     </div>
 
-    <!-- MODAL QUÊN MẬT KHẨU OTP EMAIL -->
     <div id="forgot-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl text-xs">
             <button onclick="closeForgotModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
