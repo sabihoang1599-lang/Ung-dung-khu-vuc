@@ -29,7 +29,10 @@ function getAreaData(key) {
                 { id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
                 { id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
             ],
-            contacts: [],
+            contacts: [
+                { id: 101, dept: "Công An Xã / Phường", person: "Trực ban", phone: "02923000111" },
+                { id: 102, dept: "Y Tế / Trạm Y Tế", person: "Bác sĩ trực", phone: "02923000222" }
+            ],
             news: [],
             phanAnh: [],
             thuTucDocs: [],
@@ -57,7 +60,10 @@ function getAreaData(key) {
     if(!parsed.banner) parsed.banner = "";
     if(!parsed.ownerEmail) parsed.ownerEmail = "admin.thonxom@gmail.com";
     if(!parsed.accounts) parsed.accounts = [];
-    if(!parsed.contacts) parsed.contacts = [];
+    if(!parsed.contacts) parsed.contacts = [
+        { id: 101, dept: "Công An Xã / Phường", person: "Trực ban", phone: "02923000111" },
+        { id: 102, dept: "Y Tế / Trạm Y Tế", person: "Bác sĩ trực", phone: "02923000222" }
+    ];
     if(!parsed.news) parsed.news = [];
     if(!parsed.phanAnh) parsed.phanAnh = [];
     if(!parsed.thuTucDocs) parsed.thuTucDocs = [];
@@ -433,7 +439,6 @@ function executeLoginSuccess(acc, areaKey) {
     location.reload();
 }
 
-// HỆ THỐNG XÁC NHẬN CÓ / KHÔNG (CUSTOM CONFIRM MODAL)
 let confirmCallback = null;
 
 function showCustomConfirm(title, message, isDanger, callback) {
@@ -982,23 +987,22 @@ function deleteAccount(id) {
 
 function renderSidebarContacts() {
     const container = document.getElementById('sidebar-contacts-list');
-    const headerEmergency = document.getElementById('header-emergency-buttons');
     if(!container) return;
     container.innerHTML = '';
-    if(headerEmergency) headerEmergency.innerHTML = '';
 
-    if(db.contacts.length === 0) {
+    if(!db.contacts || db.contacts.length === 0) {
         container.innerHTML = `<p class="text-gray-400 text-center py-2">Chưa có danh bạ.</p>`;
         return;
     }
 
     db.contacts.forEach(c => {
+        let canDelete = currentUser && currentUser.type === 'cap1';
         container.innerHTML += `
             <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
                 <div><p class="font-bold">${c.dept}</p><p class="text-gray-500 text-[11px]">${c.person} - ${c.phone}</p></div>
                 <div class="flex items-center gap-2">
                     <a href="tel:${c.phone}" class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-phone"></i> Gọi</a>
-                    ${currentUser && currentUser.type === 'cap1' ? `<button onclick="deleteContact(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    ${canDelete ? `<button onclick="deleteContact(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </div>
             </div>
         `;
@@ -1184,7 +1188,7 @@ function submitHopChiBo(e) {
             fileName: fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : "",
             author: currentUser ? currentUser.username : "Cán bộ"
         });
-        saveDB(); closeHopModal(); renderHopChiBo(); alert("Đã đăng lịch họp!"); e.target.reset();
+        saveDB(); closeHopModal(); renderHopChiBo(); alert("Đăng lịch họp thành công!"); e.target.reset();
     };
 
     if(fileInput && fileInput.files && fileInput.files[0]) {
