@@ -26,19 +26,20 @@
 
     <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[880px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col justify-between border-0 md:border-8 md:border-gray-800 relative">
 
-        <header id="app-header-bg" class="bg-gradient-to-br from-travelPrimary to-travelDark text-white p-6 rounded-b-[30px] shadow-lg relative bg-cover bg-center">
-            <div class="absolute inset-0 bg-black/30 rounded-b-[30px] pointer-events-none"></div>
+        <!-- Top Header App: Hiển thị Ảnh Bìa, Ảnh Đại Diện & Tiêu Đề động -->
+        <header id="app-header-bg" class="bg-gradient-to-br from-travelPrimary to-travelDark text-white p-6 rounded-b-[30px] shadow-lg relative bg-cover bg-center transition-all duration-500">
+            <div class="absolute inset-0 bg-black/35 rounded-b-[30px] pointer-events-none"></div>
             <div class="relative z-10">
                 <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border border-white/40 shadow">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-2 border-white/60 shadow-md shrink-0">
                             <img id="header-avatar" src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100" alt="Avatar" class="w-full h-full object-cover">
                         </div>
                         <div>
-                            <h1 class="font-bold text-base tracking-wide flex items-center gap-1">
+                            <span class="text-[10px] uppercase tracking-wider text-teal-200 font-semibold block mb-0.5">Khu Vực Trực Tuyến</span>
+                            <h1 class="font-extrabold text-base tracking-wide text-white drop-shadow-sm flex items-center gap-1">
                                 <span id="display-khu-vuc">Thôn Xóm Bình An</span>
                             </h1>
-                            <p class="text-[11px] text-teal-200">Cổng thông tin trực tuyến</p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
@@ -51,7 +52,7 @@
                     </div>
                 </div>
 
-                <div class="relative mt-2">
+                <div class="relative mt-3">
                     <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-3 rounded-2xl outline-none border border-white/20 shadow-inner">
                     <i class="fa-solid fa-magnifying-glass absolute right-4 top-3.5 text-teal-200 text-xs"></i>
                 </div>
@@ -97,19 +98,16 @@
                 <div id="phan-anh-list-container" class="space-y-3"></div>
             </div>
 
-            <!-- THỦ TỤC HÀNH CHÍNH & TRA CỨU THÔNG MINH INTERNET -->
             <div id="tab-thutuc" class="tab-content hidden space-y-4">
-                <!-- Khung tra cứu thông minh internet -->
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border shadow-sm space-y-3">
                     <h3 class="font-bold text-xs text-travelPrimary flex items-center gap-1.5"><i class="fa-solid fa-earth-asia"></i> Tra Cứu Thủ Tục Hành Chính Trực Tuyến</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="ai-tt-query" placeholder="Nhập tên thủ tục cần tra cứu (VD: làm căn cước, khai sinh)..." class="flex-grow bg-gray-50 dark:bg-gray-900 text-xs border rounded-xl px-3 py-2.5 outline-none">
+                        <input type="text" id="ai-tt-query" placeholder="Nhập tên thủ tục cần tra cứu..." class="flex-grow bg-gray-50 dark:bg-gray-900 text-xs border rounded-xl px-3 py-2.5 outline-none">
                         <button onclick="searchOnlineThuTuc()" class="bg-travelPrimary text-white px-4 py-2 rounded-xl text-xs font-bold shadow">Tra Cứu</button>
                     </div>
                     <div id="ai-search-result-box" class="hidden bg-teal-50/60 dark:bg-gray-900 p-3 rounded-2xl border border-teal-200 text-xs space-y-2"></div>
                 </div>
 
-                <!-- Danh sách biểu mẫu do cán bộ đăng tải -->
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border shadow-sm space-y-3">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-xs text-travelPrimary"><i class="fa-solid fa-file-lines"></i> Kho Biểu Mẫu Cán Bộ Cung Cấp</h3>
@@ -154,24 +152,32 @@
                 </div>
             </div>
 
+            <!-- TAB QUẢN LÝ (Cấp 1 đổi tiêu đề, tải lên avatar và ảnh bìa) -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Hệ Thống & Giao Diện Khu Vực</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
                     
-                    <div id="cap1-custom-area-box" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-2">
-                        <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-palette mr-1"></i> Tùy Chỉnh Giao Diện Trang Khu Vực</h4>
-                        <form onsubmit="saveCap1Customization(event)" class="space-y-2">
-                            <input type="text" id="custom-khu-vuc-title" placeholder="Tên tiêu đề trang khu vực..." class="w-full bg-white border rounded-xl px-3 py-2" required>
+                    <div id="cap1-custom-area-box" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-3">
+                        <h4 class="font-bold text-travelPrimary flex items-center gap-1"><i class="fa-solid fa-palette"></i> Tùy Chỉnh Giao Diện & Tiêu Đề Khu Vực</h4>
+                        <form onsubmit="saveCap1Customization(event)" class="space-y-2.5">
                             <div>
-                                <label class="block text-[11px] font-semibold mb-1">Đổi Ảnh Đại Diện (Avatar URL):</label>
-                                <input type="text" id="custom-avatar-url" placeholder="Dán link ảnh avatar..." class="w-full bg-white border rounded-xl px-3 py-2 mb-1">
+                                <label class="block text-[11px] font-semibold mb-1">Tiêu đề trang (Sửa xong nhấn xác nhận):</label>
+                                <input type="text" id="custom-khu-vuc-title" placeholder="Nhập tiêu đề trang mới..." class="w-full bg-white border rounded-xl px-3 py-2 outline-none" required>
                             </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold mb-1">Đổi Ảnh Bìa Header (URL hình ảnh):</label>
-                                <input type="text" id="custom-banner-url" placeholder="Dán link ảnh bìa header..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border">
+                                <img id="preview-avatar-box" src="" class="w-10 h-10 rounded-full object-cover border" alt="Avatar">
+                                <div class="flex-grow">
+                                    <label class="block text-[11px] font-semibold mb-1">Tải lên Ảnh Đại Diện mới:</label>
+                                    <input type="file" id="custom-avatar-file" accept="image/*" class="text-[10px] w-full">
+                                </div>
                             </div>
-                            <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Lưu Thay Đổi Giao Diện</button>
+                            <div class="space-y-1 bg-white p-2 rounded-xl border">
+                                <label class="block text-[11px] font-semibold">Tải lên Ảnh Bìa (Banner) mới:</label>
+                                <input type="file" id="custom-banner-file" accept="image/*" class="text-[10px] w-full">
+                                <div id="preview-banner-box" class="w-full h-16 rounded-lg bg-cover bg-center border mt-1 hidden"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-travelPrimary text-white py-2.5 rounded-xl font-bold shadow transition hover:bg-teal-800">Xác Nhận Thay Đổi</button>
                         </form>
                     </div>
 
