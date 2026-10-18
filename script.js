@@ -1,5 +1,6 @@
 let currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
+let portalRole = localStorage.getItem('thonxom_portal_role') || null;
 
 if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' && currentUser.khuVuc) {
     currentAreaKey = currentUser.khuVuc;
@@ -71,19 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccountsTable();
     checkRolePermissions();
     initChuMonitorSelect();
+    applyPortalUIVisibility();
     
-    // Kiểm tra xem đã chọn vai trò lúc mở app chưa
-    let portalRole = localStorage.getItem('thonxom_portal_role');
     if(!portalRole) {
         document.getElementById('welcome-role-modal').classList.remove('hidden');
-    } else if(portalRole === 'chibo') {
-        switchTab('tab-quanly');
     }
 });
 
+function applyPortalUIVisibility() {
+    const btnHopChiBo = document.getElementById('btn-tab-hopchibo');
+    const btnQuanLy = document.getElementById('tab-btn-quanly');
+
+    if (portalRole === 'congdong') {
+        if(btnHopChiBo) btnHopChiBo.style.display = 'none';
+        if(btnQuanLy) btnQuanLy.style.display = 'none';
+    } else if (portalRole === 'chibo') {
+        if(btnHopChiBo) btnHopChiBo.style.display = 'block';
+        if(btnQuanLy) btnQuanLy.style.display = 'block';
+    }
+}
+
 function selectPortalRole(role) {
+    portalRole = role;
     localStorage.setItem('thonxom_portal_role', role);
     document.getElementById('welcome-role-modal').classList.add('hidden');
+    applyPortalUIVisibility();
 
     if(role === 'chibo') {
         switchTab('tab-quanly');
@@ -94,6 +107,11 @@ function selectPortalRole(role) {
 
 function resetAppPortal() {
     localStorage.removeItem('thonxom_portal_role');
+    portalRole = null;
+    const btnHopChiBo = document.getElementById('btn-tab-hopchibo');
+    const btnQuanLy = document.getElementById('tab-btn-quanly');
+    if(btnHopChiBo) btnHopChiBo.style.display = 'block';
+    if(btnQuanLy) btnQuanLy.style.display = 'block';
     document.getElementById('welcome-role-modal').classList.remove('hidden');
 }
 
@@ -149,6 +167,11 @@ function initAppConfig() {
 }
 
 function switchTab(tabId) {
+    if(portalRole === 'congdong' && (tabId === 'tab-hopchibo' || tabId === 'tab-quanly')) {
+        alert("Khu vực cộng đồng không có quyền truy cập mục này!");
+        return;
+    }
+
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.getElementById(tabId).classList.remove('hidden');
 
@@ -208,7 +231,7 @@ function handleLogin(e) {
         renderAccountsTable();
         renderSidebarContacts();
         initAppConfig();
-        alert("Đăng nhập thành công!");
+        alert(`Đăng nhập thành công với tư cách: ${currentUser.hoten}!`);
         location.reload();
     } else {
         alert("Sai tên đăng nhập hoặc mật khẩu!");
@@ -239,7 +262,7 @@ function sendForgotOtp() {
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     for(let k of allKeys) {
         let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'andanh' || a.type === 'cap1'));
+        let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'andanh' || a.type === 'cap1' || a.type === 'cap2'));
         if(acc) {
             targetAcc = acc;
             break;
@@ -373,7 +396,7 @@ function checkRolePermissions() {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
 
-        let roleName = currentUser.type === 'chu' ? 'Quản Trị Hệ Thống' : (currentUser.type === 'andanh' ? 'Quản Trị Hệ Thống' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
+        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Cấp Quyền' : (currentUser.type === 'andanh' ? 'Tài Khoản Quản Trị Ẩn' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
         if(currentUser.type === 'chu') {
