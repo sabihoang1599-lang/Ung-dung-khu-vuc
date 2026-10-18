@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel Adventure - Kết Nối Thôn Xóm</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- File CSS -->
     <link rel="stylesheet" href="style.css">
     <script>
         tailwind.config = {
@@ -27,10 +24,8 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans antialiased min-h-screen flex justify-center items-center p-0 md:p-4">
 
-    <!-- Khung Màn Hình App -->
     <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[880px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col justify-between border-0 md:border-8 md:border-gray-800 relative">
 
-        <!-- Top Header App -->
         <header class="bg-gradient-to-br from-travelPrimary to-travelDark text-white p-6 rounded-b-[30px] shadow-lg relative">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center space-x-3">
@@ -54,14 +49,12 @@
                 </div>
             </div>
 
-            <!-- Search Bar -->
             <div class="relative mt-2">
                 <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-3 rounded-2xl outline-none border border-white/20 shadow-inner">
                 <i class="fa-solid fa-magnifying-glass absolute right-4 top-3.5 text-teal-200 text-xs"></i>
             </div>
         </header>
 
-        <!-- Navigation Tabs Ngang -->
         <nav class="bg-white dark:bg-gray-900 border-b dark:border-gray-800 px-4 py-2 overflow-x-auto scrollbar-none flex space-x-2 shrink-0">
             <button onclick="switchTab('tab-tintuc')" id="btn-tab-tintuc" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-travelPrimary border border-teal-200 transition whitespace-nowrap">Tin Tức</button>
             <button onclick="switchTab('tab-phananh')" id="btn-tab-phananh" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Phản Ánh</button>
@@ -72,10 +65,8 @@
             <button id="tab-btn-quanly" onclick="switchTab('tab-quanly')" class="tab-btn hidden px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 transition whitespace-nowrap">Quản Lý</button>
         </nav>
 
-        <!-- Main Content -->
         <main class="flex-grow overflow-y-auto p-4 space-y-4">
             
-            <!-- TAB 1: TIN TỨC -->
             <div id="tab-tintuc" class="tab-content space-y-4">
                 <div class="flex justify-between items-center">
                     <h3 class="font-bold text-sm text-gray-700 dark:text-gray-200">Bản Tin & Hoạt Động</h3>
@@ -84,7 +75,6 @@
                 <div id="news-feed-list" class="grid grid-cols-1 gap-3"></div>
             </div>
 
-            <!-- TAB 2: PHẢN ÁNH -->
             <div id="tab-phananh" class="tab-content hidden space-y-4">
                 <div class="bg-teal-50 dark:bg-gray-800 p-4 rounded-3xl border border-teal-100 dark:border-gray-700 space-y-3 shadow-sm">
                     <h3 class="font-bold text-xs text-travelPrimary dark:text-teal-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Gửi Phản Ánh Trực Tuyến</h3>
@@ -104,7 +94,6 @@
                 <div id="phan-anh-list-container" class="space-y-3"></div>
             </div>
 
-            <!-- TAB 3: THỦ TỤC AI -->
             <div id="tab-thutuc" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border shadow-sm space-y-3">
                     <h3 class="font-bold text-xs text-travelPrimary"><i class="fa-solid fa-wand-magic-sparkles"></i> Tra Cứu Thủ Tục AI</h3>
@@ -125,19 +114,16 @@
                 <div id="thutuc-doc-list" class="space-y-2"></div>
             </div>
 
-            <!-- TAB 4: HỌP CHI BỘ -->
             <div id="tab-hopchibo" class="tab-content hidden space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xs">Hợp Chi Bộ & Tài Liệu</h3><div id="action-add-hop-container"></div></div>
                 <div id="hop-chibo-list" class="space-y-3"></div>
             </div>
 
-            <!-- TAB 5: BIỂU QUYẾT -->
             <div id="tab-bieuquyet" class="tab-content hidden space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xs">Biểu Quyết & Bình Chọn</h3><div id="action-add-bq-container"></div></div>
                 <div id="bieu-quyet-list" class="space-y-3"></div>
             </div>
 
-            <!-- TAB 6: CHAT -->
             <div id="tab-livechat" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border flex flex-col h-[400px] shadow-sm">
                     <h3 class="font-bold text-xs border-b pb-2 mb-3">Phòng Chat Trực Tuyến</h3>
@@ -150,43 +136,39 @@
                 </div>
             </div>
 
-            <!-- TAB 7: QUẢN LÝ -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Hệ Thống & Phân Vùng</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
                     
-                    <!-- Phần tích chọn khu vực giám sát cho Tài Khoản Chủ -->
                     <div id="chu-monitor-box" class="hidden p-3 bg-purple-50 rounded-2xl border border-purple-200 space-y-2">
                         <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Chủ: Chọn Khu Vực Giám Sát</h4>
-                        <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2">
-                            <!-- Danh sách khu vực -->
-                        </select>
+                        <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2"></select>
                     </div>
 
-                    <!-- Phần Chủ cấp tên khu vực cho Cấp 1 -->
+                    <!-- Phần Chủ cấp khu vực kèm tạo tài khoản cán bộ mới -->
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> Cấp Tên Khu Vực Cho Cán Bộ Cấp 1</h4>
-                        <form onsubmit="chuAssignArea(event)" class="space-y-2">
-                            <select id="chu-select-cap1" class="w-full bg-white border rounded-xl px-3 py-2" required>
-                                <option value="">-- Chọn tài khoản Cấp 1 --</option>
-                            </select>
-                            <input type="text" id="chu-new-area-name" required placeholder="Nhập tên khu vực mới (VD: No Tôm)..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Gán Khu Vực</button>
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> Cấp Khu Vực & Tạo Tài Khoản Cán Bộ Cấp 1</h4>
+                        <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
+                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực mới (VD: No Tôm)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-acc-hoten" required placeholder="Họ và tên cán bộ..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-acc-username" required placeholder="Tên đăng nhập (Viết liền, hoa đầu, VD: CanBoNoTom)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="tel" id="chu-acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="password" id="chu-acc-password" required placeholder="Mật khẩu (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Tạo Khu Vực & Tài Khoản</button>
                         </form>
                     </div>
 
-                    <!-- Cấp tài khoản mới (Cấp 1 có quyền cấp thêm Cấp 1 đồng quyền & Cấp 2) -->
                     <div id="account-create-section" class="hidden space-y-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
                         <h4 class="font-bold">Cấp Phát Tài Khoản Mới</h4>
                         <form onsubmit="createNewAccount(event)" class="space-y-2">
                             <input type="text" id="acc-hoten" required placeholder="Họ và tên..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập (Viết liền, hoa đầu, VD: CanBoMoi)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập (Viết liền, hoa đầu)..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="password" id="acc-password" required placeholder="Mật khẩu (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <select id="acc-type" class="w-full bg-white border rounded-xl px-3 py-2">
                                 <option value="cap1">Tài khoản Cấp 1 (Đồng quyền Cán bộ)</option>
-                                <option value="cap2">Tài khoản Cấp 2 (Đảng viên - Chỉ xem & đăng bài)</option>
+                                <option value="cap2">Tài khoản Cấp 2 (Đảng viên - Chỉ xem)</option>
                             </select>
                             <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Cấp Tài Khoản</button>
                         </form>
@@ -201,7 +183,6 @@
 
         </main>
 
-        <!-- Footer -->
         <footer class="bg-white dark:bg-gray-900 border-t p-3 flex justify-around items-center shrink-0">
             <div id="header-emergency-buttons" class="flex gap-2"></div>
             <button onclick="openContactModal()" class="text-xs bg-teal-50 text-travelPrimary px-3 py-1.5 rounded-full font-bold border border-teal-200">Danh Bạ</button>
@@ -264,10 +245,11 @@
         </div>
     </div>
 
+    <!-- Modal Danh Bạ: Nhập tay độc lập từng khu vực, tối đa 10 mục -->
     <div id="contact-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative shadow-2xl text-xs max-h-[85vh] overflow-y-auto">
             <button onclick="closeContactModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-sm">Danh Bạ & Phụ Trách</h3>
+            <h3 class="font-bold text-sm">Danh Bạ Khu Vực (Tối đa 10 mục)</h3>
             <div id="contact-add-section" class="hidden p-3 bg-teal-50 rounded-2xl border space-y-2">
                 <h4 class="font-bold text-travelPrimary">Thêm Danh Bạ Thủ Công</h4>
                 <form onsubmit="saveNewContact(event)" class="space-y-2">
