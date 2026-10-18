@@ -36,7 +36,7 @@
             </div>
             <div class="space-y-3 pt-1">
                 <button onclick="selectPortalRole('chibo')" class="w-full bg-gradient-to-r from-travelPrimary to-travelDark text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition hover:opacity-95 flex items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-user-shield text-sm"></i> Mục 1: Chi Bộ (Đăng Nhập Quản Trị)
+                    <i class="fa-solid fa-user-shield text-sm"></i> Mục 1: Chi Bộ (Cấp Quyền, Cấp 1, Cấp 2)
                 </button>
                 <button onclick="selectPortalRole('congdong')" class="w-full bg-gray-100 dark:bg-gray-800 hover:bg-teal-50 text-gray-700 dark:text-gray-200 font-bold py-3.5 px-4 rounded-2xl transition border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2 text-xs">
                     <i class="fa-solid fa-users text-sm text-travelPrimary"></i> Mục 2: Cộng Đồng (Xem & Tương Tác)
@@ -97,7 +97,7 @@
             </div>
         </header>
 
-        <nav class="bg-white dark:bg-gray-900 border-b dark:border-gray-800 px-4 py-2 overflow-x-auto scrollbar-none flex space-x-2 shrink-0">
+        <nav id="app-nav-bar" class="bg-white dark:bg-gray-900 border-b dark:border-gray-800 px-4 py-2 overflow-x-auto scrollbar-none flex space-x-2 shrink-0">
             <button onclick="switchTab('tab-tintuc')" id="btn-tab-tintuc" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-travelPrimary border border-teal-200 transition whitespace-nowrap">Tin Tức</button>
             <button onclick="switchTab('tab-phananh')" id="btn-tab-phananh" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Phản Ánh</button>
             <button onclick="switchTab('tab-thutuc')" id="btn-tab-thutuc" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Thủ Tục Hành Chính</button>
@@ -197,7 +197,7 @@
                     <div class="text-center space-y-2">
                         <i class="fa-solid fa-user-shield text-3xl text-travelPrimary"></i>
                         <h3 class="font-bold text-base">Khu Vực Quản Trị Hệ Thống (Chi Bộ)</h3>
-                        <p class="text-gray-500">Vui lòng đăng nhập tài khoản có thẩm quyền để truy cập các tính năng quản lý.</p>
+                        <p class="text-gray-500">Đăng nhập tài khoản Cấp Quyền, Cấp 1 hoặc Cấp 2 để truy cập:</p>
                     </div>
                     <form onsubmit="handleLogin(event)" class="space-y-3 pt-2">
                         <input type="text" id="inline-login-username" required placeholder="Tên đăng nhập..." class="w-full border rounded-xl px-3 py-3 outline-none bg-gray-50 dark:bg-gray-900">
