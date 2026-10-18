@@ -123,6 +123,13 @@ function handleLogin(e) {
     }
 }
 
+function handleLogout() {
+    localStorage.removeItem('thonxom_logged_user');
+    currentUser = null;
+    alert("Đã đăng xuất thành công!");
+    location.reload();
+}
+
 function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
 function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
 
@@ -136,9 +143,10 @@ function checkRolePermissions() {
     const chuMonitorBox = document.getElementById('chu-monitor-box');
     const accountCreateSec = document.getElementById('account-create-section');
     const cap1CustomBox = document.getElementById('cap1-custom-area-box');
-    const authBtnText = document.getElementById('auth-btn-text');
+    const authActionContainer = document.getElementById('auth-action-container');
     const currentUserBadge = document.getElementById('current-user-badge');
     const contactAddSec = document.getElementById('contact-add-section');
+    const btnBqNoiBo = document.getElementById('btn-bq-noibo');
 
     if(addNewsContainer) addNewsContainer.innerHTML = '';
     if(addHopContainer) addHopContainer.innerHTML = '';
@@ -150,9 +158,17 @@ function checkRolePermissions() {
     if(accountCreateSec) accountCreateSec.classList.add('hidden');
     if(cap1CustomBox) cap1CustomBox.classList.add('hidden');
     if(contactAddSec) contactAddSec.classList.add('hidden');
+    if(btnBqNoiBo) btnBqNoiBo.classList.add('hidden');
 
     if(currentUser) {
-        authBtnText.innerText = currentUser.username;
+        if(authActionContainer) {
+            authActionContainer.innerHTML = `
+                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1" title="Đăng xuất">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                </button>
+            `;
+        }
+
         let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ (Giám Sát)' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ - Đồng quyền)' : 'Cấp 2 (Đảng viên - Chỉ xem)');
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Số hóa đầu làng: <b>${db.khuVuc}</b>`;
 
@@ -164,8 +180,9 @@ function checkRolePermissions() {
             if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
-            if(cap1CustomBox) cap1CustomBox.classList.remove('hidden'); // Cấp 1 chỉ đổi Avatar & Banner
+            if(cap1CustomBox) cap1CustomBox.classList.remove('hidden');
             if(contactAddSec) contactAddSec.classList.remove('hidden');
+            if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden'); // CẤP 1 THẤY TAB NỘI BỘ
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
@@ -176,14 +193,25 @@ function checkRolePermissions() {
                 bannerPrev.style.backgroundImage = `url('${db.banner}')`;
                 bannerPrev.classList.remove('hidden');
             }
+        } else if(currentUser.type === 'cap2') {
+            if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden'); // CẤP 2 CŨNG THẤY TAB NỘI BỘ ĐỂ THAO TÁC
         }
     } else {
-        authBtnText.innerText = "Đăng Nhập";
+        if(authActionContainer) {
+            authActionContainer.innerHTML = `
+                <button onclick="openLoginModal()" class="bg-white text-travelPrimary px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1">
+                    <i class="fa-solid fa-user-lock"></i> <span>Đăng Nhập</span>
+                </button>
+            `;
+        }
         if(currentUserBadge) currentUserBadge.innerHTML = "Chưa đăng nhập";
+        if(activeBqTab === 'noibo') {
+            switchBqTab('congdong');
+        }
     }
+    renderBieuQuyet();
 }
 
-// Cấp 1 CHỈ ĐƯỢC TẢI LÊN AVATAR VÀ BANNER, KHÔNG ĐƯỢC ĐỔI TIÊU ĐỀ HAY TÊN KHU VỰC
 function saveCap1Customization(e) {
     e.preventDefault();
     const avatarFile = document.getElementById('custom-avatar-file').files[0];
@@ -247,7 +275,6 @@ function switchChuMonitorArea(areaName) {
     location.reload();
 }
 
-// CHỈ TÀI KHOẢN CHỦ MỚI CÓ QUYỀN TẠO TÊN KHU VỰC VÀ TIÊU ĐỀ TRANG
 function chuAssignAreaAndAccount(e) {
     e.preventDefault();
     const newAreaName = document.getElementById('chu-new-area-name').value.trim();
@@ -260,7 +287,7 @@ function chuAssignAreaAndAccount(e) {
 
     if(!newAreaName || !newAreaTitle) { alert("Vui lòng nhập tên khu vực và tiêu đề trang!"); return; }
     if(!validateUsername(username)) {
-        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: CanBoPhuocLoc)!"); return;
+        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return;
     }
     if(!validatePassword(password)) {
         alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
@@ -279,7 +306,7 @@ function chuAssignAreaAndAccount(e) {
         khuVuc: newAreaName
     });
     localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
-    alert(`Đã tạo khu vực "${newAreaName}" (Tiêu đề: ${newAreaTitle}) thành công!`);
+    alert(`Đã tạo khu vực "${newAreaName}" thành công!`);
     location.reload();
 }
 
@@ -569,9 +596,16 @@ function renderHopChiBo() {
 
 let activeBqTab = 'congdong';
 function switchBqTab(tab) {
+    if(tab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu'))) {
+        alert("Chỉ tài khoản Cấp 1 và Cấp 2 mới có quyền xem nội bộ!");
+        return; 
+    }
     activeBqTab = tab;
     document.getElementById('btn-bq-congdong').className = tab === 'congdong' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
-    document.getElementById('btn-bq-noibo').className = tab === 'noibo' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
+    let btnNoiBo = document.getElementById('btn-bq-noibo');
+    if(btnNoiBo && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu')) {
+        btnNoiBo.className = tab === 'noibo' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
+    }
     renderBieuQuyet();
 }
 
@@ -586,18 +620,41 @@ function submitBieuQuyet(e) {
         id: Date.now(),
         title: document.getElementById('bq-title').value.trim(),
         options: document.getElementById('bq-options').value.split(',').map(o => o.trim()),
-        type: document.getElementById('bq-type').value
+        type: document.getElementById('bq-type').value,
+        votes: {}
     });
     saveDB(); closeBqModal(); renderBieuQuyet(); alert("Đã phát động biểu quyết!"); e.target.reset();
 }
+
+function voteBieuQuyet(bqId, optionIndex) {
+    let bq = db.bieuQuyet.find(b => b.id === bqId);
+    if(bq) {
+        if(bq.type === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu'))) {
+            alert("Bạn không có quyền thao tác bình chọn nội bộ!");
+            return;
+        }
+        if(!bq.votes) bq.votes = {};
+        let voterName = currentUser ? currentUser.username : ('Khách_' + Math.floor(Math.random()*1000));
+        bq.votes[voterName] = optionIndex;
+        saveDB();
+        renderBieuQuyet();
+        alert("Đã bỏ phiếu thành công!");
+    }
+}
+
 function renderBieuQuyet() {
     const list = document.getElementById('bieu-quyet-list');
     if(!list) return;
     list.innerHTML = '';
 
+    // Nếu cố tình ở tab nội bộ mà không phải Cấp 1, Cấp 2 hoặc Chủ thì ẩn luôn
+    if(activeBqTab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu'))) {
+        activeBqTab = 'congdong';
+    }
+
     let filtered = db.bieuQuyet.filter(b => {
         if(activeBqTab === 'congdong') return b.type === 'congdong' || !b.type;
-        return b.type === 'noibo';
+        return b.type === 'noibo' && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu');
     });
 
     if(filtered.length === 0) {
@@ -606,17 +663,26 @@ function renderBieuQuyet() {
     }
 
     filtered.forEach(b => {
-        let badge = b.type === 'noibo' ? '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Nội bộ (Cấp 1)</span>' : '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">Cộng đồng</span>';
+        let badge = b.type === 'noibo' ? '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Nội bộ (Cấp 1 & 2)</span>' : '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">Cộng đồng</span>';
         
-        if(b.type === 'noibo' && currentUser && currentUser.type === 'cap2') {
-            list.innerHTML += `<div class="p-4 bg-white dark:bg-gray-800 rounded-2xl border text-xs shadow-sm space-y-1"><div class="flex justify-between"><h4 class="font-bold text-travelPrimary">${b.title}</h4>${badge}</div><p class="text-red-500 italic text-[11px]">Biểu quyết này chỉ dành cho nội bộ tài khoản Cấp 1.</p></div>`;
-            return;
-        }
+        let optionsHtml = '';
+        b.options.forEach((opt, idx) => {
+            let count = 0;
+            if(b.votes) {
+                Object.values(b.votes).forEach(val => { if(val === idx) count++; });
+            }
+            optionsHtml += `
+                <button onclick="voteBieuQuyet(${b.id}, ${idx})" class="w-full text-left p-2 bg-gray-50 dark:bg-gray-900 hover:bg-teal-50 border rounded-xl flex justify-between items-center transition">
+                    <span><i class="fa-regular fa-circle-check text-teal-600 mr-1.5"></i> ${opt}</span>
+                    <span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-[10px] font-bold">${count} phiếu</span>
+                </button>
+            `;
+        });
 
         list.innerHTML += `
-            <div class="p-4 bg-white dark:bg-gray-800 rounded-2xl border text-xs shadow-sm space-y-1.5">
-                <div class="flex justify-between items-center"><h4 class="font-bold text-travelPrimary">${b.title}</h4>${badge}</div>
-                <p class="text-gray-500">Phương án: ${b.options.join(', ')}</p>
+            <div class="p-4 bg-white dark:bg-gray-800 rounded-2xl border text-xs shadow-sm space-y-2">
+                <div class="flex justify-between items-center"><h4 class="font-bold text-travelPrimary text-sm">${b.title}</h4>${badge}</div>
+                <div class="space-y-1.5">${optionsHtml}</div>
             </div>
         `;
     });
@@ -652,7 +718,7 @@ function searchOnlineThuTuc() {
             <p class="font-bold text-travelPrimary"><i class="fa-solid fa-circle-check text-teal-600 mr-1"></i> Kết quả tra cứu trực tuyến cho: "${query}"</p>
             <div class="space-y-1 text-gray-700 dark:text-gray-300 mt-1">
                 <p><b>1. Hồ sơ cần chuẩn bị:</b> Giấy tờ tùy thân bản chính, tờ khai hành chính theo mẫu.</p>
-                <p><b>2. Quy trình thực hiện:</b> Nộp hồ sơ trực tuyến qua cổng dịch vụ công quốc gia hoặc trực tiếp tại bộ phận một cấp xã/phường.</p>
+                <p><b>2. Quy trình thực hiện:</b> Nộp hồ sơ trực tuyến qua cổng dịch vụ công quốc gia hoặc trực tiếp tại bộ phận một cửa xã/phường.</p>
                 <p><b>3. Thời gian giải quyết:</b> Từ 01 đến 03 ngày làm việc.</p>
                 <p class="text-[10px] text-teal-700 italic mt-1">Nguồn dữ liệu tổng hợp tự động từ Cổng Dịch Vụ Công Quốc Gia và hệ thống hành chính công.</p>
             </div>
