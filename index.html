@@ -105,7 +105,7 @@
         <nav id="app-nav-bar" class="bg-white dark:bg-gray-900 border-b dark:border-gray-800 px-4 py-2 overflow-x-auto scrollbar-none flex space-x-2 shrink-0">
             <button onclick="switchTab('tab-tintuc')" id="btn-tab-tintuc" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-travelPrimary border border-teal-200 transition whitespace-nowrap">Tin Tức</button>
             <button onclick="switchTab('tab-phananh')" id="btn-tab-phananh" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Phản Ánh</button>
-            <button onclick="switchTab('tab-thutuc')" id="btn-tab-thutuc" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Thủ Tục Hành Chính</button>
+            <button onclick="switchTab('tab-thutuc')" id="btn-tab-thutuc" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Thủ Tục</button>
             <button onclick="switchTab('tab-hopchibo')" id="btn-tab-hopchibo" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Họp Chi Bộ</button>
             <button onclick="switchTab('tab-bieuquyet')" id="btn-tab-bieuquyet" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Biểu Quyết</button>
             <button onclick="switchTab('tab-livechat')" id="btn-tab-livechat" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Chat</button>
@@ -224,11 +224,11 @@
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
                         <button onclick="promptLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất Tài Khoản
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
                         </button>
                     </div>
 
-                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU CÓ HIỆN MẬT KHẨU -->
+                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU CÁ NHÂN -->
                     <div id="change-credentials-box" class="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border space-y-2">
                         <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-key mr-1"></i> Thay Đổi Tên Đăng Nhập & Mật Khẩu Cá Nhân</h4>
                         <form onsubmit="updateMyCredentials(event)" class="space-y-2">
@@ -246,7 +246,7 @@
                     <!-- CHỈNH SỬA TÊN KHU VỰC, PHƯỜNG XÃ, TỈNH THÀNH (DÀNH CHO CẢ 2 TÀI KHOẢN CHỦ) -->
                     <div id="chu-edit-area-details-box" class="hidden p-3 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
                         <h4 class="font-bold text-emerald-900"><i class="fa-solid fa-pen-to-square mr-1"></i> [Cấp Quyền] Chỉnh Sửa Tên Khu Vực & Địa Chỉ</h4>
-                        <form onsubmit="saveAreaDetailsByChu(event)" class="space-y-2">
+                        <form onsubmit="promptSaveAreaDetails(event)" class="space-y-2">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-600 mb-1">Tên Khu Vực / Thôn Xóm:</label>
                                 <input type="text" id="edit-area-name" required placeholder="Tên khu vực..." class="w-full bg-white border rounded-xl px-3 py-2">
@@ -297,7 +297,7 @@
 
                     <!-- PHÂN CẤP CHỌN KHU VỰC GIÁM SÁT CHO TÀI KHOẢN CẤP QUYỀN -->
                     <div id="chu-monitor-box" class="hidden p-3 bg-purple-50 rounded-2xl border border-purple-200 space-y-2.5">
-                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Cấp Quyền khu vực: Chọn Khu Vực Giám Sát</h4>
+                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Cấp Quyền: Chọn Khu Vực Giám Sát</h4>
                         <div class="space-y-2">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-600 mb-1">1. Chọn Tỉnh / Thành phố:</label>
@@ -315,7 +315,7 @@
                     </div>
 
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Tài Khoản Cấp Quyền khu vực] Tạo Khu Vực Mới</h4>
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Cấp Quyền] Tạo Khu Vực Mới</h4>
                         <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
                             <input type="text" id="chu-new-tinh" required placeholder="Tỉnh / Thành phố..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-new-phuong" required placeholder="Phường / Xã..." class="w-full bg-white border rounded-xl px-3 py-2">
@@ -335,7 +335,7 @@
                     </div>
 
                     <div id="chu-delete-area-box" class="hidden p-3 bg-red-50 rounded-2xl border border-red-200 space-y-2">
-                        <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Tài Khoản Cấp Quyền khu vực] Xóa Khu Vực Đang Chọn</h4>
+                        <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Cấp Quyền] Xóa Khu Vực Đang Chọn</h4>
                         <p class="text-[11px] text-red-700">Hành động này sẽ xóa toàn bộ dữ liệu tin tức, phản ánh và tài khoản của khu vực này vĩnh viễn.</p>
                         <button onclick="promptDeleteArea()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold">Xóa Khu Vực Này</button>
                     </div>
@@ -354,7 +354,7 @@
                                 </button>
                             </div>
                             <select id="acc-type" class="w-full bg-white border rounded-xl px-3 py-2">
-                                <option value="cap1">Tài khoản Cấp 1 (Đồng quyền Cán bộ)</option>
+                                <option value="cap1">Tài khoản Cấp 1 (Cán bộ)</option>
                                 <option value="cap2">Tài khoản Cấp 2 (Đảng viên - Chỉ xem)</option>
                             </select>
                             <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Cấp Tài Khoản</button>
@@ -379,7 +379,7 @@
     <!-- MODAL XÁC NHẬN CHUNG (CÓ / KHÔNG) -->
     <div id="custom-confirm-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[30px] p-6 max-w-xs w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
-            <div id="confirm-icon-box" class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
+            <div id="confirm-icon-box" class="w-14 h-14 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <div class="space-y-1">
@@ -388,7 +388,7 @@
             </div>
             <div class="flex gap-2 pt-2">
                 <button onclick="closeCustomConfirm(false)" class="w-1/2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Không</button>
-                <button id="confirm-yes-btn" onclick="closeCustomConfirm(true)" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">Có</button>
+                <button id="confirm-yes-btn" onclick="closeCustomConfirm(true)" class="w-1/2 bg-travelPrimary hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">Có</button>
             </div>
         </div>
     </div>
