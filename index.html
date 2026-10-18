@@ -45,18 +45,18 @@
         </div>
     </div>
 
-    <!-- MODAL CHỌN KHU VỰC CHO CỘNG ĐỒNG -->
+    <!-- MODAL CHỌN KHU VỰC PHÂN CẤP CỘNG ĐỒNG (TỈNH -> PHƯỜNG -> KHU VỰC) -->
     <div id="community-area-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
                 <i class="fa-solid fa-map-location-dot"></i>
             </div>
             <div class="space-y-1">
-                <h3 class="font-bold text-base text-travelPrimary">Chọn Khu Vực Cộng Đồng</h3>
-                <p class="text-xs text-gray-500">Chọn đúng thôn xóm/khu vực của bạn để kết nối thông tin:</p>
+                <h3 id="comm-modal-title" class="font-bold text-base text-travelPrimary">Chọn Tỉnh / Thành Phố</h3>
+                <p id="comm-modal-subtitle" class="text-xs text-gray-500">Lựa chọn khu vực sinh sống của bạn:</p>
             </div>
-            <div id="community-area-list" class="space-y-2 max-h-48 overflow-y-auto text-xs pr-1"></div>
-            <button onclick="backToWelcomeModal()" class="text-xs text-gray-400 hover:underline pt-1 block mx-auto">← Quay lại chọn vai trò</button>
+            <div id="community-selector-list" class="space-y-2 max-h-48 overflow-y-auto text-xs pr-1"></div>
+            <button onclick="backCommunityStep()" id="comm-back-btn" class="text-xs text-gray-400 hover:underline pt-1 hidden mx-auto">← Quay lại bước trước</button>
         </div>
     </div>
 
@@ -81,8 +81,8 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="resetAppPortal()" class="bg-white/15 hover:bg-white/25 text-white p-2 rounded-full transition text-[11px]" title="Đổi Vai Trò / Khu Vực">
-                            <i class="fa-solid fa-rotate text-xs"></i>
+                        <button onclick="exitAppPortal()" class="bg-white/15 hover:bg-white/25 text-white px-2.5 py-1.5 rounded-xl transition text-[11px] font-bold flex items-center gap-1" title="Thoát ra màn hình chọn">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Thoát
                         </button>
                         <button onclick="toggleDarkMode()" class="bg-white/15 hover:bg-white/25 text-white p-2 rounded-full transition" title="Đổi Sáng/Tối">
                             <i id="dark-mode-icon" class="fa-solid fa-moon text-xs"></i>
@@ -218,8 +218,8 @@
                 <div id="logged-in-manager-view" class="hidden bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
-                        <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1">
-                            <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                        <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất Tài Khoản
                         </button>
                     </div>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
@@ -279,8 +279,9 @@
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
                         <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Tài Khoản Cấp Quyền] Tạo Khu Vực Mới</h4>
                         <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
-                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="text" id="chu-new-phuong-tinh" required placeholder="Phường / Xã & Tỉnh..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-tinh" required placeholder="Tỉnh / Thành phố..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-phuong" required placeholder="Phường / Xã..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực / Thôn xóm..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-acc-hoten" required placeholder="Họ và tên cán bộ Cấp 1..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-acc-username" required placeholder="Tên đăng nhập..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="email" id="chu-acc-email" required placeholder="Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
