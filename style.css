@@ -1,4 +1,3 @@
-/* Tùy chỉnh phong cách Travel Adventure & Thanh cuộn mượt */
 ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -20,7 +19,6 @@ body {
     background: #030712;
 }
 
-/* Hiệu ứng chuyển card mượt mà */
 .transition-all {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
