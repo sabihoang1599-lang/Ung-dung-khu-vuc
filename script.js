@@ -164,14 +164,12 @@ function checkRolePermissions() {
             if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
-            if(cap1CustomBox) cap1CustomBox.classList.remove('hidden');
+            if(cap1CustomBox) cap1CustomBox.classList.remove('hidden'); // Cấp 1 chỉ đổi Avatar & Banner
             if(contactAddSec) contactAddSec.classList.remove('hidden');
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
 
-            document.getElementById('custom-khu-vuc-title').value = db.displayTitle || db.khuVuc;
-            document.getElementById('custom-phuong-tinh').value = db.phuongTinh || "Phường An Khánh, TP. Cần Thơ";
             document.getElementById('preview-avatar-box').src = db.avatar;
             if(db.banner) {
                 let bannerPrev = document.getElementById('preview-banner-box');
@@ -185,23 +183,15 @@ function checkRolePermissions() {
     }
 }
 
-// Cấp 1 chỉ đổi tiêu đề, phường/tỉnh, avatar, banner - TUYỆT ĐỐI KHÔNG ĐỔI TÊN KHU VỰC GỐC
+// Cấp 1 CHỈ ĐƯỢC TẢI LÊN AVATAR VÀ BANNER, KHÔNG ĐƯỢC ĐỔI TIÊU ĐỀ HAY TÊN KHU VỰC
 function saveCap1Customization(e) {
     e.preventDefault();
-    const newTitle = document.getElementById('custom-khu-vuc-title').value.trim();
-    const newPhuongTinh = document.getElementById('custom-phuong-tinh').value.trim();
     const avatarFile = document.getElementById('custom-avatar-file').files[0];
     const bannerFile = document.getElementById('custom-banner-file').files[0];
 
-    if(!newTitle) { alert("Nhập tiêu đề trang!"); return; }
-    if(!newPhuongTinh) { alert("Nhập thông tin phường và thành phố/tỉnh!"); return; }
-
-    db.displayTitle = newTitle;
-    db.phuongTinh = newPhuongTinh;
-
     let processSave = () => {
         saveDB();
-        alert("Đã cập nhật giao diện Số Hóa Đầu Làng thành công!");
+        alert("Đã cập nhật ảnh đại diện và ảnh bìa thành công!");
         location.reload();
     };
 
@@ -209,7 +199,7 @@ function saveCap1Customization(e) {
     let totalFiles = (avatarFile ? 1 : 0) + (bannerFile ? 1 : 0);
 
     if (totalFiles === 0) {
-        processSave();
+        alert("Vui lòng chọn ít nhất một hình ảnh để tải lên!");
         return;
     }
 
@@ -257,23 +247,28 @@ function switchChuMonitorArea(areaName) {
     location.reload();
 }
 
+// CHỈ TÀI KHOẢN CHỦ MỚI CÓ QUYỀN TẠO TÊN KHU VỰC VÀ TIÊU ĐỀ TRANG
 function chuAssignAreaAndAccount(e) {
     e.preventDefault();
     const newAreaName = document.getElementById('chu-new-area-name').value.trim();
+    const newAreaTitle = document.getElementById('chu-new-area-title').value.trim();
+    const newPhuongTinh = document.getElementById('chu-new-phuong-tinh').value.trim();
     const hoten = document.getElementById('chu-acc-hoten').value.trim();
     const username = document.getElementById('chu-acc-username').value.trim();
     const sdt = document.getElementById('chu-acc-sdt').value.trim();
     const password = document.getElementById('chu-acc-password').value.trim();
 
-    if(!newAreaName) { alert("Vui lòng nhập tên khu vực!"); return; }
+    if(!newAreaName || !newAreaTitle) { alert("Vui lòng nhập tên khu vực và tiêu đề trang!"); return; }
     if(!validateUsername(username)) {
-        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: CanBoNoTom)!"); return;
+        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: CanBoPhuocLoc)!"); return;
     }
     if(!validatePassword(password)) {
         alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
     }
 
     let newAreaData = getAreaData(newAreaName);
+    newAreaData.displayTitle = newAreaTitle;
+    newAreaData.phuongTinh = newPhuongTinh;
     newAreaData.accounts.push({
         id: Date.now(),
         hoten,
@@ -284,7 +279,7 @@ function chuAssignAreaAndAccount(e) {
         khuVuc: newAreaName
     });
     localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
-    alert(`Đã tạo khu vực "${newAreaName}" và cấp tài khoản cán bộ ${hoten} thành công!`);
+    alert(`Đã tạo khu vực "${newAreaName}" (Tiêu đề: ${newAreaTitle}) thành công!`);
     location.reload();
 }
 
