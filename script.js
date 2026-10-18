@@ -18,8 +18,8 @@ function getAreaData(key) {
             banner: "",
             ownerEmail: "admin.thonxom@gmail.com",
             accounts: [
-                { id: 1, hoten: "Tài Khoản Cấp Quyền", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
-                { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
+                { id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+                { id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
             ],
             contacts: [],
             news: [],
@@ -42,18 +42,21 @@ function getAreaData(key) {
     
     let hasChu1 = parsed.accounts.some(a => a.username === 'Taikhoanchu');
     if(!hasChu1) {
-        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Cấp Quyền", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
+        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
     } else {
         let c1 = parsed.accounts.find(a => a.username === 'Taikhoanchu');
-        if(c1) c1.hoten = "Tài Khoản Cấp Quyền";
+        if(c1) c1.hoten = "Tài Khoản Cấp Quyền khu vực";
     }
 
     let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
     if(!hasChu2) {
-        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
+        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
     } else {
         let c2 = parsed.accounts.find(a => a.username === 'Taikhoanandanh');
-        if(c2) c2.sdt = "";
+        if(c2) {
+            c2.hoten = "Tài Khoản Cấp Quyền khu vực";
+            c2.sdt = "";
+        }
     }
     return parsed;
 }
@@ -75,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderChatMessages();
     renderAccountsTable();
     checkRolePermissions();
-    initChuMonitorSelect();
+    initChuMonitorSelects();
     applyPortalUIVisibility();
     
     if(!portalRole) {
@@ -392,7 +395,7 @@ function updateMyCredentials(e) {
     if(!validatePassword(newPwd)) { alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
 
     if(currentUser.username === 'Taikhoanandanh') {
-        alert("Tài khoản Chủ 2 Ẩn cố định không được đổi tên đăng nhập và mật khẩu!");
+        alert("Tài khoản cố định không được đổi tên đăng nhập và mật khẩu!");
         return;
     }
 
@@ -472,20 +475,17 @@ function checkRolePermissions() {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
 
-        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Cấp Quyền' : (currentUser.type === 'andanh' ? 'Tài Khoản Quản Trị Ẩn' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
+        let roleName = (currentUser.type === 'chu' || currentUser.type === 'andanh') ? 'Tài Khoản Cấp Quyền khu vực' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)');
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
-        if(currentUser.type === 'chu') {
+        if(currentUser.type === 'chu' || currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
             if(handoverSec) handoverSec.classList.remove('hidden');
-        } else if(currentUser.type === 'andanh') {
-            if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
-            if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
-            if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden');
-            if(changeCredentialsBox) changeCredentialsBox.classList.add('hidden');
+            if(currentUser.type === 'andanh' && changeCredentialsBox) {
+                changeCredentialsBox.classList.add('hidden');
+            }
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
@@ -557,23 +557,86 @@ function saveCap1Customization(e) {
     }
 }
 
-function initChuMonitorSelect() {
-    const select = document.getElementById('chu-area-select');
-    if(!select) return;
-    select.innerHTML = '';
+function initChuMonitorSelects() {
+    const selTinh = document.getElementById('chu-sel-tinh');
+    if(!selTinh) return;
 
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    if(allKeys.length === 0) {
+        getAreaData('Thôn Xóm Bình An');
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    }
+
+    let tinhSet = new Set();
     allKeys.forEach(k => {
         let areaData = JSON.parse(localStorage.getItem(k));
+        tinhSet.add(areaData.tinhThanh || "TP. Cần Thơ");
+    });
+
+    selTinh.innerHTML = '';
+    tinhSet.forEach(tinh => {
         let opt = document.createElement('option');
-        opt.value = areaData.khuVuc;
-        opt.innerText = areaData.khuVuc;
-        if(areaData.khuVuc === db.khuVuc) opt.selected = true;
-        select.appendChild(opt);
+        opt.value = tinh;
+        opt.innerText = tinh;
+        if(tinh === (db.tinhThanh || "TP. Cần Thơ")) opt.selected = true;
+        selTinh.appendChild(opt);
+    });
+
+    onChuTinhChange(selTinh.value);
+}
+
+function onChuTinhChange(tinh) {
+    const selPhuong = document.getElementById('chu-sel-phuong');
+    if(!selPhuong) return;
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let phuongSet = new Set();
+    let firstPhuong = '';
+
+    allKeys.forEach(k => {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        if((areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
+            let phuong = areaData.phuongXa || "Phường An Khánh";
+            phuongSet.add(phuong);
+            if(!firstPhuong) firstPhuong = phuong;
+        }
+    });
+
+    selPhuong.innerHTML = '';
+    phuongSet.forEach(phuong => {
+        let opt = document.createElement('option');
+        opt.value = phuong;
+        opt.innerText = phuong;
+        if(phuong === (db.phuongXa || firstPhuong)) opt.selected = true;
+        selPhuong.appendChild(opt);
+    });
+
+    onChuPhuongChange(selPhuong.value);
+}
+
+function onChuPhuongChange(phuong) {
+    const selKhuVuc = document.getElementById('chu-sel-khuvuc');
+    const selTinh = document.getElementById('chu-sel-tinh');
+    if(!selKhuVuc || !selTinh) return;
+
+    let tinh = selTinh.value;
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+
+    selKhuVuc.innerHTML = '';
+    allKeys.forEach(k => {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        if((areaData.tinhThanh || "TP. Cần Thơ") === tinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
+            let opt = document.createElement('option');
+            opt.value = areaData.khuVuc;
+            opt.innerText = areaData.khuVuc;
+            if(areaData.khuVuc === db.khuVuc) opt.selected = true;
+            selKhuVuc.appendChild(opt);
+        }
     });
 }
 
 function switchChuMonitorArea(areaName) {
+    if(!areaName) return;
     currentAreaKey = areaName;
     localStorage.setItem('thonxom_current_area', currentAreaKey);
     db = getAreaData(currentAreaKey);
