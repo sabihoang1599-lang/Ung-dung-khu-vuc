@@ -288,31 +288,53 @@ function handleLogin(e) {
     const p = document.getElementById('inline-login-password') ? document.getElementById('inline-login-password').value.trim() : '';
 
     let found = null;
+    let foundAreaKey = '';
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     for(let k of allKeys) {
         let areaData = JSON.parse(localStorage.getItem(k));
         let acc = areaData.accounts.find(a => a.username === u && a.password === p);
         if(acc) {
             found = acc;
-            currentAreaKey = areaData.khuVuc;
-            localStorage.setItem('thonxom_current_area', currentAreaKey);
-            db = areaData;
+            foundAreaKey = areaData.khuVuc;
             break;
         }
     }
 
     if(found) {
-        currentUser = found;
-        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-        checkRolePermissions();
-        renderAccountsTable();
-        renderSidebarContacts();
-        initAppConfig();
-        alert(`Đăng nhập thành công với tư cách: ${currentUser.hoten}!`);
-        location.reload();
+        // KIỂM TRA XEM TÀI KHOẢN NÀY ĐÃ ĐƯỢC ĐĂNG NHẬP Ở ĐÂU ĐÓ TRƯỚC ĐÓ CHƯA
+        let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+        if(activeSessions[found.username] && activeSessions[found.username] !== socketSessionId) {
+            showCustomConfirm("Xác Nhận Đăng Nhập", `Tài khoản "${found.username}" đang có người đăng nhập. Bạn có phải là người đang đăng nhập không?`, false, (isYes) => {
+                if(isYes) {
+                    executeLoginSuccess(found, foundAreaKey);
+                }
+            });
+            return;
+        }
+        executeLoginSuccess(found, foundAreaKey);
     } else {
         alert("Sai tên đăng nhập hoặc mật khẩu!");
     }
+}
+
+let socketSessionId = Math.random().toString(36.substring(2));
+function executeLoginSuccess(acc, areaKey) {
+    currentUser = acc;
+    currentAreaKey = areaKey;
+    localStorage.setItem('thonxom_current_area', currentAreaKey);
+    db = getAreaData(currentAreaKey);
+    
+    let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+    activeSessions[acc.username] = socketSessionId;
+    localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
+
+    localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    checkRolePermissions();
+    renderAccountsTable();
+    renderSidebarContacts();
+    initAppConfig();
+    alert(`Đăng nhập thành công với tư cách: ${currentUser.hoten}!`);
+    location.reload();
 }
 
 // HỆ THỐNG XÁC NHẬN CÓ / KHÔNG (CUSTOM CONFIRM MODAL)
@@ -362,6 +384,11 @@ function promptDeleteArea() {
 }
 
 function handleLogout() {
+    if(currentUser) {
+        let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+        delete activeSessions[currentUser.username];
+        localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
+    }
     localStorage.removeItem('thonxom_logged_user');
     localStorage.removeItem('thonxom_portal_role');
     currentUser = null;
