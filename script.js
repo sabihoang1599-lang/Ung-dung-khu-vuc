@@ -16,7 +16,7 @@ function getAreaData(key) {
             ownerEmail: "admin.thonxom@gmail.com",
             accounts: [
                 { id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
-                { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" }
+                { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
             ],
             contacts: [],
             news: [],
@@ -41,7 +41,10 @@ function getAreaData(key) {
     }
     let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
     if(!hasChu2) {
-        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" });
+        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
+    } else {
+        let c2 = parsed.accounts.find(a => a.username === 'Taikhoanandanh');
+        if(c2) c2.sdt = ""; // Xóa sạch số điện thoại của tài khoản chủ ẩn
     }
     return parsed;
 }
@@ -101,8 +104,8 @@ function validateUsername(usr) {
 
 function handleLogin(e) {
     e.preventDefault();
-    const u = document.getElementById('login-username').value.trim();
-    const p = document.getElementById('login-password').value.trim();
+    const u = document.getElementById('inline-login-username') ? document.getElementById('inline-login-username').value.trim() : document.getElementById('login-username').value.trim();
+    const p = document.getElementById('inline-login-password') ? document.getElementById('inline-login-password').value.trim() : document.getElementById('login-password').value.trim();
 
     let found = null;
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
@@ -264,7 +267,6 @@ function checkRolePermissions() {
     const addNewsContainer = document.getElementById('action-add-news-container');
     const addHopContainer = document.getElementById('action-add-hop-container');
     const addBqContainer = document.getElementById('action-add-bq-container');
-    const tabQuanLyBtn = document.getElementById('tab-btn-quanly');
     const officerUploadTt = document.getElementById('officer-upload-thutuc-card');
     const chuCreateAreaBox = document.getElementById('chu-create-area-box');
     const chuDeleteAreaBox = document.getElementById('chu-delete-area-box');
@@ -277,11 +279,12 @@ function checkRolePermissions() {
     const contactAddSec = document.getElementById('contact-add-section');
     const btnBqNoiBo = document.getElementById('btn-bq-noibo');
     const changeCredentialsBox = document.getElementById('change-credentials-box');
+    const loggedOutManagerView = document.getElementById('logged-out-manager-view');
+    const loggedInManagerView = document.getElementById('logged-in-manager-view');
 
     if(addNewsContainer) addNewsContainer.innerHTML = '';
     if(addHopContainer) addHopContainer.innerHTML = '';
     if(addBqContainer) addBqContainer.innerHTML = '';
-    if(tabQuanLyBtn) tabQuanLyBtn.classList.add('hidden'); // Ẩn hoàn toàn tab quản lý khi chưa đăng nhập
     if(officerUploadTt) officerUploadTt.classList.add('hidden');
     if(chuCreateAreaBox) chuCreateAreaBox.classList.add('hidden');
     if(chuDeleteAreaBox) chuDeleteAreaBox.classList.add('hidden');
@@ -294,6 +297,9 @@ function checkRolePermissions() {
     if(changeCredentialsBox) changeCredentialsBox.classList.remove('hidden');
 
     if(currentUser) {
+        if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
+        if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
+
         if(authActionContainer) {
             authActionContainer.innerHTML = `
                 <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1" title="Đăng xuất">
@@ -304,8 +310,6 @@ function checkRolePermissions() {
 
         let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ 1' : (currentUser.type === 'andanh' ? 'Tài Khoản Chủ 2 Ẩn' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
-
-        if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden'); // Hiện tab quản lý khi đã đăng nhập
 
         if(currentUser.type === 'chu') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
@@ -339,6 +343,9 @@ function checkRolePermissions() {
             if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
         }
     } else {
+        if(loggedOutManagerView) loggedOutManagerView.classList.remove('hidden');
+        if(loggedInManagerView) loggedInManagerView.classList.add('hidden');
+
         if(authActionContainer) {
             authActionContainer.innerHTML = `
                 <button onclick="openLoginModal()" class="bg-white text-travelPrimary px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1">
@@ -346,7 +353,6 @@ function checkRolePermissions() {
                 </button>
             `;
         }
-        if(currentUserBadge) currentUserBadge.innerHTML = "Chưa đăng nhập";
         if(activeBqTab === 'noibo') {
             switchBqTab('congdong');
         }
@@ -513,11 +519,12 @@ function renderAccountsTable() {
         let levelBadge = acc.type === 'chu' ? '<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Chủ 1</span>' : (acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>');
         let passwordDisplay = isOwner ? `| Mật khẩu: <b class="text-travelPrimary">${acc.password}</b>` : '';
         let emailDisplay = acc.email ? `| Email: ${acc.email}` : '';
+        let sdtDisplay = acc.sdt ? `SĐT: ${acc.sdt}` : '';
         container.innerHTML += `
             <div class="flex justify-between items-center p-2.5 bg-gray-50 dark:bg-gray-900 rounded-xl border text-xs">
                 <div>
                     <p class="font-bold">${acc.hoten} (${acc.username}) ${levelBadge}</p>
-                    <p class="text-gray-500 text-[11px]">SĐT: ${acc.sdt} ${emailDisplay} ${passwordDisplay}</p>
+                    <p class="text-gray-500 text-[11px]">${sdtDisplay} ${emailDisplay} ${passwordDisplay}</p>
                 </div>
                 ${(isOwner && acc.type !== 'chu') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
             </div>
