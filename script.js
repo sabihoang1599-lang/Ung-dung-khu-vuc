@@ -491,7 +491,6 @@ function checkRolePermissions() {
     const accountCreateSec = document.getElementById('account-create-section');
     const cap1CustomBox = document.getElementById('cap1-custom-area-box');
     const handoverSec = document.getElementById('handover-section');
-    const currentUserBadge = document.getElementById('current-user-badge');
     const contactAddSec = document.getElementById('contact-add-section');
     const btnBqNoiBo = document.getElementById('btn-bq-noibo');
     const changeCredentialsBox = document.getElementById('change-credentials-box');
@@ -515,9 +514,6 @@ function checkRolePermissions() {
     if(currentUser) {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
-
-        let roleName = (currentUser.type === 'chu' || currentUser.type === 'andanh') ? 'Tài Khoản Cấp Quyền khu vực' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)');
-        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
         if(currentUser.type === 'chu' || currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
