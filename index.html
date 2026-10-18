@@ -44,14 +44,10 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
+                        <div id="auth-action-container" class="flex items-center gap-1.5"></div>
                         <button onclick="toggleDarkMode()" class="bg-white/15 hover:bg-white/25 text-white p-2 rounded-full transition" title="Đổi Sáng/Tối">
                             <i id="dark-mode-icon" class="fa-solid fa-moon text-xs"></i>
                         </button>
-                        <div id="auth-action-container">
-                            <button onclick="openLoginModal()" class="bg-white text-travelPrimary px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1">
-                                <i class="fa-solid fa-user-lock"></i> <span id="auth-btn-text">Đăng Nhập</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -69,7 +65,6 @@
             <button onclick="switchTab('tab-hopchibo')" id="btn-tab-hopchibo" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Họp Chi Bộ</button>
             <button onclick="switchTab('tab-bieuquyet')" id="btn-tab-bieuquyet" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Biểu Quyết</button>
             <button onclick="switchTab('tab-livechat')" id="btn-tab-livechat" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Chat</button>
-            <!-- Tab Quản lý luôn hiện, nhưng chưa đăng nhập sẽ hiển thị form đăng nhập -->
             <button id="tab-btn-quanly" onclick="switchTab('tab-quanly')" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 transition whitespace-nowrap">Quản Lý</button>
         </nav>
 
@@ -167,7 +162,12 @@
                     </div>
                     <form onsubmit="handleLogin(event)" class="space-y-3 pt-2">
                         <input type="text" id="inline-login-username" required placeholder="Tên đăng nhập..." class="w-full border rounded-xl px-3 py-3 outline-none bg-gray-50 dark:bg-gray-900">
-                        <input type="password" id="inline-login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-3 outline-none bg-gray-50 dark:bg-gray-900">
+                        <div class="relative">
+                            <input type="password" id="inline-login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-3 pr-10 outline-none bg-gray-50 dark:bg-gray-900">
+                            <button type="button" onclick="togglePasswordVisibility('inline-login-password', 'icon-inline-pwd')" class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
+                                <i id="icon-inline-pwd" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
                         <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-3 rounded-xl shadow transition hover:bg-teal-800">Đăng Nhập Ngay</button>
                         <div class="text-right">
                             <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu? (Lấy OTP qua Email)</button>
@@ -180,12 +180,17 @@
                     <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
 
-                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU -->
+                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU CÓ HIỆN MẬT KHẨU -->
                     <div id="change-credentials-box" class="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border space-y-2">
                         <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-key mr-1"></i> Thay Đổi Tên Đăng Nhập & Mật Khẩu Cá Nhân</h4>
                         <form onsubmit="updateMyCredentials(event)" class="space-y-2">
                             <input type="text" id="my-new-username" required placeholder="Tên đăng nhập mới..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="password" id="my-new-password" required placeholder="Mật khẩu mới (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <div class="relative">
+                                <input type="password" id="my-new-password" required placeholder="Mật khẩu mới (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2 pr-10">
+                                <button type="button" onclick="togglePasswordVisibility('my-new-password', 'icon-my-pwd')" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                    <i id="icon-my-pwd" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                             <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Cập Nhật Thông Tin</button>
                         </form>
                     </div>
@@ -236,7 +241,12 @@
                             <input type="text" id="chu-acc-username" required placeholder="Tên đăng nhập..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="email" id="chu-acc-email" required placeholder="Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="chu-acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="password" id="chu-acc-password" required placeholder="Mật khẩu..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <div class="relative">
+                                <input type="password" id="chu-acc-password" required placeholder="Mật khẩu..." class="w-full bg-white border rounded-xl px-3 py-2 pr-10">
+                                <button type="button" onclick="togglePasswordVisibility('chu-acc-password', 'icon-chu-acc-pwd')" class="absolute right-3 top-2 text-gray-400 hover:text-gray-600">
+                                    <i id="icon-chu-acc-pwd" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                             <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Tạo Khu Vực & Cấp Tài Khoản</button>
                         </form>
                     </div>
@@ -254,7 +264,12 @@
                             <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="email" id="acc-email" required placeholder="Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="password" id="acc-password" required placeholder="Mật khẩu..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <div class="relative">
+                                <input type="password" id="acc-password" required placeholder="Mật khẩu..." class="w-full bg-white border rounded-xl px-3 py-2 pr-10">
+                                <button type="button" onclick="togglePasswordVisibility('acc-password', 'icon-new-acc-pwd')" class="absolute right-3 top-2 text-gray-400 hover:text-gray-600">
+                                    <i id="icon-new-acc-pwd" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                             <select id="acc-type" class="w-full bg-white border rounded-xl px-3 py-2">
                                 <option value="cap1">Tài khoản Cấp 1 (Đồng quyền Cán bộ)</option>
                                 <option value="cap2">Tài khoản Cấp 2 (Đảng viên - Chỉ xem)</option>
@@ -264,7 +279,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <h4 class="font-bold">Danh Sách Thành Viên & Quản Lý Mật Khẩu Toàn Bộ</h4>
+                        <h4 class="font-bold">Danh Sách Thành Viên (Cấp 1 & Cấp 2)</h4>
                         <div id="accounts-table-body" class="space-y-2"></div>
                     </div>
                 </div>
@@ -286,7 +301,12 @@
             <h3 class="font-bold text-base text-center">Đăng Nhập Số Hóa Đầu Làng</h3>
             <form onsubmit="handleLogin(event)" class="space-y-3 text-xs">
                 <input type="text" id="login-username" required placeholder="Tên đăng nhập..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
-                <input type="password" id="login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <div class="relative">
+                    <input type="password" id="login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 pr-10 outline-none">
+                    <button type="button" onclick="togglePasswordVisibility('login-password', 'icon-modal-pwd')" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
+                        <i id="icon-modal-pwd" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
                 <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl shadow">Đăng Nhập</button>
                 <div class="text-right">
                     <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu? (Lấy OTP qua Email)</button>
@@ -307,7 +327,12 @@
             <div id="forgot-step-2" class="space-y-3 hidden">
                 <p class="text-teal-700 font-bold">Mã OTP đã được gửi đến email. Vui lòng nhập mã và mật khẩu mới:</p>
                 <input type="text" id="forgot-otp-code" required placeholder="Nhập mã OTP 6 số..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
-                <input type="password" id="forgot-new-pwd" required placeholder="Mật khẩu mới (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <div class="relative">
+                    <input type="password" id="forgot-new-pwd" required placeholder="Mật khẩu mới (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full border rounded-xl px-3 py-2.5 pr-10 outline-none">
+                    <button type="button" onclick="togglePasswordVisibility('forgot-new-pwd', 'icon-forgot-pwd')" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
+                        <i id="icon-forgot-pwd" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
                 <button type="button" onclick="confirmResetPassword()" class="w-full bg-teal-600 text-white font-bold py-2.5 rounded-xl shadow">Xác Nhận Đổi Mật Khẩu</button>
             </div>
         </div>
