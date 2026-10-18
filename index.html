@@ -138,7 +138,6 @@
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xs">Biểu Quyết & Bình Chọn</h3><div id="action-add-bq-container"></div></div>
                 <div class="flex gap-2 border-b pb-2">
                     <button onclick="switchBqTab('congdong')" id="btn-bq-congdong" class="px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800">Cộng Đồng</button>
-                    <!-- Tab nội bộ chỉ hiện với Cấp 1 và Cấp 2 -->
                     <button onclick="switchBqTab('noibo')" id="btn-bq-noibo" class="px-3 py-1 rounded-full text-xs font-bold text-gray-500 hidden">Nội Bộ (Cấp 1 & 2)</button>
                 </div>
                 <div id="bieu-quyet-list" class="space-y-3"></div>
@@ -158,8 +157,31 @@
 
             <div id="tab-quanly" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
-                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Số Hóa Đầu Làng & Giao Diện</h3>
+                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
+
+                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU (Chỉ Chủ 1, Cấp 1, Cấp 2 đổi được; Chủ ẩn 2 bị khóa) -->
+                    <div id="change-credentials-box" class="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border space-y-2">
+                        <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-key mr-1"></i> Thay Đổi Tên Đăng Nhập & Mật Khẩu Cá Nhân</h4>
+                        <form onsubmit="updateMyCredentials(event)" class="space-y-2">
+                            <input type="text" id="my-new-username" required placeholder="Tên đăng nhập mới..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="password" id="my-new-password" required placeholder="Mật khẩu mới (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Cập Nhật Thông Tin</button>
+                        </form>
+                    </div>
+
+                    <!-- BÀN GIAO SỞ HỮU TÀI KHOẢN QUA SỐ ĐIỆN THOẠI & OTP EMAIL (Cho Chủ 1 và Cấp 1) -->
+                    <div id="handover-section" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-2">
+                        <h4 class="font-bold text-teal-900"><i class="fa-solid fa-handshake mr-1"></i> Bàn Giao Sở Hữu Tài Khoản (Nhiệm Kỳ Mới)</h4>
+                        <form onsubmit="verifyHandoverOtp(event)" class="space-y-2">
+                            <input type="tel" id="handover-new-phone" required placeholder="Nhập Số Điện Thoại mới để tiếp nhận..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <div class="flex gap-2">
+                                <button type="button" onclick="sendHandoverOtp()" class="bg-teal-700 text-white px-3 py-2 rounded-xl font-bold whitespace-nowrap">Gửi Mã OTP Email</button>
+                                <input type="text" id="handover-otp-input" placeholder="Nhập mã OTP..." class="flex-grow bg-white border rounded-xl px-3 py-2">
+                            </div>
+                            <button type="submit" class="w-full bg-teal-600 text-white py-2 rounded-xl font-bold">Xác Nhận Đổi Số Sở Hữu</button>
+                        </form>
+                    </div>
                     
                     <div id="cap1-custom-area-box" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-3">
                         <h4 class="font-bold text-travelPrimary flex items-center gap-1"><i class="fa-solid fa-palette"></i> Cập Nhật Ảnh Đại Diện & Ảnh Bìa Khu Vực</h4>
@@ -215,7 +237,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <h4 class="font-bold">Danh Sách Thành Viên Khu Vực</h4>
+                        <h4 class="font-bold">Danh Sách Thành Viên & Quản Lý Mật Khẩu Toàn Bộ</h4>
                         <div id="accounts-table-body" class="space-y-2"></div>
                     </div>
                 </div>
@@ -239,7 +261,29 @@
                 <input type="text" id="login-username" required placeholder="Tên đăng nhập..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
                 <input type="password" id="login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
                 <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl shadow">Đăng Nhập</button>
+                <div class="text-right">
+                    <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu? (Lấy OTP qua Email Chủ)</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL QUÊN MẬT KHẨU OTP EMAIL -->
+    <div id="forgot-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl text-xs">
+            <button onclick="closeForgotModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="font-bold text-base text-center text-travelPrimary">Khôi Phục Mật Khẩu Qua Email Chủ</h3>
+            <div id="forgot-step-1" class="space-y-3">
+                <input type="text" id="forgot-username" required placeholder="Nhập tên đăng nhập cần lấy lại mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <input type="email" id="forgot-email" required placeholder="Nhập email liên kết tài khoản chủ..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <button type="button" onclick="sendForgotOtp()" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl shadow">Gửi Mã OTP</button>
+            </div>
+            <div id="forgot-step-2" class="space-y-3 hidden">
+                <p class="text-teal-700 font-bold">Mã OTP đã được gửi đến email. Vui lòng nhập mã và mật khẩu mới:</p>
+                <input type="text" id="forgot-otp-code" required placeholder="Nhập mã OTP 6 số..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <input type="password" id="forgot-new-pwd" required placeholder="Mật khẩu mới (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <button type="button" onclick="confirmResetPassword()" class="w-full bg-teal-600 text-white font-bold py-2.5 rounded-xl shadow">Xác Nhận Đổi Mật Khẩu</button>
+            </div>
         </div>
     </div>
 
@@ -282,7 +326,7 @@
                 <input type="text" id="bq-options" required placeholder="Các phương án (cách nhau dấu phẩy)..." class="w-full border rounded-xl px-3 py-2">
                 <select id="bq-type" class="w-full border rounded-xl px-3 py-2">
                     <option value="congdong">Phần 1: Cộng đồng</option>
-                    <option value="noibo">Phần 2: Nội bộ (Chỉ Cấp 1 & 2 thao tác)</option>
+                    <option value="noibo">Phần 2: Nội bộ (Cấp 1 & 2)</option>
                 </select>
                 <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2 rounded-xl">Phát Động</button>
             </form>
