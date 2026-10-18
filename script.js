@@ -10,6 +10,7 @@ function getAreaData(key) {
     if (!data) {
         let defaultData = {
             khuVuc: key,
+            displayTitle: key,
             avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
             banner: "",
             accounts: [
@@ -27,6 +28,7 @@ function getAreaData(key) {
         return defaultData;
     }
     let parsed = JSON.parse(data);
+    if(!parsed.displayTitle) parsed.displayTitle = parsed.khuVuc;
     if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
     if(!parsed.banner) parsed.banner = "";
     return parsed;
@@ -53,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initAppConfig() {
-    document.getElementById('display-khu-vuc').innerText = db.khuVuc;
+    document.getElementById('display-khu-vuc').innerText = db.displayTitle || db.khuVuc;
     if(db.avatar) {
         document.getElementById('header-avatar').src = db.avatar;
     }
@@ -165,9 +167,13 @@ function checkRolePermissions() {
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
 
-            document.getElementById('custom-khu-vuc-title').value = db.khuVuc;
-            document.getElementById('custom-avatar-url').value = db.avatar || '';
-            document.getElementById('custom-banner-url').value = db.banner || '';
+            document.getElementById('custom-khu-vuc-title').value = db.displayTitle || db.khuVuc;
+            document.getElementById('preview-avatar-box').src = db.avatar;
+            if(db.banner) {
+                let bannerPrev = document.getElementById('preview-banner-box');
+                bannerPrev.style.backgroundImage = `url('${db.banner}')`;
+                bannerPrev.classList.remove('hidden');
+            }
         }
     } else {
         authBtnText.innerText = "Đăng Nhập";
@@ -178,18 +184,45 @@ function checkRolePermissions() {
 function saveCap1Customization(e) {
     e.preventDefault();
     const newTitle = document.getElementById('custom-khu-vuc-title').value.trim();
-    const avatarUrl = document.getElementById('custom-avatar-url').value.trim();
-    const bannerUrl = document.getElementById('custom-banner-url').value.trim();
+    const avatarFile = document.getElementById('custom-avatar-file').files[0];
+    const bannerFile = document.getElementById('custom-banner-file').files[0];
 
-    if(!newTitle) { alert("Nhập tiêu đề khu vực!"); return; }
+    if(!newTitle) { alert("Nhập tiêu đề trang!"); return; }
+    db.displayTitle = newTitle;
 
-    db.khuVuc = newTitle;
-    if(avatarUrl) db.avatar = avatarUrl;
-    if(bannerUrl) db.banner = bannerUrl;
+    let processSave = () => {
+        saveDB();
+        alert("Đã cập nhật giao diện thành công!");
+        location.reload();
+    };
 
-    saveDB();
-    alert("Cập nhật giao diện khu vực thành công!");
-    location.reload();
+    let filesProcessed = 0;
+    let totalFiles = (avatarFile ? 1 : 0) + (bannerFile ? 1 : 0);
+
+    if (totalFiles === 0) {
+        processSave();
+        return;
+    }
+
+    if (avatarFile) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            db.avatar = evt.target.result;
+            filesProcessed++;
+            if (filesProcessed === totalFiles) processSave();
+        };
+        reader.readAsDataURL(avatarFile);
+    }
+
+    if (bannerFile) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            db.banner = evt.target.result;
+            filesProcessed++;
+            if (filesProcessed === totalFiles) processSave();
+        };
+        reader.readAsDataURL(bannerFile);
+    }
 }
 
 function initChuMonitorSelect() {
@@ -602,7 +635,6 @@ function renderChatMessages() {
     });
 }
 
-// Tích hợp tìm kiếm thông minh trực tuyến (internet)
 function searchOnlineThuTuc() {
     const query = document.getElementById('ai-tt-query').value.trim();
     const resultBox = document.getElementById('ai-search-result-box');
