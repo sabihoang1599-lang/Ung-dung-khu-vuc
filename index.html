@@ -218,7 +218,7 @@
                 <div id="logged-in-manager-view" class="hidden bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
-                        <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1.5">
+                        <button onclick="promptLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1.5">
                             <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất Tài Khoản
                         </button>
                     </div>
@@ -273,7 +273,7 @@
 
                     <!-- PHÂN CẤP CHỌN KHU VỰC GIÁM SÁT CHO TÀI KHOẢN CẤP QUYỀN -->
                     <div id="chu-monitor-box" class="hidden p-3 bg-purple-50 rounded-2xl border border-purple-200 space-y-2.5">
-                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Cấp Quyền: Chọn Khu Vực Giám Sát</h4>
+                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Cấp Quyền khu vực: Chọn Khu Vực Giám Sát</h4>
                         <div class="space-y-2">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-600 mb-1">1. Chọn Tỉnh / Thành phố:</label>
@@ -313,7 +313,7 @@
                     <div id="chu-delete-area-box" class="hidden p-3 bg-red-50 rounded-2xl border border-red-200 space-y-2">
                         <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Tài Khoản Cấp Quyền khu vực] Xóa Khu Vực Đang Chọn</h4>
                         <p class="text-[11px] text-red-700">Hành động này sẽ xóa toàn bộ dữ liệu tin tức, phản ánh và tài khoản của khu vực này vĩnh viễn.</p>
-                        <button onclick="confirmDeleteCurrentArea()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold">Xóa Khu Vực Này</button>
+                        <button onclick="promptDeleteArea()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold">Xóa Khu Vực Này</button>
                     </div>
 
                     <div id="account-create-section" class="hidden space-y-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
@@ -351,6 +351,23 @@
             <button onclick="openContactModal()" class="text-xs bg-teal-50 text-travelPrimary px-3 py-1.5 rounded-full font-bold border border-teal-200">Danh Bạ</button>
         </footer>
 
+    </div>
+
+    <!-- MODAL XÁC NHẬN CHUNG (CÓ / KHÔNG) -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-[30px] p-6 max-w-xs w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
+            <div id="confirm-icon-box" class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 id="confirm-title" class="font-bold text-sm text-gray-800 dark:text-gray-100">Xác nhận thao tác</h3>
+                <p id="confirm-message" class="text-xs text-gray-500 dark:text-gray-400">Bạn có chắc chắn muốn thực hiện hành động này không?</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeCustomConfirm(false)" class="w-1/2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Không</button>
+                <button id="confirm-yes-btn" onclick="closeCustomConfirm(true)" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">Có</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal quên mật khẩu -->
