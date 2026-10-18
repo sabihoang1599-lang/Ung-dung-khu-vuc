@@ -90,7 +90,6 @@
                     </div>
                 </div>
 
-                <!-- Đưa danh bạ lên ngang hàng với thanh tìm kiếm và thu ngắn lại -->
                 <div class="flex items-center gap-2 mt-3">
                     <div class="relative flex-grow">
                         <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-2.5 rounded-2xl outline-none border border-white/20 shadow-inner">
@@ -241,6 +240,26 @@
                                 </button>
                             </div>
                             <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Cập Nhật Thông Tin</button>
+                        </form>
+                    </div>
+
+                    <!-- CHỈNH SỬA TÊN KHU VỰC, PHƯỜNG XÃ, TỈNH THÀNH (DÀNH CHO CẢ 2 TÀI KHOẢN CHỦ) -->
+                    <div id="chu-edit-area-details-box" class="hidden p-3 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
+                        <h4 class="font-bold text-emerald-900"><i class="fa-solid fa-pen-to-square mr-1"></i> [Cấp Quyền] Chỉnh Sửa Tên Khu Vực & Địa Chỉ</h4>
+                        <form onsubmit="saveAreaDetailsByChu(event)" class="space-y-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-600 mb-1">Tên Khu Vực / Thôn Xóm:</label>
+                                <input type="text" id="edit-area-name" required placeholder="Tên khu vực..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-600 mb-1">Phường / Xã:</label>
+                                <input type="text" id="edit-area-phuong" required placeholder="Phường / Xã..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-600 mb-1">Tỉnh / Thành Phố:</label>
+                                <input type="text" id="edit-area-tinh" required placeholder="Tỉnh / Thành phố..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            </div>
+                            <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-xl font-bold shadow">Cập Nhật Thông Tin Khu Vực</button>
                         </form>
                     </div>
 
