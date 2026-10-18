@@ -44,7 +44,7 @@ function getAreaData(key) {
         parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
     } else {
         let c2 = parsed.accounts.find(a => a.username === 'Taikhoanandanh');
-        if(c2) c2.sdt = ""; // Xóa sạch số điện thoại của tài khoản chủ ẩn
+        if(c2) c2.sdt = "";
     }
     return parsed;
 }
@@ -100,6 +100,19 @@ function validatePassword(pwd) {
 
 function validateUsername(usr) {
     return /^[A-Z][a-zA-Z0-9]*$/.test(usr);
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+    }
 }
 
 function handleLogin(e) {
@@ -302,13 +315,13 @@ function checkRolePermissions() {
 
         if(authActionContainer) {
             authActionContainer.innerHTML = `
-                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1" title="Đăng xuất">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                <button onclick="handleLogout()" class="bg-red-500/80 hover:bg-red-600 text-white px-2.5 py-1 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1" title="Đăng xuất">
+                    <i class="fa-solid fa-right-from-bracket"></i> Thoát
                 </button>
             `;
         }
 
-        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ 1' : (currentUser.type === 'andanh' ? 'Tài Khoản Chủ 2 Ẩn' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
+        let roleName = currentUser.type === 'chu' ? 'Quản Trị Hệ Thống' : (currentUser.type === 'andanh' ? 'Quản Trị Hệ Thống' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
         if(currentUser.type === 'chu') {
@@ -348,7 +361,7 @@ function checkRolePermissions() {
 
         if(authActionContainer) {
             authActionContainer.innerHTML = `
-                <button onclick="openLoginModal()" class="bg-white text-travelPrimary px-3 py-1.5 rounded-full text-xs font-bold shadow transition flex items-center gap-1">
+                <button onclick="openLoginModal()" class="bg-white text-travelPrimary px-2.5 py-1 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1">
                     <i class="fa-solid fa-user-lock"></i> <span>Đăng Nhập</span>
                 </button>
             `;
@@ -504,19 +517,17 @@ function renderAccountsTable() {
     if(!container) return;
     container.innerHTML = '';
     
-    let isOwner = currentUser && (currentUser.type === 'chu' || currentUser.type === 'andanh');
-    let visibleAccounts = db.accounts.filter(acc => acc.type !== 'andanh');
-    if(!isOwner) {
-        visibleAccounts = visibleAccounts.filter(acc => acc.type !== 'chu');
-    }
+    let visibleAccounts = db.accounts.filter(acc => acc.type === 'cap1' || acc.type === 'cap2');
 
     if(visibleAccounts.length === 0) {
-        container.innerHTML = `<p class="text-gray-400">Chưa có thành viên nào.</p>`;
+        container.innerHTML = `<p class="text-gray-400">Chưa có thành viên Cấp 1 hoặc Cấp 2 nào.</p>`;
         return;
     }
 
+    let isOwner = currentUser && (currentUser.type === 'chu' || currentUser.type === 'andanh');
+
     visibleAccounts.forEach(acc => {
-        let levelBadge = acc.type === 'chu' ? '<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Chủ 1</span>' : (acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>');
+        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>';
         let passwordDisplay = isOwner ? `| Mật khẩu: <b class="text-travelPrimary">${acc.password}</b>` : '';
         let emailDisplay = acc.email ? `| Email: ${acc.email}` : '';
         let sdtDisplay = acc.sdt ? `SĐT: ${acc.sdt}` : '';
@@ -526,7 +537,7 @@ function renderAccountsTable() {
                     <p class="font-bold">${acc.hoten} (${acc.username}) ${levelBadge}</p>
                     <p class="text-gray-500 text-[11px]">${sdtDisplay} ${emailDisplay} ${passwordDisplay}</p>
                 </div>
-                ${(isOwner && acc.type !== 'chu') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
+                ${(currentUser && currentUser.type === 'cap1') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
             </div>
         `;
     });
