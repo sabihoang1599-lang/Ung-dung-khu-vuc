@@ -1,4 +1,8 @@
-let currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
+let currentUser = null;
+try {
+    currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
+} catch(e) { currentUser = null; }
+
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
 let portalRole = localStorage.getItem('thonxom_portal_role') || null;
 
@@ -7,7 +11,11 @@ if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' &
 }
 
 function getAreaData(key) {
-    let data = localStorage.getItem('thonxom_data_' + key);
+    let data = null;
+    try {
+        data = localStorage.getItem('thonxom_data_' + key);
+    } catch(e) { data = null; }
+
     if (!data) {
         let defaultData = {
             khuVuc: key,
@@ -29,34 +37,42 @@ function getAreaData(key) {
             bieuQuyet: [],
             chatMessages: []
         };
-        localStorage.setItem('thonxom_data_' + key, JSON.stringify(defaultData));
+        try {
+            localStorage.setItem('thonxom_data_' + key, JSON.stringify(defaultData));
+        } catch(e) {}
         return defaultData;
     }
-    let parsed = JSON.parse(data);
+
+    let parsed = {};
+    try {
+        parsed = JSON.parse(data);
+    } catch(e) {
+        parsed = { khuVuc: key };
+    }
+
     if(!parsed.phuongTinh) parsed.phuongTinh = "Phường An Khánh, TP. Cần Thơ";
     if(!parsed.tinhThanh) parsed.tinhThanh = "TP. Cần Thơ";
     if(!parsed.phuongXa) parsed.phuongXa = "Phường An Khánh";
     if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
     if(!parsed.banner) parsed.banner = "";
     if(!parsed.ownerEmail) parsed.ownerEmail = "admin.thonxom@gmail.com";
+    if(!parsed.accounts) parsed.accounts = [];
+    if(!parsed.contacts) parsed.contacts = [];
+    if(!parsed.news) parsed.news = [];
+    if(!parsed.phanAnh) parsed.phanAnh = [];
+    if(!parsed.thuTucDocs) parsed.thuTucDocs = [];
+    if(!parsed.hopChiBo) parsed.hopChiBo = [];
+    if(!parsed.bieuQuyet) parsed.bieuQuyet = [];
+    if(!parsed.chatMessages) parsed.chatMessages = [];
     
     let hasChu1 = parsed.accounts.some(a => a.username === 'Taikhoanchu');
     if(!hasChu1) {
         parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
-    } else {
-        let c1 = parsed.accounts.find(a => a.username === 'Taikhoanchu');
-        if(c1) c1.hoten = "Tài Khoản Cấp Quyền khu vực";
     }
 
     let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
     if(!hasChu2) {
         parsed.accounts.push({ id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
-    } else {
-        let c2 = parsed.accounts.find(a => a.username === 'Taikhoanandanh');
-        if(c2) {
-            c2.hoten = "Tài Khoản Cấp Quyền khu vực";
-            c2.sdt = "";
-        }
     }
     return parsed;
 }
@@ -64,7 +80,9 @@ function getAreaData(key) {
 let db = getAreaData(currentAreaKey);
 
 function saveDB() {
-    localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
+    try {
+        localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
+    } catch(e) {}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -82,9 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
     applyPortalUIVisibility();
     
     if(!portalRole) {
-        document.getElementById('welcome-role-modal').classList.remove('hidden');
+        let roleModal = document.getElementById('welcome-role-modal');
+        if(roleModal) roleModal.classList.remove('hidden');
     } else {
-        document.getElementById('welcome-role-modal').classList.add('hidden');
+        let roleModal = document.getElementById('welcome-role-modal');
+        if(roleModal) roleModal.classList.add('hidden');
     }
 });
 
@@ -103,8 +123,13 @@ function applyPortalUIVisibility() {
 
 function selectPortalRole(role) {
     portalRole = role;
-    localStorage.setItem('thonxom_portal_role', role);
-    document.getElementById('welcome-role-modal').classList.add('hidden');
+    try {
+        localStorage.setItem('thonxom_portal_role', role);
+    } catch(e) {}
+    
+    const roleModal = document.getElementById('welcome-role-modal');
+    if(roleModal) roleModal.classList.add('hidden');
+    
     applyPortalUIVisibility();
 
     if(role === 'chibo') {
@@ -115,11 +140,14 @@ function selectPortalRole(role) {
 }
 
 function exitAppPortal() {
-    localStorage.removeItem('thonxom_portal_role');
-    localStorage.removeItem('thonxom_logged_user');
+    try {
+        localStorage.removeItem('thonxom_portal_role');
+        localStorage.removeItem('thonxom_logged_user');
+    } catch(e) {}
     portalRole = null;
     currentUser = null;
-    document.getElementById('welcome-role-modal').classList.remove('hidden');
+    const roleModal = document.getElementById('welcome-role-modal');
+    if(roleModal) roleModal.classList.remove('hidden');
 }
 
 let commStep = 'tinh';
@@ -130,87 +158,131 @@ function openCommunityProvinceStep() {
     commStep = 'tinh';
     selectedTinh = '';
     selectedPhuong = '';
-    document.getElementById('comm-modal-title').innerText = "Chọn Tỉnh / Thành Phố";
-    document.getElementById('comm-modal-subtitle').innerText = "Bước 1/3: Chọn tỉnh thành của bạn:";
-    document.getElementById('comm-back-btn').classList.add('hidden');
+    
+    const titleEl = document.getElementById('comm-modal-title');
+    const subEl = document.getElementById('comm-modal-subtitle');
+    const backBtn = document.getElementById('comm-back-btn');
+    const commModal = document.getElementById('community-area-modal');
+    
+    if(titleEl) titleEl.innerText = "Chọn Tỉnh / Thành Phố";
+    if(subEl) subEl.innerText = "Bước 1/3: Chọn tỉnh thành của bạn:";
+    if(backBtn) backBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
-    listContainer.innerHTML = '';
+    if(listContainer) {
+        listContainer.innerHTML = '';
 
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    if(allKeys.length === 0) {
-        getAreaData('Thôn Xóm Bình An');
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        let allKeys = [];
+        try {
+            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        } catch(e) { allKeys = []; }
+
+        if(allKeys.length === 0) {
+            getAreaData('Thôn Xóm Bình An');
+            try {
+                allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+            } catch(e) { allKeys = []; }
+        }
+
+        let tinhSet = new Set();
+        allKeys.forEach(k => {
+            try {
+                let areaData = JSON.parse(localStorage.getItem(k));
+                if(areaData && areaData.tinhThanh) tinhSet.add(areaData.tinhThanh);
+                else tinhSet.add("TP. Cần Thơ");
+            } catch(e) {
+                tinhSet.add("TP. Cần Thơ");
+            }
+        });
+
+        tinhSet.forEach(tinh => {
+            listContainer.innerHTML += `
+                <button onclick="chooseProvince('${tinh}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                    <span><i class="fa-solid fa-map text-travelPrimary mr-2"></i> ${tinh}</span>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                </button>
+            `;
+        });
     }
 
-    let tinhSet = new Set();
-    allKeys.forEach(k => {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        tinhSet.add(areaData.tinhThanh || "TP. Cần Thơ");
-    });
-
-    tinhSet.forEach(tinh => {
-        listContainer.innerHTML += `
-            <button onclick="chooseProvince('${tinh}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
-                <span><i class="fa-solid fa-map text-travelPrimary mr-2"></i> ${tinh}</span>
-                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
-            </button>
-        `;
-    });
-
-    document.getElementById('community-area-modal').classList.remove('hidden');
+    if(commModal) commModal.classList.remove('hidden');
 }
 
 function chooseProvince(tinh) {
     selectedTinh = tinh;
     commStep = 'phuong';
-    document.getElementById('comm-modal-title').innerText = "Chọn Phường / Xã";
-    document.getElementById('comm-modal-subtitle').innerText = `Bước 2/3: Chọn phường xã thuộc ${tinh}:`;
-    document.getElementById('comm-back-btn').classList.remove('hidden');
+    
+    const titleEl = document.getElementById('comm-modal-title');
+    const subEl = document.getElementById('comm-modal-subtitle');
+    const backBtn = document.getElementById('comm-back-btn');
+    
+    if(titleEl) titleEl.innerText = "Chọn Phường / Xã";
+    if(subEl) subEl.innerText = `Bước 2/3: Chọn phường xã thuộc ${tinh}:`;
+    if(backBtn) backBtn.classList.remove('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
-    listContainer.innerHTML = '';
+    if(listContainer) {
+        listContainer.innerHTML = '';
 
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    let phuongSet = new Set();
-    allKeys.forEach(k => {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        if((areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
-            phuongSet.add(areaData.phuongXa || "Phường An Khánh");
-        }
-    });
+        let allKeys = [];
+        try {
+            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        } catch(e) { allKeys = []; }
 
-    phuongSet.forEach(phuong => {
-        listContainer.innerHTML += `
-            <button onclick="choosePhuong('${phuong}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
-                <span><i class="fa-solid fa-location-pin text-travelPrimary mr-2"></i> ${phuong}</span>
-                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
-            </button>
-        `;
-    });
+        let phuongSet = new Set();
+        allKeys.forEach(k => {
+            try {
+                let areaData = JSON.parse(localStorage.getItem(k));
+                if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
+                    phuongSet.add(areaData.phuongXa || "Phường An Khánh");
+                }
+            } catch(e) {}
+        });
+
+        phuongSet.forEach(phuong => {
+            listContainer.innerHTML += `
+                <button onclick="choosePhuong('${phuong}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                    <span><i class="fa-solid fa-location-pin text-travelPrimary mr-2"></i> ${phuong}</span>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                </button>
+            `;
+        });
+    }
 }
 
 function choosePhuong(phuong) {
     selectedPhuong = phuong;
     commStep = 'khuvuc';
-    document.getElementById('comm-modal-title').innerText = "Chọn Khu Vực / Thôn Xóm";
-    document.getElementById('comm-modal-subtitle').innerText = `Bước 3/3: Chọn đúng thôn xóm của bạn:`;
+    
+    const titleEl = document.getElementById('comm-modal-title');
+    const subEl = document.getElementById('comm-modal-subtitle');
+    
+    if(titleEl) titleEl.innerText = "Chọn Khu Vực / Thôn Xóm";
+    if(subEl) subEl.innerText = `Bước 3/3: Chọn đúng thôn xóm của bạn:`;
 
     const listContainer = document.getElementById('community-selector-list');
-    listContainer.innerHTML = '';
+    if(listContainer) {
+        listContainer.innerHTML = '';
 
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    allKeys.forEach(k => {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        if((areaData.tinhThanh || "TP. Cần Thơ") === selectedTinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
-            listContainer.innerHTML += `
-                <button onclick="chooseFinalArea('${areaData.khuVuc}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
-                    <span><i class="fa-solid fa-house-chimney text-travelPrimary mr-2"></i> ${areaData.khuVuc}</span>
-                    <span class="text-[10px] text-teal-600 font-semibold">Vào xem →</span>
-                </button>
-            `;
-        }
-    });
+        let allKeys = [];
+        try {
+            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        } catch(e) { allKeys = []; }
+
+        allKeys.forEach(k => {
+            try {
+                let areaData = JSON.parse(localStorage.getItem(k));
+                if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === selectedTinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
+                    listContainer.innerHTML += `
+                        <button onclick="chooseFinalArea('${areaData.khuVuc}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                            <span><i class="fa-solid fa-house-chimney text-travelPrimary mr-2"></i> ${areaData.khuVuc}</span>
+                            <span class="text-[10px] text-teal-600 font-semibold">Vào xem →</span>
+                        </button>
+                    `;
+                }
+            } catch(e) {}
+        });
+    }
 }
 
 function backCommunityStep() {
@@ -223,23 +295,30 @@ function backCommunityStep() {
 
 function chooseFinalArea(areaName) {
     currentAreaKey = areaName;
-    localStorage.setItem('thonxom_current_area', currentAreaKey);
+    try {
+        localStorage.setItem('thonxom_current_area', currentAreaKey);
+    } catch(e) {}
     db = getAreaData(currentAreaKey);
 
-    document.getElementById('community-area-modal').classList.add('hidden');
+    const commModal = document.getElementById('community-area-modal');
+    if(commModal) commModal.classList.add('hidden');
     initAppConfig();
     switchTab('tab-tintuc');
 }
 
 function initAppConfig() {
-    document.getElementById('display-khu-vuc').innerText = db.khuVuc;
-    document.getElementById('display-phuong-tinh').innerText = `${db.phuongXa || 'Phường An Khánh'}, ${db.tinhThanh || 'TP. Cần Thơ'}`;
-    if(db.avatar) {
-        document.getElementById('header-avatar').src = db.avatar;
+    const kvEl = document.getElementById('display-khu-vuc');
+    const ptEl = document.getElementById('display-phuong-tinh');
+    const avEl = document.getElementById('header-avatar');
+    
+    if(kvEl) kvEl.innerText = db.khuVuc;
+    if(ptEl) ptEl.innerText = `${db.phuongXa || 'Phường An Khánh'}, ${db.tinhThanh || 'TP. Cần Thơ'}`;
+    if(avEl && db.avatar) {
+        avEl.src = db.avatar;
     }
     if(db.banner) {
         let header = document.getElementById('app-header-bg');
-        header.style.backgroundImage = `url('${db.banner}')`;
+        if(header) header.style.backgroundImage = `url('${db.banner}')`;
     }
 }
 
@@ -250,7 +329,8 @@ function switchTab(tabId) {
     }
 
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.getElementById(tabId).classList.remove('hidden');
+    const tabEl = document.getElementById(tabId);
+    if(tabEl) tabEl.classList.remove('hidden');
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap";
@@ -289,20 +369,31 @@ function handleLogin(e) {
 
     let found = null;
     let foundAreaKey = '';
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
+
     for(let k of allKeys) {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === u && a.password === p);
-        if(acc) {
-            found = acc;
-            foundAreaKey = areaData.khuVuc;
-            break;
-        }
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && areaData.accounts) {
+                let acc = areaData.accounts.find(a => a.username === u && a.password === p);
+                if(acc) {
+                    found = acc;
+                    foundAreaKey = areaData.khuVuc;
+                    break;
+                }
+            }
+        } catch(e) {}
     }
 
     if(found) {
-        // KIỂM TRA XEM TÀI KHOẢN NÀY ĐÃ ĐƯỢC ĐĂNG NHẬP Ở ĐÂU ĐÓ TRƯỚC ĐÓ CHƯA
-        let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+        let activeSessions = {};
+        try {
+            activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+        } catch(e) { activeSessions = {}; }
+
         if(activeSessions[found.username] && activeSessions[found.username] !== socketSessionId) {
             showCustomConfirm("Xác Nhận Đăng Nhập", `Tài khoản "${found.username}" đang có người đăng nhập. Bạn có phải là người đang đăng nhập không?`, false, (isYes) => {
                 if(isYes) {
@@ -317,18 +408,23 @@ function handleLogin(e) {
     }
 }
 
-let socketSessionId = Math.random().toString(36.substring(2));
+let socketSessionId = Math.random().toString(36).substring(2);
 function executeLoginSuccess(acc, areaKey) {
     currentUser = acc;
     currentAreaKey = areaKey;
-    localStorage.setItem('thonxom_current_area', currentAreaKey);
+    try {
+        localStorage.setItem('thonxom_current_area', currentAreaKey);
+    } catch(e) {}
     db = getAreaData(currentAreaKey);
     
-    let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
-    activeSessions[acc.username] = socketSessionId;
-    localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
+    let activeSessions = {};
+    try {
+        activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+        activeSessions[acc.username] = socketSessionId;
+        localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
+        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    } catch(e) {}
 
-    localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
     checkRolePermissions();
     renderAccountsTable();
     renderSidebarContacts();
@@ -341,26 +437,30 @@ function executeLoginSuccess(acc, areaKey) {
 let confirmCallback = null;
 
 function showCustomConfirm(title, message, isDanger, callback) {
-    document.getElementById('confirm-title').innerText = title;
-    document.getElementById('confirm-message').innerText = message;
-    confirmCallback = callback;
-
+    const titleEl = document.getElementById('confirm-title');
+    const msgEl = document.getElementById('confirm-message');
     const iconBox = document.getElementById('confirm-icon-box');
     const yesBtn = document.getElementById('confirm-yes-btn');
+    const confirmModal = document.getElementById('custom-confirm-modal');
+
+    if(titleEl) titleEl.innerText = title;
+    if(msgEl) msgEl.innerText = message;
+    confirmCallback = callback;
 
     if(isDanger) {
-        iconBox.className = "w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner";
-        yesBtn.className = "w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow";
+        if(iconBox) iconBox.className = "w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner";
+        if(yesBtn) yesBtn.className = "w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow";
     } else {
-        iconBox.className = "w-14 h-14 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl shadow-inner";
-        yesBtn.className = "w-1/2 bg-travelPrimary hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow";
+        if(iconBox) iconBox.className = "w-14 h-14 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl shadow-inner";
+        if(yesBtn) yesBtn.className = "w-1/2 bg-travelPrimary hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow";
     }
 
-    document.getElementById('custom-confirm-modal').classList.remove('hidden');
+    if(confirmModal) confirmModal.classList.remove('hidden');
 }
 
 function closeCustomConfirm(isYes) {
-    document.getElementById('custom-confirm-modal').classList.add('hidden');
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    if(confirmModal) confirmModal.classList.add('hidden');
     if(confirmCallback) {
         confirmCallback(isYes);
         confirmCallback = null;
@@ -385,12 +485,14 @@ function promptDeleteArea() {
 
 function handleLogout() {
     if(currentUser) {
-        let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
-        delete activeSessions[currentUser.username];
-        localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
+        try {
+            let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
+            delete activeSessions[currentUser.username];
+            localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
+            localStorage.removeItem('thonxom_logged_user');
+            localStorage.removeItem('thonxom_portal_role');
+        } catch(e) {}
     }
-    localStorage.removeItem('thonxom_logged_user');
-    localStorage.removeItem('thonxom_portal_role');
     currentUser = null;
     portalRole = null;
     alert("Đã đăng xuất tài khoản thành công!");
@@ -399,11 +501,17 @@ function handleLogout() {
 
 let generatedForgotOtp = "";
 function openForgotModal() {
-    document.getElementById('forgot-modal').classList.remove('hidden');
-    document.getElementById('forgot-step-1').classList.remove('hidden');
-    document.getElementById('forgot-step-2').classList.add('hidden');
+    const m = document.getElementById('forgot-modal');
+    const s1 = document.getElementById('forgot-step-1');
+    const s2 = document.getElementById('forgot-step-2');
+    if(m) m.classList.remove('hidden');
+    if(s1) s1.classList.remove('hidden');
+    if(s2) s2.classList.add('hidden');
 }
-function closeForgotModal() { document.getElementById('forgot-modal').classList.add('hidden'); }
+function closeForgotModal() {
+    const m = document.getElementById('forgot-modal');
+    if(m) m.classList.add('hidden');
+}
 
 function sendForgotOtp() {
     const usr = document.getElementById('forgot-username').value.trim();
@@ -411,22 +519,33 @@ function sendForgotOtp() {
     if(!usr || !email) { alert("Vui lòng nhập đầy đủ tên đăng nhập và email!"); return; }
 
     let targetAcc = null;
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
+
     for(let k of allKeys) {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'andanh' || a.type === 'cap1' || a.type === 'cap2'));
-        if(acc) {
-            targetAcc = acc;
-            break;
-        }
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && areaData.accounts) {
+                let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'andanh' || a.type === 'cap1' || a.type === 'cap2'));
+                if(acc) {
+                    targetAcc = acc;
+                    break;
+                }
+            }
+        } catch(e) {}
     }
 
     if(!targetAcc) { alert("Không tìm thấy tài khoản hoặc email không khớp!"); return; }
 
     generatedForgotOtp = Math.floor(100000 + Math.random() * 900000).toString();
     alert(`[MÔ PHỎNG GỬI EMAIL] Mã OTP khôi phục gửi đến ${email} là: ${generatedForgotOtp}`);
-    document.getElementById('forgot-step-1').classList.add('hidden');
-    document.getElementById('forgot-step-2').classList.remove('hidden');
+    
+    const s1 = document.getElementById('forgot-step-1');
+    const s2 = document.getElementById('forgot-step-2');
+    if(s1) s1.classList.add('hidden');
+    if(s2) s2.classList.remove('hidden');
 }
 
 function confirmResetPassword() {
@@ -437,17 +556,25 @@ function confirmResetPassword() {
     if(otp !== generatedForgotOtp) { alert("Mã OTP không chính xác!"); return; }
     if(!validatePassword(newPwd)) { alert("Mật khẩu mới phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
 
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
+
     let updated = false;
     for(let k of allKeys) {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === usr);
-        if(acc) {
-            acc.password = newPwd;
-            localStorage.setItem(k, JSON.stringify(areaData));
-            updated = true;
-            break;
-        }
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && areaData.accounts) {
+                let acc = areaData.accounts.find(a => a.username === usr);
+                if(acc) {
+                    acc.password = newPwd;
+                    localStorage.setItem(k, JSON.stringify(areaData));
+                    updated = true;
+                    break;
+                }
+            }
+        } catch(e) {}
     }
 
     if(updated) {
@@ -477,7 +604,9 @@ function updateMyCredentials(e) {
     }
 
     saveDB();
-    localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    try {
+        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    } catch(e) {}
     alert("Đã cập nhật thông tin thành công và đồng bộ tới hệ thống!");
     location.reload();
 }
@@ -502,7 +631,9 @@ function verifyHandoverOtp(e) {
     if(accInDb) accInDb.email = email;
 
     saveDB();
-    localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    try {
+        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    } catch(e) {}
     alert("Đã xác thực OTP thành công và cập nhật email mới cho tài khoản!");
     location.reload();
 }
@@ -558,11 +689,14 @@ function checkRolePermissions() {
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
 
-            document.getElementById('preview-avatar-box').src = db.avatar;
+            let prevAvatar = document.getElementById('preview-avatar-box');
+            if(prevAvatar) prevAvatar.src = db.avatar;
             if(db.banner) {
                 let bannerPrev = document.getElementById('preview-banner-box');
-                bannerPrev.style.backgroundImage = `url('${db.banner}')`;
-                bannerPrev.classList.remove('hidden');
+                if(bannerPrev) {
+                    bannerPrev.style.backgroundImage = `url('${db.banner}')`;
+                    bannerPrev.classList.remove('hidden');
+                }
             }
         } else if(currentUser.type === 'cap2') {
             if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
@@ -580,8 +714,10 @@ function checkRolePermissions() {
 
 function saveCap1Customization(e) {
     e.preventDefault();
-    const avatarFile = document.getElementById('custom-avatar-file').files[0];
-    const bannerFile = document.getElementById('custom-banner-file').files[0];
+    const avatarFileInput = document.getElementById('custom-avatar-file');
+    const bannerFileInput = document.getElementById('custom-banner-file');
+    const avatarFile = avatarFileInput && avatarFileInput.files ? avatarFileInput.files[0] : null;
+    const bannerFile = bannerFileInput && bannerFileInput.files ? bannerFileInput.files[0] : null;
 
     let processSave = () => {
         saveDB();
@@ -622,16 +758,25 @@ function initChuMonitorSelects() {
     const selTinh = document.getElementById('chu-sel-tinh');
     if(!selTinh) return;
 
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
+
     if(allKeys.length === 0) {
         getAreaData('Thôn Xóm Bình An');
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        try {
+            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        } catch(e) { allKeys = []; }
     }
 
     let tinhSet = new Set();
     allKeys.forEach(k => {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        tinhSet.add(areaData.tinhThanh || "TP. Cần Thơ");
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && areaData.tinhThanh) tinhSet.add(areaData.tinhThanh);
+            else tinhSet.add("TP. Cần Thơ");
+        } catch(e) {}
     });
 
     selTinh.innerHTML = '';
@@ -650,17 +795,23 @@ function onChuTinhChange(tinh) {
     const selPhuong = document.getElementById('chu-sel-phuong');
     if(!selPhuong) return;
 
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
+
     let phuongSet = new Set();
     let firstPhuong = '';
 
     allKeys.forEach(k => {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        if((areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
-            let phuong = areaData.phuongXa || "Phường An Khánh";
-            phuongSet.add(phuong);
-            if(!firstPhuong) firstPhuong = phuong;
-        }
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
+                let phuong = areaData.phuongXa || "Phường An Khánh";
+                phuongSet.add(phuong);
+                if(!firstPhuong) firstPhuong = phuong;
+            }
+        } catch(e) {}
     });
 
     selPhuong.innerHTML = '';
@@ -681,25 +832,32 @@ function onChuPhuongChange(phuong) {
     if(!selKhuVuc || !selTinh) return;
 
     let tinh = selTinh.value;
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
 
     selKhuVuc.innerHTML = '';
     allKeys.forEach(k => {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        if((areaData.tinhThanh || "TP. Cần Thơ") === tinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
-            let opt = document.createElement('option');
-            opt.value = areaData.khuVuc;
-            opt.innerText = areaData.khuVuc;
-            if(areaData.khuVuc === db.khuVuc) opt.selected = true;
-            selKhuVuc.appendChild(opt);
-        }
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === tinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
+                let opt = document.createElement('option');
+                opt.value = areaData.khuVuc;
+                opt.innerText = areaData.khuVuc;
+                if(areaData.khuVuc === db.khuVuc) opt.selected = true;
+                selKhuVuc.appendChild(opt);
+            }
+        } catch(e) {}
     });
 }
 
 function switchChuMonitorArea(areaName) {
     if(!areaName) return;
     currentAreaKey = areaName;
-    localStorage.setItem('thonxom_current_area', currentAreaKey);
+    try {
+        localStorage.setItem('thonxom_current_area', currentAreaKey);
+    } catch(e) {}
     db = getAreaData(currentAreaKey);
     location.reload();
 }
@@ -737,21 +895,24 @@ function chuAssignAreaAndAccount(e) {
         sdt,
         khuVuc: newAreaName
     });
-    localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
+    try {
+        localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
+    } catch(e) {}
     alert(`Đã tạo khu vực "${newAreaName}" thành công!`);
     location.reload();
 }
 
 function executeDeleteCurrentArea() {
-    localStorage.removeItem('thonxom_data_' + currentAreaKey);
-    
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    if(allKeys.length > 0) {
-        let firstArea = JSON.parse(localStorage.getItem(allKeys[0])).khuVuc;
-        localStorage.setItem('thonxom_current_area', firstArea);
-    } else {
-        localStorage.setItem('thonxom_current_area', 'Thôn Xóm Bình An');
-    }
+    try {
+        localStorage.removeItem('thonxom_data_' + currentAreaKey);
+        let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+        if(allKeys.length > 0) {
+            let firstArea = JSON.parse(localStorage.getItem(allKeys[0])).khuVuc;
+            localStorage.setItem('thonxom_current_area', firstArea);
+        } else {
+            localStorage.setItem('thonxom_current_area', 'Thôn Xóm Bình An');
+        }
+    } catch(e) {}
     alert("Đã xóa khu vực thành công!");
     location.reload();
 }
@@ -867,12 +1028,13 @@ function deleteContact(id) {
 }
 
 let tempNewsImages = [];
-function openNewsModal() { document.getElementById('news-modal').classList.remove('hidden'); }
-function closeNewsModal() { document.getElementById('news-modal').classList.add('hidden'); tempNewsImages = []; }
+function openNewsModal() { const m = document.getElementById('news-modal'); if(m) m.classList.remove('hidden'); }
+function closeNewsModal() { const m = document.getElementById('news-modal'); if(m) m.classList.add('hidden'); tempNewsImages = []; }
 function handleNewsImages(e) {
     const files = e.target.files;
     tempNewsImages = [];
     const preview = document.getElementById('news-image-preview');
+    if(!preview) return;
     preview.innerHTML = '';
     for(let i=0; i<Math.min(files.length, 5); i++) {
         const reader = new FileReader();
@@ -915,13 +1077,17 @@ function renderNews(filter = "") {
         `;
     });
 }
-function filterNews() { renderNews(document.getElementById('search-news-input').value); }
+function filterNews() {
+    const searchInput = document.getElementById('search-news-input');
+    renderNews(searchInput ? searchInput.value : "");
+}
 
 let tempPaImages = [];
 function handlePaImages(e) {
     const files = e.target.files;
     tempPaImages = [];
     const preview = document.getElementById('pa-image-preview');
+    if(!preview) return;
     preview.innerHTML = '';
     for(let i=0; i<files.length; i++) {
         const reader = new FileReader();
@@ -945,7 +1111,10 @@ function submitPhanAnh(e) {
         status: "Đang chờ",
         date: new Date().toLocaleDateString('vi-VN')
     });
-    saveDB(); renderPhanAnh(); e.target.reset(); tempPaImages = []; document.getElementById('pa-image-preview').innerHTML = ''; alert("Đã gửi phản ánh!");
+    saveDB(); renderPhanAnh(); e.target.reset(); tempPaImages = [];
+    const preview = document.getElementById('pa-image-preview');
+    if(preview) preview.innerHTML = '';
+    alert("Đã gửi phản ánh!");
 }
 function updatePhanAnhStatus(id, newStatus) {
     let item = db.phanAnh.find(p => p.id === id);
@@ -995,8 +1164,8 @@ function renderPhanAnh() {
 }
 
 let tempHopFile = "";
-function openHopModal() { document.getElementById('hop-modal').classList.remove('hidden'); }
-function closeHopModal() { document.getElementById('hop-modal').classList.add('hidden'); tempHopFile = ""; }
+function openHopModal() { const m = document.getElementById('hop-modal'); if(m) m.classList.remove('hidden'); }
+function closeHopModal() { const m = document.getElementById('hop-modal'); if(m) m.classList.add('hidden'); tempHopFile = ""; }
 function submitHopChiBo(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
@@ -1012,13 +1181,13 @@ function submitHopChiBo(e) {
             title,
             content,
             file: tempHopFile,
-            fileName: fileInput.files[0] ? fileInput.files[0].name : "",
+            fileName: fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : "",
             author: currentUser ? currentUser.username : "Cán bộ"
         });
         saveDB(); closeHopModal(); renderHopChiBo(); alert("Đã đăng lịch họp!"); e.target.reset();
     };
 
-    if(fileInput.files && fileInput.files[0]) {
+    if(fileInput && fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = function(evt) {
             tempHopFile = evt.target.result;
@@ -1053,16 +1222,17 @@ function switchBqTab(tab) {
         return; 
     }
     activeBqTab = tab;
-    document.getElementById('btn-bq-congdong').className = tab === 'congdong' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
-    let btnNoiBo = document.getElementById('btn-bq-noibo');
-    if(btnNoiBo && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu' || currentUser.type === 'andanh')) {
-        btnNoiBo.className = tab === 'noibo' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
+    const btnCd = document.getElementById('btn-bq-congdong');
+    const btnNb = document.getElementById('btn-bq-noibo');
+    if(btnCd) btnCd.className = tab === 'congdong' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
+    if(btnNb && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu' || currentUser.type === 'andanh')) {
+        btnNb.className = tab === 'noibo' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
     }
     renderBieuQuyet();
 }
 
-function openBqModal() { document.getElementById('bq-modal').classList.remove('hidden'); }
-function closeBqModal() { document.getElementById('bq-modal').classList.add('hidden'); }
+function openBqModal() { const m = document.getElementById('bq-modal'); if(m) m.classList.remove('hidden'); }
+function closeBqModal() { const m = document.getElementById('bq-modal'); if(m) m.classList.add('hidden'); }
 function submitBieuQuyet(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
@@ -1141,11 +1311,14 @@ function renderBieuQuyet() {
 
 function sendChatMessage(e) {
     e.preventDefault();
-    const name = document.getElementById('chat-input-name').value.trim();
-    const msg = document.getElementById('chat-input-msg').value.trim();
+    const nameEl = document.getElementById('chat-input-name');
+    const msgEl = document.getElementById('chat-input-msg');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const msg = msgEl ? msgEl.value.trim() : '';
     if(!name) { alert("Nhập tên!"); return; }
     db.chatMessages.push({ id: Date.now(), name, msg });
-    saveDB(); renderChatMessages(); document.getElementById('chat-input-msg').value = '';
+    saveDB(); renderChatMessages();
+    if(msgEl) msgEl.value = '';
 }
 function renderChatMessages() {
     const box = document.getElementById('chat-messages-box');
@@ -1157,22 +1330,27 @@ function renderChatMessages() {
 }
 
 function searchOnlineThuTuc() {
-    const query = document.getElementById('ai-tt-query').value.trim();
+    const queryEl = document.getElementById('ai-tt-query');
+    const query = queryEl ? queryEl.value.trim() : '';
     const resultBox = document.getElementById('ai-search-result-box');
     if(!query) { alert("Nhập tên thủ tục!"); return; }
 
-    resultBox.classList.remove('hidden');
-    resultBox.innerHTML = `<p class="animate-pulse text-teal-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tra cứu...</p>`;
+    if(resultBox) {
+        resultBox.classList.remove('hidden');
+        resultBox.innerHTML = `<p class="animate-pulse text-teal-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tra cứu...</p>`;
+    }
 
     setTimeout(() => {
-        resultBox.innerHTML = `
-            <p class="font-bold text-travelPrimary"><i class="fa-solid fa-circle-check text-teal-600 mr-1"></i> Kết quả tra cứu: "${query}"</p>
-            <div class="space-y-1 text-gray-700 dark:text-gray-300 mt-1">
-                <p><b>1. Hồ sơ:</b> Giấy tờ tùy thân bản chính.</p>
-                <p><b>2. Quy trình:</b> Nộp trực tuyến hoặc tại bộ phận một cửa.</p>
-                <p><b>3. Thời gian:</b> 01 - 03 ngày làm việc.</p>
-            </div>
-        `;
+        if(resultBox) {
+            resultBox.innerHTML = `
+                <p class="font-bold text-travelPrimary"><i class="fa-solid fa-circle-check text-teal-600 mr-1"></i> Kết quả tra cứu: "${query}"</p>
+                <div class="space-y-1 text-gray-700 dark:text-gray-300 mt-1">
+                    <p><b>1. Hồ sơ:</b> Giấy tờ tùy thân bản chính.</p>
+                    <p><b>2. Quy trình:</b> Nộp trực tuyến hoặc tại bộ phận một cửa.</p>
+                    <p><b>3. Thời gian:</b> 01 - 03 ngày làm việc.</p>
+                </div>
+            `;
+        }
     }, 800);
 }
 
@@ -1184,7 +1362,7 @@ function officerUploadThuTuc(e) {
     const title = document.getElementById('off-tt-title').value.trim();
     const fileInput = document.getElementById('off-tt-file');
 
-    if(fileInput.files && fileInput.files[0]) {
+    if(fileInput && fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = function(evt) {
             db.thuTucDocs.unshift({
@@ -1225,9 +1403,10 @@ function renderThuTucDocs(filter = "") {
     });
 }
 function filterThuTucDocs() {
-    renderThuTucDocs(document.getElementById('tt-search-input').value);
+    const input = document.getElementById('tt-search-input');
+    renderThuTucDocs(input ? input.value : "");
 }
 
 function toggleDarkMode() { document.documentElement.classList.toggle('dark'); }
-function openContactModal() { document.getElementById('contact-modal').classList.remove('hidden'); }
-function closeContactModal() { document.getElementById('contact-modal').classList.add('hidden'); }
+function openContactModal() { const m = document.getElementById('contact-modal'); if(m) m.classList.remove('hidden'); }
+function closeContactModal() { const m = document.getElementById('contact-modal'); if(m) m.classList.add('hidden'); }
