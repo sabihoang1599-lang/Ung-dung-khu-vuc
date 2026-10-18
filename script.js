@@ -157,16 +157,11 @@ function sendForgotOtp() {
     const email = document.getElementById('forgot-email').value.trim();
     if(!usr || !email) { alert("Vui lòng nhập đầy đủ tên đăng nhập và email!"); return; }
 
-    if(usr === 'Taikhoanandanh') {
-        alert("Tài khoản Chủ 2 Ẩn cố định không hỗ trợ khôi phục qua đây!");
-        return;
-    }
-
     let targetAcc = null;
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     for(let k of allKeys) {
         let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'cap1'));
+        let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'andanh' || a.type === 'cap1'));
         if(acc) {
             targetAcc = acc;
             break;
@@ -176,7 +171,7 @@ function sendForgotOtp() {
     if(!targetAcc) { alert("Không tìm thấy tài khoản hoặc email không khớp!"); return; }
 
     generatedForgotOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    alert(`[MÔ PHỎNG GỬI EMAIL] Mã OTP gửi đến ${email} là: ${generatedForgotOtp}`);
+    alert(`[MÔ PHỎNG GỬI EMAIL] Mã OTP khôi phục gửi đến ${email} là: ${generatedForgotOtp}`);
     document.getElementById('forgot-step-1').classList.add('hidden');
     document.getElementById('forgot-step-2').classList.remove('hidden');
 }
@@ -196,8 +191,7 @@ function confirmResetPassword() {
         let acc = areaData.accounts.find(a => a.username === usr);
         if(acc) {
             if(acc.username === 'Taikhoanandanh') {
-                alert("Tài khoản Chủ 2 Ẩn cố định không được phép đổi mật khẩu!");
-                return;
+                // Cho phép tài khoản chủ ẩn 2 đổi pass nếu xác thực OTP thành công qua email
             }
             acc.password = newPwd;
             localStorage.setItem(k, JSON.stringify(areaData));
@@ -215,7 +209,7 @@ function confirmResetPassword() {
     }
 }
 
-// Cập nhật thông tin và đồng bộ hiển thị tên đăng nhập mới cho 2 Chủ
+// Cập nhật tên đăng nhập và mật khẩu cá nhân
 function updateMyCredentials(e) {
     e.preventDefault();
     if(!currentUser) return;
@@ -248,13 +242,9 @@ function updateMyCredentials(e) {
 let handoverOtpCode = "";
 function sendHandoverOtp() {
     const email = document.getElementById('user-email-input').value.trim();
-    if(!email) { alert("Vui lòng nhập email liên kết!"); return; }
-    if(currentUser && currentUser.username === 'Taikhoanandanh') {
-        alert("Tài khoản Chủ 2 Ẩn cố định không hỗ trợ thay đổi qua đây!");
-        return;
-    }
+    if(!email) { alert("Vui lòng nhập email mới cần đổi!"); return; }
     handoverOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    alert(`[MÔ PHỎNG OTP EMAIL] Mã xác thực gửi đến ${email} là: ${handoverOtpCode}`);
+    alert(`[MÔ PHỎNG XÁC THỰC OTP EMAIL] Mã OTP gửi đến email mới (${email}) là: ${handoverOtpCode}`);
 }
 
 function verifyHandoverOtp(e) {
@@ -270,7 +260,7 @@ function verifyHandoverOtp(e) {
 
     saveDB();
     localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    alert("Xác thực Email thành công! Bạn có thể vào mục thay đổi bên trên để cập nhật thông tin.");
+    alert("Đã xác thực OTP thành công và cập nhật email mới cho tài khoản!");
     location.reload();
 }
 
@@ -325,17 +315,18 @@ function checkRolePermissions() {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden');
+            if(handoverSec) handoverSec.classList.remove('hidden'); // Chủ 1 đổi email qua OTP
         } else if(currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
+            if(handoverSec) handoverSec.classList.remove('hidden'); // Chủ ẩn 2 đổi email qua OTP
             if(changeCredentialsBox) changeCredentialsBox.classList.add('hidden');
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
             if(cap1CustomBox) cap1CustomBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden'); // Cấp 1 liên kết & nhận OTP qua email
+            if(handoverSec) handoverSec.classList.remove('hidden'); // Cấp 1 đổi email qua OTP
             if(contactAddSec) contactAddSec.classList.remove('hidden');
             if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
@@ -430,7 +421,6 @@ function switchChuMonitorArea(areaName) {
     location.reload();
 }
 
-// Tạo khu vực mới (Bỏ phần tiêu đề, chỉ để tên khu vực)
 function chuAssignAreaAndAccount(e) {
     e.preventDefault();
     const newAreaName = document.getElementById('chu-new-area-name').value.trim();
@@ -466,12 +456,10 @@ function chuAssignAreaAndAccount(e) {
     location.reload();
 }
 
-// Xóa khu vực đang chọn trong phần xóa khu vực riêng
 function confirmDeleteCurrentArea() {
     if(!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn khu vực "${db.khuVuc}" không?`)) return;
     localStorage.removeItem('thonxom_data_' + currentAreaKey);
     
-    // Chuyển về khu vực mặc định đầu tiên còn lại
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     if(allKeys.length > 0) {
         let firstArea = JSON.parse(localStorage.getItem(allKeys[0])).khuVuc;
