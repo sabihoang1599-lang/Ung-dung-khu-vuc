@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Adventure - Kết Nối Thôn Xóm</title>
+    <title>Số Hóa Đầu Làng - Kết Nối Thôn Xóm</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
@@ -26,9 +26,9 @@
 
     <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[880px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col justify-between border-0 md:border-8 md:border-gray-800 relative">
 
-        <!-- Top Header App: Hiển thị Ảnh Bìa, Ảnh Đại Diện & Tiêu Đề động -->
+        <!-- Header: Hiển thị Avatar, Tiêu đề trang, Tên Phường và Thành phố/Tỉnh -->
         <header id="app-header-bg" class="bg-gradient-to-br from-travelPrimary to-travelDark text-white p-6 rounded-b-[30px] shadow-lg relative bg-cover bg-center transition-all duration-500">
-            <div class="absolute inset-0 bg-black/35 rounded-b-[30px] pointer-events-none"></div>
+            <div class="absolute inset-0 bg-black/40 rounded-b-[30px] pointer-events-none"></div>
             <div class="relative z-10">
                 <div class="flex justify-between items-center mb-4">
                     <div class="flex items-center space-x-3.5">
@@ -36,10 +36,12 @@
                             <img id="header-avatar" src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100" alt="Avatar" class="w-full h-full object-cover">
                         </div>
                         <div>
-                            <span class="text-[10px] uppercase tracking-wider text-teal-200 font-semibold block mb-0.5">Khu Vực Trực Tuyến</span>
-                            <h1 class="font-extrabold text-base tracking-wide text-white drop-shadow-sm flex items-center gap-1">
+                            <h1 class="font-extrabold text-base tracking-wide text-white drop-shadow-sm leading-tight">
                                 <span id="display-khu-vuc">Thôn Xóm Bình An</span>
                             </h1>
+                            <p class="text-[11px] text-teal-200 mt-0.5 font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-[10px]"></i> <span id="display-phuong-tinh">Phường An Khánh, TP. Cần Thơ</span>
+                            </p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
@@ -53,7 +55,7 @@
                 </div>
 
                 <div class="relative mt-3">
-                    <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-3 rounded-2xl outline-none border border-white/20 shadow-inner">
+                    <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức Số Hóa Đầu Làng..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-3 rounded-2xl outline-none border border-white/20 shadow-inner">
                     <i class="fa-solid fa-magnifying-glass absolute right-4 top-3.5 text-teal-200 text-xs"></i>
                 </div>
             </div>
@@ -73,7 +75,7 @@
             
             <div id="tab-tintuc" class="tab-content space-y-4">
                 <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-sm text-gray-700 dark:text-gray-200">Bản Tin & Hoạt Động</h3>
+                    <h3 class="font-bold text-sm text-gray-700 dark:text-gray-200">Bản Tin Số Hóa Đầu Làng</h3>
                     <div id="action-add-news-container"></div>
                 </div>
                 <div id="news-feed-list" class="grid grid-cols-1 gap-3"></div>
@@ -142,7 +144,7 @@
 
             <div id="tab-livechat" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border flex flex-col h-[400px] shadow-sm">
-                    <h3 class="font-bold text-xs border-b pb-2 mb-3">Phòng Chat Trực Tuyến</h3>
+                    <h3 class="font-bold text-xs border-b pb-2 mb-3">Phòng Chat Trực Tuyến Số Hóa Đầu Làng</h3>
                     <div id="chat-messages-box" class="flex-grow overflow-y-auto space-y-2 pr-1 text-xs mb-3"></div>
                     <form onsubmit="sendChatMessage(event)" class="flex gap-1.5">
                         <input type="text" id="chat-input-name" placeholder="Tên thật (*)..." required class="w-24 bg-gray-50 dark:bg-gray-900 border text-xs px-2.5 py-2 rounded-xl outline-none">
@@ -152,18 +154,22 @@
                 </div>
             </div>
 
-            <!-- TAB QUẢN LÝ (Cấp 1 đổi tiêu đề, tải lên avatar và ảnh bìa) -->
+            <!-- TAB QUẢN LÝ (Cấp 1 đổi tiêu đề, ảnh đại diện, ảnh bìa - KHÔNG ĐỔI TÊN KHU VỰC) -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
-                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Hệ Thống & Giao Diện Khu Vực</h3>
+                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Số Hóa Đầu Làng & Giao Diện Khu Vực</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
                     
                     <div id="cap1-custom-area-box" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-3">
-                        <h4 class="font-bold text-travelPrimary flex items-center gap-1"><i class="fa-solid fa-palette"></i> Tùy Chỉnh Giao Diện & Tiêu Đề Khu Vực</h4>
+                        <h4 class="font-bold text-travelPrimary flex items-center gap-1"><i class="fa-solid fa-palette"></i> Tùy Chỉnh Giao Diện & Tiêu Đề Trang</h4>
                         <form onsubmit="saveCap1Customization(event)" class="space-y-2.5">
                             <div>
-                                <label class="block text-[11px] font-semibold mb-1">Tiêu đề trang (Sửa xong nhấn xác nhận):</label>
+                                <label class="block text-[11px] font-semibold mb-1">Tiêu đề trang (Được phép chỉnh sửa):</label>
                                 <input type="text" id="custom-khu-vuc-title" placeholder="Nhập tiêu đề trang mới..." class="w-full bg-white border rounded-xl px-3 py-2 outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold mb-1">Cập nhật Phường / Xã và Thành phố / Tỉnh:</label>
+                                <input type="text" id="custom-phuong-tinh" placeholder="VD: Phường An Khánh, TP. Cần Thơ..." class="w-full bg-white border rounded-xl px-3 py-2 outline-none" required>
                             </div>
                             <div class="flex items-center gap-3 bg-white p-2 rounded-xl border">
                                 <img id="preview-avatar-box" src="" class="w-10 h-10 rounded-full object-cover border" alt="Avatar">
@@ -233,7 +239,7 @@
     <div id="login-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl">
             <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-base text-center">Đăng Nhập Hệ Thống</h3>
+            <h3 class="font-bold text-base text-center">Đăng Nhập Số Hóa Đầu Làng</h3>
             <form onsubmit="handleLogin(event)" class="space-y-3 text-xs">
                 <input type="text" id="login-username" required placeholder="Tên đăng nhập..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
                 <input type="password" id="login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
@@ -245,7 +251,7 @@
     <div id="news-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative max-h-[85vh] overflow-y-auto shadow-2xl">
             <button onclick="closeNewsModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-base">Đăng Bài Tin Tức</h3>
+            <h3 class="font-bold text-base">Đăng Bài Tin Tức Số Hóa Đầu Làng</h3>
             <form onsubmit="submitNewsArticle(event)" class="space-y-3 text-xs">
                 <input type="text" id="news-title" required placeholder="Tiêu đề..." class="w-full border rounded-xl px-3 py-2">
                 <textarea id="news-content" required rows="5" placeholder="Nội dung..." class="w-full border rounded-xl p-3"></textarea>
