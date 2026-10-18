@@ -15,7 +15,7 @@ function getAreaData(key) {
             banner: "",
             ownerEmail: "admin.thonxom@gmail.com",
             accounts: [
-                { id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+                { id: 1, hoten: "Tài Khoản Cấp Quyền", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
                 { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
             ],
             contacts: [],
@@ -37,8 +37,12 @@ function getAreaData(key) {
     
     let hasChu1 = parsed.accounts.some(a => a.username === 'Taikhoanchu');
     if(!hasChu1) {
-        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
+        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Cấp Quyền", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
+    } else {
+        let c1 = parsed.accounts.find(a => a.username === 'Taikhoanchu');
+        if(c1) c1.hoten = "Tài Khoản Cấp Quyền";
     }
+
     let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
     if(!hasChu2) {
         parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
@@ -117,8 +121,8 @@ function togglePasswordVisibility(inputId, iconId) {
 
 function handleLogin(e) {
     e.preventDefault();
-    const u = document.getElementById('inline-login-username') ? document.getElementById('inline-login-username').value.trim() : document.getElementById('login-username').value.trim();
-    const p = document.getElementById('inline-login-password') ? document.getElementById('inline-login-password').value.trim() : document.getElementById('login-password').value.trim();
+    const u = document.getElementById('inline-login-username') ? document.getElementById('inline-login-username').value.trim() : '';
+    const p = document.getElementById('inline-login-password') ? document.getElementById('inline-login-password').value.trim() : '';
 
     let found = null;
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
@@ -137,7 +141,6 @@ function handleLogin(e) {
     if(found) {
         currentUser = found;
         localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-        closeLoginModal();
         checkRolePermissions();
         renderAccountsTable();
         renderSidebarContacts();
@@ -156,12 +159,8 @@ function handleLogout() {
     location.reload();
 }
 
-function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
-function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
-
 let generatedForgotOtp = "";
 function openForgotModal() {
-    closeLoginModal();
     document.getElementById('forgot-modal').classList.remove('hidden');
     document.getElementById('forgot-step-1').classList.remove('hidden');
     document.getElementById('forgot-step-2').classList.add('hidden');
@@ -216,7 +215,6 @@ function confirmResetPassword() {
     if(updated) {
         alert("Khôi phục mật khẩu thành công! Hãy đăng nhập lại.");
         closeForgotModal();
-        openLoginModal();
     } else {
         alert("Có lỗi xảy ra!");
     }
@@ -247,7 +245,7 @@ function updateMyCredentials(e) {
 
     saveDB();
     localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    alert("Đã cập nhật thông tin thành công và đồng bộ tới hệ thống các tài khoản Chủ!");
+    alert("Đã cập nhật thông tin thành công và đồng bộ tới hệ thống!");
     location.reload();
 }
 
@@ -287,7 +285,6 @@ function checkRolePermissions() {
     const accountCreateSec = document.getElementById('account-create-section');
     const cap1CustomBox = document.getElementById('cap1-custom-area-box');
     const handoverSec = document.getElementById('handover-section');
-    const authActionContainer = document.getElementById('auth-action-container');
     const currentUserBadge = document.getElementById('current-user-badge');
     const contactAddSec = document.getElementById('contact-add-section');
     const btnBqNoiBo = document.getElementById('btn-bq-noibo');
@@ -312,14 +309,6 @@ function checkRolePermissions() {
     if(currentUser) {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
-
-        if(authActionContainer) {
-            authActionContainer.innerHTML = `
-                <button onclick="handleLogout()" class="bg-red-500/80 hover:bg-red-600 text-white px-2.5 py-1 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1" title="Đăng xuất">
-                    <i class="fa-solid fa-right-from-bracket"></i> Thoát
-                </button>
-            `;
-        }
 
         let roleName = currentUser.type === 'chu' ? 'Quản Trị Hệ Thống' : (currentUser.type === 'andanh' ? 'Quản Trị Hệ Thống' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
@@ -359,13 +348,6 @@ function checkRolePermissions() {
         if(loggedOutManagerView) loggedOutManagerView.classList.remove('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.add('hidden');
 
-        if(authActionContainer) {
-            authActionContainer.innerHTML = `
-                <button onclick="openLoginModal()" class="bg-white text-travelPrimary px-2.5 py-1 rounded-full text-[11px] font-bold shadow transition flex items-center gap-1">
-                    <i class="fa-solid fa-user-lock"></i> <span>Đăng Nhập</span>
-                </button>
-            `;
-        }
         if(activeBqTab === 'noibo') {
             switchBqTab('congdong');
         }
