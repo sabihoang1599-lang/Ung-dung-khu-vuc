@@ -330,7 +330,7 @@ function initAppConfig() {
 
 function switchTab(tabId) {
     if(portalRole === 'congdong' && (tabId === 'tab-hopchibo' || tabId === 'tab-quanly')) {
-        alert("Khu vực cộng đồng không có quyền truy cập mục này!");
+        showCustomConfirm("Thông Báo", "Khu vực cộng đồng không có quyền truy cập mục này!", false, () => {});
         return;
     }
 
@@ -401,7 +401,7 @@ function handleLogin(e) {
         } catch(e) { activeSessions = {}; }
 
         if(activeSessions[found.username] && activeSessions[found.username] !== socketSessionId) {
-            showCustomConfirm("Xác Nhận Đăng Nhập", `Tài khoản "${found.username}" đang có người đăng nhập. Bạn có phải là người đang đăng nhập không?`, false, (isYes) => {
+            showCustomConfirm("Xác Nhận Đăng Nhập", `Tài khoản "${found.username}" đang có người đăng nhập. Bạn có muốn tiếp tục đăng nhập không?`, false, (isYes) => {
                 if(isYes) {
                     executeLoginSuccess(found, foundAreaKey);
                 }
@@ -410,7 +410,7 @@ function handleLogin(e) {
         }
         executeLoginSuccess(found, foundAreaKey);
     } else {
-        alert("Sai tên đăng nhập hoặc mật khẩu!");
+        showCustomConfirm("Đăng Nhập Thất Bại", "Sai tên đăng nhập hoặc mật khẩu!", false, () => {});
     }
 }
 
@@ -435,8 +435,9 @@ function executeLoginSuccess(acc, areaKey) {
     renderAccountsTable();
     renderSidebarContacts();
     initAppConfig();
-    alert(`Đăng nhập thành công với tư cách: ${currentUser.hoten}!`);
-    location.reload();
+    showCustomConfirm("Thành Công", `Đăng nhập thành công với tư cách: ${currentUser.hoten}!`, false, () => {
+        location.reload();
+    });
 }
 
 let confirmCallback = null;
@@ -467,13 +468,14 @@ function closeCustomConfirm(isYes) {
     const confirmModal = document.getElementById('custom-confirm-modal');
     if(confirmModal) confirmModal.classList.add('hidden');
     if(confirmCallback) {
-        confirmCallback(isYes);
+        let cb = confirmCallback;
         confirmCallback = null;
+        cb(isYes);
     }
 }
 
 function promptLogout() {
-    showCustomConfirm("Xác Nhận Đăng Xuất", "Bạn có muốn đăng xuất tài khoản này không?", false, (isYes) => {
+    showCustomConfirm("Xác Nhận Đăng Xuất", "Bạn có chắc chắn muốn đăng xuất tài khoản này không?", true, (isYes) => {
         if(isYes) {
             handleLogout();
         }
@@ -500,8 +502,9 @@ function handleLogout() {
     }
     currentUser = null;
     portalRole = null;
-    alert("Đã đăng xuất tài khoản thành công!");
-    location.reload();
+    showCustomConfirm("Đã Đăng Xuất", "Đăng xuất tài khoản thành công!", false, () => {
+        location.reload();
+    });
 }
 
 let generatedForgotOtp = "";
@@ -521,7 +524,7 @@ function closeForgotModal() {
 function sendForgotOtp() {
     const usr = document.getElementById('forgot-username').value.trim();
     const email = document.getElementById('forgot-email').value.trim();
-    if(!usr || !email) { alert("Vui lòng nhập đầy đủ tên đăng nhập và email!"); return; }
+    if(!usr || !email) { showCustomConfirm("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và email!", false, () => {}); return; }
 
     let targetAcc = null;
     let allKeys = [];
@@ -542,15 +545,15 @@ function sendForgotOtp() {
         } catch(e) {}
     }
 
-    if(!targetAcc) { alert("Không tìm thấy tài khoản hoặc email không khớp!"); return; }
+    if(!targetAcc) { showCustomConfirm("Lỗi", "Không tìm thấy tài khoản hoặc email không khớp!", false, () => {}); return; }
 
     generatedForgotOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    alert(`[MÔ PHỎNG GỬI EMAIL] Mã OTP khôi phục gửi đến ${email} là: ${generatedForgotOtp}`);
-    
-    const s1 = document.getElementById('forgot-step-1');
-    const s2 = document.getElementById('forgot-step-2');
-    if(s1) s1.classList.add('hidden');
-    if(s2) s2.classList.remove('hidden');
+    showCustomConfirm("Mã OTP Khôi Phục", `[MÔ PHỎNG EMAIL] Mã OTP gửi đến ${email} là: ${generatedForgotOtp}`, false, () => {
+        const s1 = document.getElementById('forgot-step-1');
+        const s2 = document.getElementById('forgot-step-2');
+        if(s1) s1.classList.add('hidden');
+        if(s2) s2.classList.remove('hidden');
+    });
 }
 
 function confirmResetPassword() {
@@ -558,8 +561,8 @@ function confirmResetPassword() {
     const otp = document.getElementById('forgot-otp-code').value.trim();
     const newPwd = document.getElementById('forgot-new-pwd').value.trim();
 
-    if(otp !== generatedForgotOtp) { alert("Mã OTP không chính xác!"); return; }
-    if(!validatePassword(newPwd)) { alert("Mật khẩu mới phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
+    if(otp !== generatedForgotOtp) { showCustomConfirm("Lỗi", "Mã OTP không chính xác!", false, () => {}); return; }
+    if(!validatePassword(newPwd)) { showCustomConfirm("Lỗi", "Mật khẩu mới phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return; }
 
     let allKeys = [];
     try {
@@ -583,10 +586,11 @@ function confirmResetPassword() {
     }
 
     if(updated) {
-        alert("Khôi phục mật khẩu thành công! Hãy đăng nhập lại.");
-        closeForgotModal();
+        showCustomConfirm("Thành Công", "Khôi phục mật khẩu thành công! Hãy đăng nhập lại.", false, () => {
+            closeForgotModal();
+        });
     } else {
-        alert("Có lỗi xảy ra!");
+        showCustomConfirm("Lỗi", "Có lỗi xảy ra khi đổi mật khẩu!", false, () => {});
     }
 }
 
@@ -596,32 +600,37 @@ function updateMyCredentials(e) {
     const newUsr = document.getElementById('my-new-username').value.trim();
     const newPwd = document.getElementById('my-new-password').value.trim();
 
-    if(!validateUsername(newUsr)) { alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return; }
-    if(!validatePassword(newPwd)) { alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
+    if(!validateUsername(newUsr)) { showCustomConfirm("Lỗi", "Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!", false, () => {}); return; }
+    if(!validatePassword(newPwd)) { showCustomConfirm("Lỗi", "Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return; }
 
-    currentUser.username = newUsr;
-    currentUser.password = newPwd;
+    showCustomConfirm("Xác Nhận Cập Nhật", "Bạn có chắc chắn muốn thay đổi thông tin tài khoản cá nhân không?", false, (isYes) => {
+        if(isYes) {
+            currentUser.username = newUsr;
+            currentUser.password = newPwd;
 
-    let accInDb = db.accounts.find(a => a.id === currentUser.id || a.type === currentUser.type);
-    if(accInDb) {
-        accInDb.username = newUsr;
-        accInDb.password = newPwd;
-    }
+            let accInDb = db.accounts.find(a => a.id === currentUser.id || a.type === currentUser.type);
+            if(accInDb) {
+                accInDb.username = newUsr;
+                accInDb.password = newPwd;
+            }
 
-    saveDB();
-    try {
-        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    } catch(e) {}
-    alert("Đã cập nhật thông tin thành công và đồng bộ tới hệ thống!");
-    location.reload();
+            saveDB();
+            try {
+                localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+            } catch(e) {}
+            showCustomConfirm("Thành Công", "Đã cập nhật thông tin thành công!", false, () => {
+                location.reload();
+            });
+        }
+    });
 }
 
 let handoverOtpCode = "";
 function sendHandoverOtp() {
     const email = document.getElementById('user-email-input').value.trim();
-    if(!email) { alert("Vui lòng nhập email mới cần đổi!"); return; }
+    if(!email) { showCustomConfirm("Lỗi", "Vui lòng nhập email mới cần đổi!", false, () => {}); return; }
     handoverOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    alert(`[MÔ PHỎNG XÁC THỰC OTP EMAIL] Mã OTP gửi đến email mới (${email}) là: ${handoverOtpCode}`);
+    showCustomConfirm("Mã OTP Email", `[MÔ PHỎNG XÁC THỰC] Mã OTP gửi đến email mới (${email}) là: ${handoverOtpCode}`, false, () => {});
 }
 
 function verifyHandoverOtp(e) {
@@ -629,24 +638,29 @@ function verifyHandoverOtp(e) {
     const email = document.getElementById('user-email-input').value.trim();
     const otp = document.getElementById('handover-otp-input').value.trim();
 
-    if(otp !== handoverOtpCode) { alert("Mã OTP không chính xác!"); return; }
+    if(otp !== handoverOtpCode) { showCustomConfirm("Lỗi", "Mã OTP không chính xác!", false, () => {}); return; }
 
-    currentUser.email = email;
-    let accInDb = db.accounts.find(a => a.id === currentUser.id);
-    if(accInDb) accInDb.email = email;
+    showCustomConfirm("Xác Nhận Đổi Email", "Bạn có chắc chắn muốn cập nhật email mới này không?", false, (isYes) => {
+        if(isYes) {
+            currentUser.email = email;
+            let accInDb = db.accounts.find(a => a.id === currentUser.id);
+            if(accInDb) accInDb.email = email;
 
-    saveDB();
-    try {
-        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    } catch(e) {}
-    alert("Đã xác thực OTP thành công và cập nhật email mới cho tài khoản!");
-    location.reload();
+            saveDB();
+            try {
+                localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+            } catch(e) {}
+            showCustomConfirm("Thành Công", "Đã cập nhật email mới thành công!", false, () => {
+                location.reload();
+            });
+        }
+    });
 }
 
-function saveAreaDetailsByChu(e) {
+function promptSaveAreaDetails(e) {
     e.preventDefault();
     if(!currentUser || (currentUser.type !== 'chu' && currentUser.type !== 'andanh')) {
-        alert("Chỉ tài khoản Chủ mới có quyền chỉnh sửa tên khu vực!");
+        showCustomConfirm("Lỗi", "Chỉ tài khoản Chủ mới có quyền chỉnh sửa tên khu vực!", false, () => {});
         return;
     }
 
@@ -655,25 +669,30 @@ function saveAreaDetailsByChu(e) {
     const newTinh = document.getElementById('edit-area-tinh').value.trim();
 
     if(!newAreaName || !newPhuong || !newTinh) {
-        alert("Vui lòng điền đầy đủ thông tin khu vực!");
+        showCustomConfirm("Lỗi", "Vui lòng điền đầy đủ thông tin khu vực!", false, () => {});
         return;
     }
 
-    let oldKey = currentAreaKey;
-    db.khuVuc = newAreaName;
-    db.phuongXa = newPhuong;
-    db.tinhThanh = newTinh;
-    db.phuongTinh = `${newPhuong}, ${newTinh}`;
+    showCustomConfirm("Xác Nhận Cập Nhật", `Bạn có muốn đổi tên khu vực thành "${newAreaName}" không?`, false, (isYes) => {
+        if(isYes) {
+            let oldKey = currentAreaKey;
+            db.khuVuc = newAreaName;
+            db.phuongXa = newPhuong;
+            db.tinhThanh = newTinh;
+            db.phuongTinh = `${newPhuong}, ${newTinh}`;
 
-    try {
-        localStorage.removeItem('thonxom_data_' + oldKey);
-        currentAreaKey = newAreaName;
-        localStorage.setItem('thonxom_current_area', currentAreaKey);
-        localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
-    } catch(e) {}
+            try {
+                localStorage.removeItem('thonxom_data_' + oldKey);
+                currentAreaKey = newAreaName;
+                localStorage.setItem('thonxom_current_area', currentAreaKey);
+                localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
+            } catch(e) {}
 
-    alert("Đã cập nhật thông tin khu vực thành công!");
-    location.reload();
+            showCustomConfirm("Thành Công", "Đã cập nhật thông tin khu vực thành công!", false, () => {
+                location.reload();
+            });
+        }
+    });
 }
 
 function checkRolePermissions() {
@@ -718,7 +737,7 @@ function checkRolePermissions() {
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
             if(chuEditAreaDetailsBox) chuEditAreaDetailsBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden');
+            if(handoverSec) chuCreateAreaBox.classList.remove('hidden'); // Cấp quyền đầy đủ
 
             let editAreaNameInput = document.getElementById('edit-area-name');
             let editAreaPhuongInput = document.getElementById('edit-area-phuong');
@@ -770,15 +789,16 @@ function saveCap1Customization(e) {
 
     let processSave = () => {
         saveDB();
-        alert("Đã cập nhật thành công!");
-        location.reload();
+        showCustomConfirm("Thành Công", "Đã cập nhật giao diện thành công!", false, () => {
+            location.reload();
+        });
     };
 
     let filesProcessed = 0;
     let totalFiles = (avatarFile ? 1 : 0) + (bannerFile ? 1 : 0);
 
     if (totalFiles === 0) {
-        alert("Vui lòng chọn hình ảnh để tải lên!");
+        showCustomConfirm("Lỗi", "Vui lòng chọn hình ảnh để tải lên!", false, () => {});
         return;
     }
 
@@ -922,33 +942,38 @@ function chuAssignAreaAndAccount(e) {
     const sdt = document.getElementById('chu-acc-sdt').value.trim();
     const password = document.getElementById('chu-acc-password').value.trim();
 
-    if(!newAreaName) { alert("Vui lòng nhập tên khu vực!"); return; }
+    if(!newAreaName) { showCustomConfirm("Lỗi", "Vui lòng nhập tên khu vực!", false, () => {}); return; }
     if(!validateUsername(username)) {
-        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return;
+        showCustomConfirm("Lỗi", "Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!", false, () => {}); return;
     }
     if(!validatePassword(password)) {
-        alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
+        showCustomConfirm("Lỗi", "Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return;
     }
 
-    let newAreaData = getAreaData(newAreaName);
-    newAreaData.tinhThanh = tinhThanh;
-    newAreaData.phuongXa = phuongXa;
-    newAreaData.phuongTinh = `${phuongXa}, ${tinhThanh}`;
-    newAreaData.accounts.push({
-        id: Date.now(),
-        hoten,
-        username,
-        password,
-        email,
-        type: "cap1",
-        sdt,
-        khuVuc: newAreaName
+    showCustomConfirm("Xác Nhận", `Bạn có muốn tạo khu vực mới "${newAreaName}" không?`, false, (isYes) => {
+        if(isYes) {
+            let newAreaData = getAreaData(newAreaName);
+            newAreaData.tinhThanh = tinhThanh;
+            newAreaData.phuongXa = phuongXa;
+            newAreaData.phuongTinh = `${phuongXa}, ${tinhThanh}`;
+            newAreaData.accounts.push({
+                id: Date.now(),
+                hoten,
+                username,
+                password,
+                email,
+                type: "cap1",
+                sdt,
+                khuVuc: newAreaName
+            });
+            try {
+                localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
+            } catch(e) {}
+            showCustomConfirm("Thành Công", `Đã tạo khu vực "${newAreaName}" thành công!`, false, () => {
+                location.reload();
+            });
+        }
     });
-    try {
-        localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
-    } catch(e) {}
-    alert(`Đã tạo khu vực "${newAreaName}" thành công!`);
-    location.reload();
 }
 
 function executeDeleteCurrentArea() {
@@ -962,14 +987,15 @@ function executeDeleteCurrentArea() {
             localStorage.setItem('thonxom_current_area', 'Thôn Xóm Bình An');
         }
     } catch(e) {}
-    alert("Đã xóa khu vực thành công!");
-    location.reload();
+    showCustomConfirm("Thành Công", "Đã xóa khu vực thành công!", false, () => {
+        location.reload();
+    });
 }
 
 function createNewAccount(e) {
     e.preventDefault();
     if(!currentUser || currentUser.type !== 'cap1') {
-        alert("Chỉ tài khoản Cấp 1 mới có quyền cấp phát tài khoản trong khu vực này!"); return;
+        showCustomConfirm("Lỗi", "Chỉ tài khoản Cấp 1 mới có quyền cấp phát tài khoản trong khu vực này!", false, () => {}); return;
     }
     const hoten = document.getElementById('acc-hoten').value.trim();
     const username = document.getElementById('acc-chucvu').value.trim();
@@ -979,17 +1005,21 @@ function createNewAccount(e) {
     const type = document.getElementById('acc-type').value;
 
     if(!validateUsername(username)) {
-        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return;
+        showCustomConfirm("Lỗi", "Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!", false, () => {}); return;
     }
     if(!validatePassword(password)) {
-        alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
+        showCustomConfirm("Lỗi", "Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return;
     }
 
-    db.accounts.push({ id: Date.now(), hoten, username, password, email, type, sdt, khuVuc: db.khuVuc });
-    saveDB();
-    renderAccountsTable();
-    alert("Cấp tài khoản thành công!");
-    e.target.reset();
+    showCustomConfirm("Xác Nhận", `Bạn có muốn cấp tài khoản "${username}" không?`, false, (isYes) => {
+        if(isYes) {
+            db.accounts.push({ id: Date.now(), hoten, username, password, email, type, sdt, khuVuc: db.khuVuc });
+            saveDB();
+            renderAccountsTable();
+            showCustomConfirm("Thành Công", "Cấp tài khoản thành công!", false, () => {});
+            e.target.reset();
+        }
+    });
 }
 
 function renderAccountsTable() {
@@ -1007,7 +1037,7 @@ function renderAccountsTable() {
     let isOwner = currentUser && (currentUser.type === 'chu' || currentUser.type === 'andanh');
 
     visibleAccounts.forEach(acc => {
-        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>';
+        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2</span>';
         let passwordDisplay = isOwner ? `| Mật khẩu: <b class="text-travelPrimary">${acc.password}</b>` : '';
         let emailDisplay = acc.email ? `| Email: ${acc.email}` : '';
         let sdtDisplay = acc.sdt ? `SĐT: ${acc.sdt}` : '';
@@ -1017,9 +1047,17 @@ function renderAccountsTable() {
                     <p class="font-bold">${acc.hoten} (${acc.username}) ${levelBadge}</p>
                     <p class="text-gray-500 text-[11px]">${sdtDisplay} ${emailDisplay} ${passwordDisplay}</p>
                 </div>
-                ${(currentUser && currentUser.type === 'cap1') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
+                ${(currentUser && currentUser.type === 'cap1') ? `<button onclick="promptDeleteAccount(${acc.id})" class="text-red-500 hover:text-red-700 font-bold p-1"><i class="fa-solid fa-trash"></i> Xóa</button>` : ''}
             </div>
         `;
+    });
+}
+
+function promptDeleteAccount(id) {
+    showCustomConfirm("Xác Nhận Xóa", "Bạn có chắc chắn muốn xóa tài khoản này không?", true, (isYes) => {
+        if(isYes) {
+            deleteAccount(id);
+        }
     });
 }
 
@@ -1027,6 +1065,7 @@ function deleteAccount(id) {
     db.accounts = db.accounts.filter(a => a.id !== id);
     saveDB();
     renderAccountsTable();
+    showCustomConfirm("Thành Công", "Đã xóa tài khoản thành công!", false, () => {});
 }
 
 function renderSidebarContacts() {
@@ -1046,17 +1085,25 @@ function renderSidebarContacts() {
                 <div><p class="font-bold">${c.dept}</p><p class="text-gray-500 text-[11px]">${c.person} - ${c.phone}</p></div>
                 <div class="flex items-center gap-2">
                     <a href="tel:${c.phone}" class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-phone"></i> Gọi</a>
-                    ${canDelete ? `<button onclick="deleteContact(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    ${canDelete ? `<button onclick="promptDeleteContact(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </div>
             </div>
         `;
     });
 }
 
+function promptDeleteContact(id) {
+    showCustomConfirm("Xác Nhận Xóa", "Bạn có muốn xóa mục danh bạ này không?", true, (isYes) => {
+        if(isYes) {
+            deleteContact(id);
+        }
+    });
+}
+
 function saveNewContact(e) {
     e.preventDefault();
     if(db.contacts.length >= 10) {
-        alert("Tối đa 10 mục danh bạ!"); return;
+        showCustomConfirm("Lỗi", "Tối đa 10 mục danh bạ!", false, () => {}); return;
     }
     const dept = document.getElementById('ct-dept').value.trim();
     const person = document.getElementById('ct-person').value.trim();
@@ -1065,7 +1112,7 @@ function saveNewContact(e) {
     db.contacts.push({ id: Date.now(), dept, person, phone });
     saveDB();
     renderSidebarContacts();
-    alert("Đã thêm danh bạ!");
+    showCustomConfirm("Thành Công", "Đã thêm danh bạ thành công!", false, () => {});
     e.target.reset();
 }
 
@@ -1096,7 +1143,7 @@ function handleNewsImages(e) {
 function submitNewsArticle(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Cấp 2 chỉ có quyền xem!"); return;
+        showCustomConfirm("Lỗi", "Cấp 2 chỉ có quyền xem!", false, () => {}); return;
     }
     db.news.unshift({
         id: Date.now(),
@@ -1107,6 +1154,7 @@ function submitNewsArticle(e) {
         date: new Date().toLocaleDateString('vi-VN')
     });
     saveDB(); closeNewsModal(); renderNews(); e.target.reset();
+    showCustomConfirm("Thành Công", "Đã đăng bài viết mới!", false, () => {});
 }
 function renderNews(filter = "") {
     const list = document.getElementById('news-feed-list');
@@ -1148,7 +1196,7 @@ function handlePaImages(e) {
 }
 function submitPhanAnh(e) {
     e.preventDefault();
-    if(tempPaImages.length < 1) { alert("Bắt buộc có ít nhất 1 hình ảnh!"); return; }
+    if(tempPaImages.length < 1) { showCustomConfirm("Lỗi", "Bắt buộc có ít nhất 1 hình ảnh!", false, () => {}); return; }
     db.phanAnh.unshift({
         id: Date.now(),
         hoten: document.getElementById('pa-hoten').value.trim(),
@@ -1162,7 +1210,7 @@ function submitPhanAnh(e) {
     saveDB(); renderPhanAnh(); e.target.reset(); tempPaImages = [];
     const preview = document.getElementById('pa-image-preview');
     if(preview) preview.innerHTML = '';
-    alert("Đã gửi phản ánh!");
+    showCustomConfirm("Thành Công", "Đã gửi phản ánh thành công!", false, () => {});
 }
 function updatePhanAnhStatus(id, newStatus) {
     let item = db.phanAnh.find(p => p.id === id);
@@ -1217,7 +1265,7 @@ function closeHopModal() { const m = document.getElementById('hop-modal'); if(m)
 function submitHopChiBo(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Cấp 2 chỉ có quyền xem!"); return;
+        showCustomConfirm("Lỗi", "Cấp 2 chỉ có quyền xem!", false, () => {}); return;
     }
     const title = document.getElementById('hop-title').value.trim();
     const content = document.getElementById('hop-content').value.trim();
@@ -1232,7 +1280,8 @@ function submitHopChiBo(e) {
             fileName: fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : "",
             author: currentUser ? currentUser.username : "Cán bộ"
         });
-        saveDB(); closeHopModal(); renderHopChiBo(); alert("Đăng lịch họp thành công!"); e.target.reset();
+        saveDB(); closeHopModal(); renderHopChiBo(); e.target.reset();
+        showCustomConfirm("Thành Công", "Đăng lịch họp thành công!", false, () => {});
     };
 
     if(fileInput && fileInput.files && fileInput.files[0]) {
@@ -1266,7 +1315,7 @@ function renderHopChiBo() {
 let activeBqTab = 'congdong';
 function switchBqTab(tab) {
     if(tab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
-        alert("Chỉ Cấp 1 và Cấp 2 mới có quyền xem nội bộ!");
+        showCustomConfirm("Lỗi", "Chỉ Cấp 1 và Cấp 2 mới có quyền xem nội bộ!", false, () => {});
         return; 
     }
     activeBqTab = tab;
@@ -1284,7 +1333,7 @@ function closeBqModal() { const m = document.getElementById('bq-modal'); if(m) m
 function submitBieuQuyet(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Cấp 2 không có quyền tạo!"); return;
+        showCustomConfirm("Lỗi", "Cấp 2 không có quyền tạo!", false, () => {}); return;
     }
     db.bieuQuyet.unshift({
         id: Date.now(),
@@ -1293,14 +1342,15 @@ function submitBieuQuyet(e) {
         type: document.getElementById('bq-type').value,
         votes: {}
     });
-    saveDB(); closeBqModal(); renderBieuQuyet(); alert("Đã phát động!"); e.target.reset();
+    saveDB(); closeBqModal(); renderBieuQuyet(); e.target.reset();
+    showCustomConfirm("Thành Công", "Đã phát động biểu quyết mới!", false, () => {});
 }
 
 function voteBieuQuyet(bqId, optionIndex) {
     let bq = db.bieuQuyet.find(b => b.id === bqId);
     if(bq) {
         if(bq.type === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
-            alert("Bạn không có quyền bình chọn nội bộ!");
+            showCustomConfirm("Lỗi", "Bạn không có quyền bình chọn nội bộ!", false, () => {});
             return;
         }
         if(!bq.votes) bq.votes = {};
@@ -1308,7 +1358,7 @@ function voteBieuQuyet(bqId, optionIndex) {
         bq.votes[voterName] = optionIndex;
         saveDB();
         renderBieuQuyet();
-        alert("Đã bỏ phiếu!");
+        showCustomConfirm("Thành Công", "Đã bỏ phiếu thành công!", false, () => {});
     }
 }
 
@@ -1363,7 +1413,7 @@ function sendChatMessage(e) {
     const msgEl = document.getElementById('chat-input-msg');
     const name = nameEl ? nameEl.value.trim() : '';
     const msg = msgEl ? msgEl.value.trim() : '';
-    if(!name) { alert("Nhập tên!"); return; }
+    if(!name) { showCustomConfirm("Lỗi", "Vui lòng nhập tên!", false, () => {}); return; }
     db.chatMessages.push({ id: Date.now(), name, msg });
     saveDB(); renderChatMessages();
     if(msgEl) msgEl.value = '';
@@ -1381,7 +1431,7 @@ function searchOnlineThuTuc() {
     const queryEl = document.getElementById('ai-tt-query');
     const query = queryEl ? queryEl.value.trim() : '';
     const resultBox = document.getElementById('ai-search-result-box');
-    if(!query) { alert("Nhập tên thủ tục!"); return; }
+    if(!query) { showCustomConfirm("Lỗi", "Vui lòng nhập tên thủ tục!", false, () => {}); return; }
 
     if(resultBox) {
         resultBox.classList.remove('hidden');
@@ -1405,7 +1455,7 @@ function searchOnlineThuTuc() {
 function officerUploadThuTuc(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Cấp 2 chỉ có quyền xem!"); return;
+        showCustomConfirm("Lỗi", "Cấp 2 chỉ có quyền xem!", false, () => {}); return;
     }
     const title = document.getElementById('off-tt-title').value.trim();
     const fileInput = document.getElementById('off-tt-file');
@@ -1420,7 +1470,8 @@ function officerUploadThuTuc(e) {
                 fileName: fileInput.files[0].name,
                 uploader: currentUser ? currentUser.username : "Cán bộ"
             });
-            saveDB(); renderThuTucDocs(); e.target.reset(); alert("Đã tải lên!");
+            saveDB(); renderThuTucDocs(); e.target.reset();
+            showCustomConfirm("Thành Công", "Đã tải lên biểu mẫu thành công!", false, () => {});
         };
         reader.readAsDataURL(fileInput.files[0]);
     }
