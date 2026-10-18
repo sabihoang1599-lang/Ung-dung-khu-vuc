@@ -190,9 +190,6 @@ function confirmResetPassword() {
         let areaData = JSON.parse(localStorage.getItem(k));
         let acc = areaData.accounts.find(a => a.username === usr);
         if(acc) {
-            if(acc.username === 'Taikhoanandanh') {
-                // Cho phép tài khoản chủ ẩn 2 đổi pass nếu xác thực OTP thành công qua email
-            }
             acc.password = newPwd;
             localStorage.setItem(k, JSON.stringify(areaData));
             updated = true;
@@ -209,7 +206,6 @@ function confirmResetPassword() {
     }
 }
 
-// Cập nhật tên đăng nhập và mật khẩu cá nhân
 function updateMyCredentials(e) {
     e.preventDefault();
     if(!currentUser) return;
@@ -285,7 +281,7 @@ function checkRolePermissions() {
     if(addNewsContainer) addNewsContainer.innerHTML = '';
     if(addHopContainer) addHopContainer.innerHTML = '';
     if(addBqContainer) addBqContainer.innerHTML = '';
-    if(tabQuanLyBtn) tabQuanLyBtn.classList.add('hidden');
+    if(tabQuanLyBtn) tabQuanLyBtn.classList.add('hidden'); // Ẩn hoàn toàn tab quản lý khi chưa đăng nhập
     if(officerUploadTt) officerUploadTt.classList.add('hidden');
     if(chuCreateAreaBox) chuCreateAreaBox.classList.add('hidden');
     if(chuDeleteAreaBox) chuDeleteAreaBox.classList.add('hidden');
@@ -309,24 +305,24 @@ function checkRolePermissions() {
         let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ 1' : (currentUser.type === 'andanh' ? 'Tài Khoản Chủ 2 Ẩn' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
-        if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
+        if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden'); // Hiện tab quản lý khi đã đăng nhập
 
         if(currentUser.type === 'chu') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden'); // Chủ 1 đổi email qua OTP
+            if(handoverSec) handoverSec.classList.remove('hidden');
         } else if(currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden'); // Chủ ẩn 2 đổi email qua OTP
+            if(handoverSec) handoverSec.classList.remove('hidden');
             if(changeCredentialsBox) changeCredentialsBox.classList.add('hidden');
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
             if(cap1CustomBox) cap1CustomBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden'); // Cấp 1 đổi email qua OTP
+            if(handoverSec) handoverSec.classList.remove('hidden');
             if(contactAddSec) contactAddSec.classList.remove('hidden');
             if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
