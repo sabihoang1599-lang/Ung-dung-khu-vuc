@@ -643,6 +643,39 @@ function verifyHandoverOtp(e) {
     location.reload();
 }
 
+function saveAreaDetailsByChu(e) {
+    e.preventDefault();
+    if(!currentUser || (currentUser.type !== 'chu' && currentUser.type !== 'andanh')) {
+        alert("Chỉ tài khoản Chủ mới có quyền chỉnh sửa tên khu vực!");
+        return;
+    }
+
+    const newAreaName = document.getElementById('edit-area-name').value.trim();
+    const newPhuong = document.getElementById('edit-area-phuong').value.trim();
+    const newTinh = document.getElementById('edit-area-tinh').value.trim();
+
+    if(!newAreaName || !newPhuong || !newTinh) {
+        alert("Vui lòng điền đầy đủ thông tin khu vực!");
+        return;
+    }
+
+    let oldKey = currentAreaKey;
+    db.khuVuc = newAreaName;
+    db.phuongXa = newPhuong;
+    db.tinhThanh = newTinh;
+    db.phuongTinh = `${newPhuong}, ${newTinh}`;
+
+    try {
+        localStorage.removeItem('thonxom_data_' + oldKey);
+        currentAreaKey = newAreaName;
+        localStorage.setItem('thonxom_current_area', currentAreaKey);
+        localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
+    } catch(e) {}
+
+    alert("Đã cập nhật thông tin khu vực thành công!");
+    location.reload();
+}
+
 function checkRolePermissions() {
     const addNewsContainer = document.getElementById('action-add-news-container');
     const addHopContainer = document.getElementById('action-add-hop-container');
@@ -651,6 +684,7 @@ function checkRolePermissions() {
     const chuCreateAreaBox = document.getElementById('chu-create-area-box');
     const chuDeleteAreaBox = document.getElementById('chu-delete-area-box');
     const chuMonitorBox = document.getElementById('chu-monitor-box');
+    const chuEditAreaDetailsBox = document.getElementById('chu-edit-area-details-box');
     const accountCreateSec = document.getElementById('account-create-section');
     const cap1CustomBox = document.getElementById('cap1-custom-area-box');
     const handoverSec = document.getElementById('handover-section');
@@ -667,6 +701,7 @@ function checkRolePermissions() {
     if(chuCreateAreaBox) chuCreateAreaBox.classList.add('hidden');
     if(chuDeleteAreaBox) chuDeleteAreaBox.classList.add('hidden');
     if(chuMonitorBox) chuMonitorBox.classList.add('hidden');
+    if(chuEditAreaDetailsBox) chuEditAreaDetailsBox.classList.add('hidden');
     if(accountCreateSec) accountCreateSec.classList.add('hidden');
     if(cap1CustomBox) cap1CustomBox.classList.add('hidden');
     if(handoverSec) handoverSec.classList.add('hidden');
@@ -682,7 +717,16 @@ function checkRolePermissions() {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
+            if(chuEditAreaDetailsBox) chuEditAreaDetailsBox.classList.remove('hidden');
             if(handoverSec) handoverSec.classList.remove('hidden');
+
+            let editAreaNameInput = document.getElementById('edit-area-name');
+            let editAreaPhuongInput = document.getElementById('edit-area-phuong');
+            let editAreaTinhInput = document.getElementById('edit-area-tinh');
+            if(editAreaNameInput) editAreaNameInput.value = db.khuVuc || '';
+            if(editAreaPhuongInput) editAreaPhuongInput.value = db.phuongXa || '';
+            if(editAreaTinhInput) editAreaTinhInput.value = db.tinhThanh || '';
+
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
