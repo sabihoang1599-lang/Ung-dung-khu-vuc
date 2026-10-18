@@ -41,7 +41,7 @@
                         <h1 class="font-bold text-base tracking-wide flex items-center gap-1">
                             <span id="display-khu-vuc">Thôn Xóm Bình An</span>
                         </h1>
-                        <p class="text-[11px] text-teal-200" id="display-phuong-tỉnh">Khu vực quản lý độc lập</p>
+                        <p class="text-[11px] text-teal-200" id="display-phuong-tỉnh">Hệ thống kết nối trực tuyến</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
@@ -84,7 +84,7 @@
                 <div id="news-feed-list" class="grid grid-cols-1 gap-3"></div>
             </div>
 
-            <!-- TAB 2: PHẢN ÁNH (Bắt buộc 3 hình, họ tên, sđt) -->
+            <!-- TAB 2: PHẢN ÁNH -->
             <div id="tab-phananh" class="tab-content hidden space-y-4">
                 <div class="bg-teal-50 dark:bg-gray-800 p-4 rounded-3xl border border-teal-100 dark:border-gray-700 space-y-3 shadow-sm">
                     <h3 class="font-bold text-xs text-travelPrimary dark:text-teal-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Gửi Phản Ánh Trực Tuyến</h3>
@@ -125,22 +125,22 @@
                 <div id="thutuc-doc-list" class="space-y-2"></div>
             </div>
 
-            <!-- TAB 4: HỌP CHI BỘ (Tài khoản Cấp 1 tạo lịch họp, 3000 ký tự, tải tài liệu xem trực tiếp) -->
+            <!-- TAB 4: HỌP CHI BỘ -->
             <div id="tab-hopchibo" class="tab-content hidden space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xs">Hợp Chi Bộ & Tài Liệu</h3><div id="action-add-hop-container"></div></div>
                 <div id="hop-chibo-list" class="space-y-3"></div>
             </div>
 
-            <!-- TAB 5: BIỂU QUYẾT (Cấp 1 tạo biểu quyết bình chọn) -->
+            <!-- TAB 5: BIỂU QUYẾT -->
             <div id="tab-bieuquyet" class="tab-content hidden space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xs">Biểu Quyết & Bình Chọn</h3><div id="action-add-bq-container"></div></div>
                 <div id="bieu-quyet-list" class="space-y-3"></div>
             </div>
 
-            <!-- TAB 6: CHAT TRỰC TUYẾN (Bắt buộc nhập tên) -->
+            <!-- TAB 6: CHAT -->
             <div id="tab-livechat" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border flex flex-col h-[400px] shadow-sm">
-                    <h3 class="font-bold text-xs border-b pb-2 mb-3">Phòng Chat Trực Tuyến (Bắt buộc nhập tên)</h3>
+                    <h3 class="font-bold text-xs border-b pb-2 mb-3">Phòng Chat Trực Tuyến</h3>
                     <div id="chat-messages-box" class="flex-grow overflow-y-auto space-y-2 pr-1 text-xs mb-3"></div>
                     <form onsubmit="sendChatMessage(event)" class="flex gap-1.5">
                         <input type="text" id="chat-input-name" placeholder="Tên thật (*)..." required class="w-24 bg-gray-50 dark:bg-gray-900 border text-xs px-2.5 py-2 rounded-xl outline-none">
@@ -150,35 +150,48 @@
                 </div>
             </div>
 
-            <!-- TAB 7: QUẢN LÝ (Chủ ẩn, Cấp 1 tạo khu vực/cấp 1/cấp 2, Danh sách thành viên) -->
+            <!-- TAB 7: QUẢN LÝ -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
-                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Hệ Thống & Cấp Tài Khoản</h3>
+                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Hệ Thống & Phân Vùng</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
                     
-                    <!-- Thiết lập khu vực nếu là Chủ hoặc Cấp 1 -->
-                    <div id="area-config-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-                        <h4 class="font-bold text-amber-900">Thiết Lập Tên Khu Vực Quản Lý</h4>
-                        <input type="text" id="cfg-khu-vuc" placeholder="Nhập tên khu vực..." class="w-full bg-white border rounded-xl px-3 py-2">
-                        <button onclick="saveKhuVucConfig()" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Cập Nhật Khu Vực</button>
+                    <!-- Phần tích chọn khu vực giám sát cho Tài Khoản Chủ -->
+                    <div id="chu-monitor-box" class="hidden p-3 bg-purple-50 rounded-2xl border border-purple-200 space-y-2">
+                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Chủ: Chọn Khu Vực Giám Sát</h4>
+                        <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2">
+                            <!-- Danh sách khu vực -->
+                        </select>
                     </div>
 
-                    <div class="space-y-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
+                    <!-- Phần Chủ cấp tên khu vực cho Cấp 1 -->
+                    <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> Cấp Tên Khu Vực Cho Cán Bộ Cấp 1</h4>
+                        <form onsubmit="chuAssignArea(event)" class="space-y-2">
+                            <select id="chu-select-cap1" class="w-full bg-white border rounded-xl px-3 py-2" required>
+                                <option value="">-- Chọn tài khoản Cấp 1 --</option>
+                            </select>
+                            <input type="text" id="chu-new-area-name" required placeholder="Nhập tên khu vực mới (VD: No Tôm)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Gán Khu Vực</button>
+                        </form>
+                    </div>
+
+                    <!-- Cấp tài khoản mới (Cấp 1 có quyền cấp thêm Cấp 1 đồng quyền & Cấp 2) -->
+                    <div id="account-create-section" class="hidden space-y-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
                         <h4 class="font-bold">Cấp Phát Tài Khoản Mới</h4>
                         <form onsubmit="createNewAccount(event)" class="space-y-2">
                             <input type="text" id="acc-hoten" required placeholder="Họ và tên..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập (Viết liền, hoa đầu, VD: BiThu)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập (Viết liền, hoa đầu, VD: CanBoMoi)..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="password" id="acc-password" required placeholder="Mật khẩu (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <select id="acc-type" class="w-full bg-white border rounded-xl px-3 py-2">
-                                <option value="cap1">Tài khoản Cấp 1 (Cán bộ)</option>
-                                <option value="cap2">Tài khoản Cấp 2 (Đảng viên)</option>
+                                <option value="cap1">Tài khoản Cấp 1 (Đồng quyền Cán bộ)</option>
+                                <option value="cap2">Tài khoản Cấp 2 (Đảng viên - Chỉ xem & đăng bài)</option>
                             </select>
                             <button type="submit" class="w-full bg-travelPrimary text-white py-2 rounded-xl font-bold">Cấp Tài Khoản</button>
                         </form>
                     </div>
 
-                    <!-- Danh sách thành viên -->
                     <div class="space-y-2">
                         <h4 class="font-bold">Danh Sách Thành Viên Khu Vực</h4>
                         <div id="accounts-table-body" class="space-y-2"></div>
@@ -188,7 +201,7 @@
 
         </main>
 
-        <!-- Footer / Danh Bạ -->
+        <!-- Footer -->
         <footer class="bg-white dark:bg-gray-900 border-t p-3 flex justify-around items-center shrink-0">
             <div id="header-emergency-buttons" class="flex gap-2"></div>
             <button onclick="openContactModal()" class="text-xs bg-teal-50 text-travelPrimary px-3 py-1.5 rounded-full font-bold border border-teal-200">Danh Bạ</button>
@@ -209,7 +222,6 @@
         </div>
     </div>
 
-    <!-- Modal Đăng Tin (Cấp 1) -->
     <div id="news-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative max-h-[85vh] overflow-y-auto shadow-2xl">
             <button onclick="closeNewsModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -224,11 +236,10 @@
         </div>
     </div>
 
-    <!-- Modal Tạo Lịch Họp Chi Bộ (Cấp 1 - 3000 ký tự & Tải tài liệu) -->
     <div id="hop-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative max-h-[85vh] overflow-y-auto shadow-2xl text-xs">
             <button onclick="closeHopModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-sm">Tạo Lịch Họp Chi Bộ & Đính Kèm Tài Liệu</h3>
+            <h3 class="font-bold text-sm">Tạo Lịch Họp Chi Bộ & Tài Liệu</h3>
             <form onsubmit="submitHopChiBo(event)" class="space-y-3">
                 <input type="text" id="hop-title" required placeholder="Tiêu đề cuộc họp..." class="w-full border rounded-xl px-3 py-2">
                 <textarea id="hop-content" required maxlength="3000" rows="5" placeholder="Nội dung chi tiết (Tối đa 3000 ký tự)..." class="w-full border rounded-xl p-3"></textarea>
@@ -241,7 +252,6 @@
         </div>
     </div>
 
-    <!-- Modal Tạo Biểu Quyết (Cấp 1) -->
     <div id="bq-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full space-y-3 relative shadow-2xl text-xs">
             <button onclick="closeBqModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -254,7 +264,6 @@
         </div>
     </div>
 
-    <!-- Modal Danh Bạ (Cấp 1 có quyền thêm thủ công) -->
     <div id="contact-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative shadow-2xl text-xs max-h-[85vh] overflow-y-auto">
             <button onclick="closeContactModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
