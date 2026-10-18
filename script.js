@@ -315,6 +315,52 @@ function handleLogin(e) {
     }
 }
 
+// HỆ THỐNG XÁC NHẬN CÓ / KHÔNG (CUSTOM CONFIRM MODAL)
+let confirmCallback = null;
+
+function showCustomConfirm(title, message, isDanger, callback) {
+    document.getElementById('confirm-title').innerText = title;
+    document.getElementById('confirm-message').innerText = message;
+    confirmCallback = callback;
+
+    const iconBox = document.getElementById('confirm-icon-box');
+    const yesBtn = document.getElementById('confirm-yes-btn');
+
+    if(isDanger) {
+        iconBox.className = "w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner";
+        yesBtn.className = "w-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow";
+    } else {
+        iconBox.className = "w-14 h-14 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl shadow-inner";
+        yesBtn.className = "w-1/2 bg-travelPrimary hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow";
+    }
+
+    document.getElementById('custom-confirm-modal').classList.remove('hidden');
+}
+
+function closeCustomConfirm(isYes) {
+    document.getElementById('custom-confirm-modal').classList.add('hidden');
+    if(confirmCallback) {
+        confirmCallback(isYes);
+        confirmCallback = null;
+    }
+}
+
+function promptLogout() {
+    showCustomConfirm("Xác Nhận Đăng Xuất", "Bạn có muốn đăng xuất tài khoản này không?", false, (isYes) => {
+        if(isYes) {
+            handleLogout();
+        }
+    });
+}
+
+function promptDeleteArea() {
+    showCustomConfirm("Xác Nhận Xóa Khu Vực", `Bạn có thực sự muốn xóa vĩnh viễn khu vực "${db.khuVuc}" không?`, true, (isYes) => {
+        if(isYes) {
+            executeDeleteCurrentArea();
+        }
+    });
+}
+
 function handleLogout() {
     localStorage.removeItem('thonxom_logged_user');
     localStorage.removeItem('thonxom_portal_role');
@@ -393,11 +439,6 @@ function updateMyCredentials(e) {
 
     if(!validateUsername(newUsr)) { alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return; }
     if(!validatePassword(newPwd)) { alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
-
-    if(currentUser.username === 'Taikhoanandanh') {
-        alert("Tài khoản cố định không được đổi tên đăng nhập và mật khẩu!");
-        return;
-    }
 
     currentUser.username = newUsr;
     currentUser.password = newPwd;
@@ -483,9 +524,6 @@ function checkRolePermissions() {
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
             if(handoverSec) handoverSec.classList.remove('hidden');
-            if(currentUser.type === 'andanh' && changeCredentialsBox) {
-                changeCredentialsBox.classList.add('hidden');
-            }
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
@@ -681,8 +719,7 @@ function chuAssignAreaAndAccount(e) {
     location.reload();
 }
 
-function confirmDeleteCurrentArea() {
-    if(!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn khu vực "${db.khuVuc}" không?`)) return;
+function executeDeleteCurrentArea() {
     localStorage.removeItem('thonxom_data_' + currentAreaKey);
     
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
