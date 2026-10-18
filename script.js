@@ -10,14 +10,13 @@ function getAreaData(key) {
     if (!data) {
         let defaultData = {
             khuVuc: key,
-            displayTitle: key,
             phuongTinh: "Phường An Khánh, TP. Cần Thơ",
             avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
             banner: "",
             ownerEmail: "admin.thonxom@gmail.com",
             accounts: [
-                { id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
-                { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" }
+                { id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+                { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" }
             ],
             contacts: [],
             news: [],
@@ -31,20 +30,18 @@ function getAreaData(key) {
         return defaultData;
     }
     let parsed = JSON.parse(data);
-    if(!parsed.displayTitle) parsed.displayTitle = parsed.khuVuc;
     if(!parsed.phuongTinh) parsed.phuongTinh = "Phường An Khánh, TP. Cần Thơ";
     if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
     if(!parsed.banner) parsed.banner = "";
     if(!parsed.ownerEmail) parsed.ownerEmail = "admin.thonxom@gmail.com";
     
-    // Đảm bảo luôn tồn tại 2 tài khoản Chủ và Chủ ẩn danh cố định
     let hasChu1 = parsed.accounts.some(a => a.username === 'Taikhoanchu');
     if(!hasChu1) {
-        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
+        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
     }
     let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
     if(!hasChu2) {
-        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" });
+        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" });
     }
     return parsed;
 }
@@ -70,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initAppConfig() {
-    document.getElementById('display-khu-vuc').innerText = db.displayTitle || db.khuVuc;
+    document.getElementById('display-khu-vuc').innerText = db.khuVuc;
     document.getElementById('display-phuong-tinh').innerText = db.phuongTinh || "Phường An Khánh, TP. Cần Thơ";
     if(db.avatar) {
         document.getElementById('header-avatar').src = db.avatar;
@@ -169,17 +166,17 @@ function sendForgotOtp() {
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     for(let k of allKeys) {
         let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === usr);
+        let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'cap1'));
         if(acc) {
             targetAcc = acc;
             break;
         }
     }
 
-    if(!targetAcc) { alert("Không tìm thấy tên đăng nhập này trong hệ thống!"); return; }
+    if(!targetAcc) { alert("Không tìm thấy tài khoản hoặc email không khớp!"); return; }
 
     generatedForgotOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    alert(`[MÔ PHỎNG GỬI EMAIL CHỦ] Mã OTP khôi phục mật khẩu gửi đến ${email} là: ${generatedForgotOtp}`);
+    alert(`[MÔ PHỎNG GỬI EMAIL] Mã OTP gửi đến ${email} là: ${generatedForgotOtp}`);
     document.getElementById('forgot-step-1').classList.add('hidden');
     document.getElementById('forgot-step-2').classList.remove('hidden');
 }
@@ -218,7 +215,7 @@ function confirmResetPassword() {
     }
 }
 
-// Cập nhật tên đăng nhập và mật khẩu cá nhân
+// Cập nhật thông tin và đồng bộ hiển thị tên đăng nhập mới cho 2 Chủ
 function updateMyCredentials(e) {
     e.preventDefault();
     if(!currentUser) return;
@@ -244,36 +241,36 @@ function updateMyCredentials(e) {
 
     saveDB();
     localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    alert("Đã cập nhật thông tin đăng nhập thành công!");
+    alert("Đã cập nhật thông tin thành công và đồng bộ tới hệ thống các tài khoản Chủ!");
     location.reload();
 }
 
 let handoverOtpCode = "";
 function sendHandoverOtp() {
-    const newPhone = document.getElementById('handover-new-phone').value.trim();
-    if(!newPhone) { alert("Vui lòng nhập số điện thoại mới!"); return; }
+    const email = document.getElementById('user-email-input').value.trim();
+    if(!email) { alert("Vui lòng nhập email liên kết!"); return; }
     if(currentUser && currentUser.username === 'Taikhoanandanh') {
-        alert("Tài khoản Chủ 2 Ẩn cố định không hỗ trợ bàn giao đổi số!");
+        alert("Tài khoản Chủ 2 Ẩn cố định không hỗ trợ thay đổi qua đây!");
         return;
     }
     handoverOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    alert(`[MÔ PHỎNG OTP EMAIL CHỦ] Mã xác thực bàn giao sở hữu gửi đến email chủ là: ${handoverOtpCode}`);
+    alert(`[MÔ PHỎNG OTP EMAIL] Mã xác thực gửi đến ${email} là: ${handoverOtpCode}`);
 }
 
 function verifyHandoverOtp(e) {
     e.preventDefault();
-    const newPhone = document.getElementById('handover-new-phone').value.trim();
+    const email = document.getElementById('user-email-input').value.trim();
     const otp = document.getElementById('handover-otp-input').value.trim();
 
     if(otp !== handoverOtpCode) { alert("Mã OTP không chính xác!"); return; }
 
-    currentUser.sdt = newPhone;
+    currentUser.email = email;
     let accInDb = db.accounts.find(a => a.id === currentUser.id);
-    if(accInDb) accInDb.sdt = newPhone;
+    if(accInDb) accInDb.email = email;
 
     saveDB();
     localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    alert("Đã bàn giao và cập nhật số điện thoại sở hữu tài khoản thành công! Bạn có thể vào mục thay đổi để đổi tên đăng nhập và mật khẩu.");
+    alert("Xác thực Email thành công! Bạn có thể vào mục thay đổi bên trên để cập nhật thông tin.");
     location.reload();
 }
 
@@ -284,6 +281,7 @@ function checkRolePermissions() {
     const tabQuanLyBtn = document.getElementById('tab-btn-quanly');
     const officerUploadTt = document.getElementById('officer-upload-thutuc-card');
     const chuCreateAreaBox = document.getElementById('chu-create-area-box');
+    const chuDeleteAreaBox = document.getElementById('chu-delete-area-box');
     const chuMonitorBox = document.getElementById('chu-monitor-box');
     const accountCreateSec = document.getElementById('account-create-section');
     const cap1CustomBox = document.getElementById('cap1-custom-area-box');
@@ -300,6 +298,7 @@ function checkRolePermissions() {
     if(tabQuanLyBtn) tabQuanLyBtn.classList.add('hidden');
     if(officerUploadTt) officerUploadTt.classList.add('hidden');
     if(chuCreateAreaBox) chuCreateAreaBox.classList.add('hidden');
+    if(chuDeleteAreaBox) chuDeleteAreaBox.classList.add('hidden');
     if(chuMonitorBox) chuMonitorBox.classList.add('hidden');
     if(accountCreateSec) accountCreateSec.classList.add('hidden');
     if(cap1CustomBox) cap1CustomBox.classList.add('hidden');
@@ -317,24 +316,26 @@ function checkRolePermissions() {
             `;
         }
 
-        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ 1 (Đồng Quyền)' : (currentUser.type === 'andanh' ? 'Tài Khoản Chủ 2 Ẩn (Cố Định)' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ - Đồng quyền)' : 'Cấp 2 (Đảng viên - Chỉ xem)'));
-        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Số hóa đầu làng: <b>${db.khuVuc}</b>`;
+        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ 1' : (currentUser.type === 'andanh' ? 'Tài Khoản Chủ 2 Ẩn' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)'));
+        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
         if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
 
         if(currentUser.type === 'chu') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
+            if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden'); // Chủ 1 có thể đổi SĐT/bàn giao
+            if(handoverSec) handoverSec.classList.remove('hidden');
         } else if(currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
+            if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
-            if(changeCredentialsBox) changeCredentialsBox.classList.add('hidden'); // Khóa đổi pass cho Chủ ẩn 2
+            if(changeCredentialsBox) changeCredentialsBox.classList.add('hidden');
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
             if(cap1CustomBox) cap1CustomBox.classList.remove('hidden');
-            if(handoverSec) handoverSec.classList.remove('hidden');
+            if(handoverSec) handoverSec.classList.remove('hidden'); // Cấp 1 liên kết & nhận OTP qua email
             if(contactAddSec) contactAddSec.classList.remove('hidden');
             if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
@@ -373,7 +374,7 @@ function saveCap1Customization(e) {
 
     let processSave = () => {
         saveDB();
-        alert("Đã cập nhật ảnh đại diện và ảnh bìa thành công!");
+        alert("Đã cập nhật thành công!");
         location.reload();
     };
 
@@ -381,7 +382,7 @@ function saveCap1Customization(e) {
     let totalFiles = (avatarFile ? 1 : 0) + (bannerFile ? 1 : 0);
 
     if (totalFiles === 0) {
-        alert("Vui lòng chọn ít nhất một hình ảnh để tải lên!");
+        alert("Vui lòng chọn hình ảnh để tải lên!");
         return;
     }
 
@@ -429,17 +430,18 @@ function switchChuMonitorArea(areaName) {
     location.reload();
 }
 
+// Tạo khu vực mới (Bỏ phần tiêu đề, chỉ để tên khu vực)
 function chuAssignAreaAndAccount(e) {
     e.preventDefault();
     const newAreaName = document.getElementById('chu-new-area-name').value.trim();
-    const newAreaTitle = document.getElementById('chu-new-area-title').value.trim();
     const newPhuongTinh = document.getElementById('chu-new-phuong-tinh').value.trim();
     const hoten = document.getElementById('chu-acc-hoten').value.trim();
     const username = document.getElementById('chu-acc-username').value.trim();
+    const email = document.getElementById('chu-acc-email').value.trim();
     const sdt = document.getElementById('chu-acc-sdt').value.trim();
     const password = document.getElementById('chu-acc-password').value.trim();
 
-    if(!newAreaName || !newAreaTitle) { alert("Vui lòng nhập tên khu vực và tiêu đề trang!"); return; }
+    if(!newAreaName) { alert("Vui lòng nhập tên khu vực!"); return; }
     if(!validateUsername(username)) {
         alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return;
     }
@@ -448,19 +450,36 @@ function chuAssignAreaAndAccount(e) {
     }
 
     let newAreaData = getAreaData(newAreaName);
-    newAreaData.displayTitle = newAreaTitle;
     newAreaData.phuongTinh = newPhuongTinh;
     newAreaData.accounts.push({
         id: Date.now(),
         hoten,
         username,
         password,
+        email,
         type: "cap1",
         sdt,
         khuVuc: newAreaName
     });
     localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
     alert(`Đã tạo khu vực "${newAreaName}" thành công!`);
+    location.reload();
+}
+
+// Xóa khu vực đang chọn trong phần xóa khu vực riêng
+function confirmDeleteCurrentArea() {
+    if(!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn khu vực "${db.khuVuc}" không?`)) return;
+    localStorage.removeItem('thonxom_data_' + currentAreaKey);
+    
+    // Chuyển về khu vực mặc định đầu tiên còn lại
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    if(allKeys.length > 0) {
+        let firstArea = JSON.parse(localStorage.getItem(allKeys[0])).khuVuc;
+        localStorage.setItem('thonxom_current_area', firstArea);
+    } else {
+        localStorage.setItem('thonxom_current_area', 'Thôn Xóm Bình An');
+    }
+    alert("Đã xóa khu vực thành công!");
     location.reload();
 }
 
@@ -471,6 +490,7 @@ function createNewAccount(e) {
     }
     const hoten = document.getElementById('acc-hoten').value.trim();
     const username = document.getElementById('acc-chucvu').value.trim();
+    const email = document.getElementById('acc-email').value.trim();
     const sdt = document.getElementById('acc-sdt').value.trim();
     const password = document.getElementById('acc-password').value.trim();
     const type = document.getElementById('acc-type').value;
@@ -482,7 +502,7 @@ function createNewAccount(e) {
         alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
     }
 
-    db.accounts.push({ id: Date.now(), hoten, username, password, type, sdt, khuVuc: db.khuVuc });
+    db.accounts.push({ id: Date.now(), hoten, username, password, email, type, sdt, khuVuc: db.khuVuc });
     saveDB();
     renderAccountsTable();
     alert("Cấp tài khoản thành công!");
@@ -495,25 +515,25 @@ function renderAccountsTable() {
     container.innerHTML = '';
     
     let isOwner = currentUser && (currentUser.type === 'chu' || currentUser.type === 'andanh');
-    // ẨN HOÀN TOÀN TÀI KHOẢN CHỦ 2 ẨN KHỎI DANH SÁCH (CHỈ CÓ CHỦ SỞ HỮU MỚI BIẾT VÀ ĐĂNG NHẬP)
     let visibleAccounts = db.accounts.filter(acc => acc.type !== 'andanh');
     if(!isOwner) {
         visibleAccounts = visibleAccounts.filter(acc => acc.type !== 'chu');
     }
 
     if(visibleAccounts.length === 0) {
-        container.innerHTML = `<p class="text-gray-400">Chưa có thành viên nào trong khu vực này.</p>`;
+        container.innerHTML = `<p class="text-gray-400">Chưa có thành viên nào.</p>`;
         return;
     }
 
     visibleAccounts.forEach(acc => {
         let levelBadge = acc.type === 'chu' ? '<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Chủ 1</span>' : (acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>');
         let passwordDisplay = isOwner ? `| Mật khẩu: <b class="text-travelPrimary">${acc.password}</b>` : '';
+        let emailDisplay = acc.email ? `| Email: ${acc.email}` : '';
         container.innerHTML += `
             <div class="flex justify-between items-center p-2.5 bg-gray-50 dark:bg-gray-900 rounded-xl border text-xs">
                 <div>
                     <p class="font-bold">${acc.hoten} (${acc.username}) ${levelBadge}</p>
-                    <p class="text-gray-500 text-[11px]">SĐT: ${acc.sdt} ${passwordDisplay}</p>
+                    <p class="text-gray-500 text-[11px]">SĐT: ${acc.sdt} ${emailDisplay} ${passwordDisplay}</p>
                 </div>
                 ${(isOwner && acc.type !== 'chu') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
             </div>
@@ -535,7 +555,7 @@ function renderSidebarContacts() {
     if(headerEmergency) headerEmergency.innerHTML = '';
 
     if(db.contacts.length === 0) {
-        container.innerHTML = `<p class="text-gray-400 text-center py-2">Chưa có danh bạ nào được nhập.</p>`;
+        container.innerHTML = `<p class="text-gray-400 text-center py-2">Chưa có danh bạ.</p>`;
         return;
     }
 
@@ -555,7 +575,7 @@ function renderSidebarContacts() {
 function saveNewContact(e) {
     e.preventDefault();
     if(db.contacts.length >= 10) {
-        alert("Mỗi khu vực chỉ được phép thêm tối đa 10 mục danh bạ!"); return;
+        alert("Tối đa 10 mục danh bạ!"); return;
     }
     const dept = document.getElementById('ct-dept').value.trim();
     const person = document.getElementById('ct-person').value.trim();
@@ -564,7 +584,7 @@ function saveNewContact(e) {
     db.contacts.push({ id: Date.now(), dept, person, phone });
     saveDB();
     renderSidebarContacts();
-    alert("Đã thêm danh bạ thành công!");
+    alert("Đã thêm danh bạ!");
     e.target.reset();
 }
 
@@ -594,7 +614,7 @@ function handleNewsImages(e) {
 function submitNewsArticle(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu, không được đăng bài!"); return;
+        alert("Cấp 2 chỉ có quyền xem!"); return;
     }
     db.news.unshift({
         id: Date.now(),
@@ -642,7 +662,7 @@ function handlePaImages(e) {
 }
 function submitPhanAnh(e) {
     e.preventDefault();
-    if(tempPaImages.length < 1) { alert("Bắt buộc phải có ít nhất 1 hình ảnh minh chứng!"); return; }
+    if(tempPaImages.length < 1) { alert("Bắt buộc có ít nhất 1 hình ảnh!"); return; }
     db.phanAnh.unshift({
         id: Date.now(),
         hoten: document.getElementById('pa-hoten').value.trim(),
@@ -653,7 +673,7 @@ function submitPhanAnh(e) {
         status: "Đang chờ",
         date: new Date().toLocaleDateString('vi-VN')
     });
-    saveDB(); renderPhanAnh(); e.target.reset(); tempPaImages = []; document.getElementById('pa-image-preview').innerHTML = ''; alert("Đã gửi phản ánh thành công!");
+    saveDB(); renderPhanAnh(); e.target.reset(); tempPaImages = []; document.getElementById('pa-image-preview').innerHTML = ''; alert("Đã gửi phản ánh!");
 }
 function updatePhanAnhStatus(id, newStatus) {
     let item = db.phanAnh.find(p => p.id === id);
@@ -676,14 +696,13 @@ function renderPhanAnh() {
         }
 
         let statusColor = p.status === 'Đang chờ' ? 'text-amber-600 bg-amber-50' : (p.status === 'Đang xử lý' ? 'text-blue-600 bg-blue-50' : 'text-teal-600 bg-teal-50');
-        
         let officerActions = '';
         if(currentUser && currentUser.type === 'cap1') {
             officerActions = `
                 <div class="flex gap-1 mt-2 pt-2 border-t">
-                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đang tiếp nhận')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-semibold">Tiếp Nhận</button>
-                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 rounded text-[10px] font-semibold">Đang Xử Lý</button>
-                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 hover:bg-teal-200 rounded text-[10px] font-semibold">Đã Xử Lý</button>
+                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đang tiếp nhận')" class="px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold">Tiếp Nhận</button>
+                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] font-semibold">Đang Xử Lý</button>
+                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-semibold">Đã Xử Lý</button>
                 </div>
             `;
         }
@@ -709,7 +728,7 @@ function closeHopModal() { document.getElementById('hop-modal').classList.add('h
 function submitHopChiBo(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu, không được tạo lịch họp!"); return;
+        alert("Cấp 2 chỉ có quyền xem!"); return;
     }
     const title = document.getElementById('hop-title').value.trim();
     const content = document.getElementById('hop-content').value.trim();
@@ -724,7 +743,7 @@ function submitHopChiBo(e) {
             fileName: fileInput.files[0] ? fileInput.files[0].name : "",
             author: currentUser ? currentUser.username : "Cán bộ"
         });
-        saveDB(); closeHopModal(); renderHopChiBo(); alert("Đã đăng lịch họp và tài liệu!"); e.target.reset();
+        saveDB(); closeHopModal(); renderHopChiBo(); alert("Đã đăng lịch họp!"); e.target.reset();
     };
 
     if(fileInput.files && fileInput.files[0]) {
@@ -743,7 +762,7 @@ function renderHopChiBo() {
     if(!list) return;
     list.innerHTML = '';
     db.hopChiBo.forEach(h => {
-        let fileHtml = h.file ? `<a href="${h.file}" download="${h.fileName || 'tai-lieu.pdf'}" class="inline-flex items-center gap-1.5 text-xs bg-teal-100 text-teal-800 font-bold px-3 py-1.5 rounded-lg mt-2"><i class="fa-solid fa-file-arrow-down"></i> Tải tài liệu xem trực tiếp (${h.fileName || 'File'})</a>` : '';
+        let fileHtml = h.file ? `<a href="${h.file}" download="${h.fileName || 'tai-lieu.pdf'}" class="inline-flex items-center gap-1.5 text-xs bg-teal-100 text-teal-800 font-bold px-3 py-1.5 rounded-lg mt-2"><i class="fa-solid fa-file-arrow-down"></i> Tải tài liệu (${h.fileName || 'File'})</a>` : '';
         list.innerHTML += `
             <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border text-xs space-y-2 shadow-sm">
                 <div class="flex justify-between text-gray-400"><span>${h.author}</span></div>
@@ -758,7 +777,7 @@ function renderHopChiBo() {
 let activeBqTab = 'congdong';
 function switchBqTab(tab) {
     if(tab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
-        alert("Chỉ tài khoản Cấp 1 và Cấp 2 mới có quyền xem nội bộ!");
+        alert("Chỉ Cấp 1 và Cấp 2 mới có quyền xem nội bộ!");
         return; 
     }
     activeBqTab = tab;
@@ -775,7 +794,7 @@ function closeBqModal() { document.getElementById('bq-modal').classList.add('hid
 function submitBieuQuyet(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Tài khoản Cấp 2 không có quyền tạo biểu quyết!"); return;
+        alert("Cấp 2 không có quyền tạo!"); return;
     }
     db.bieuQuyet.unshift({
         id: Date.now(),
@@ -784,14 +803,14 @@ function submitBieuQuyet(e) {
         type: document.getElementById('bq-type').value,
         votes: {}
     });
-    saveDB(); closeBqModal(); renderBieuQuyet(); alert("Đã phát động biểu quyết!"); e.target.reset();
+    saveDB(); closeBqModal(); renderBieuQuyet(); alert("Đã phát động!"); e.target.reset();
 }
 
 function voteBieuQuyet(bqId, optionIndex) {
     let bq = db.bieuQuyet.find(b => b.id === bqId);
     if(bq) {
         if(bq.type === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
-            alert("Bạn không có quyền thao tác bình chọn nội bộ!");
+            alert("Bạn không có quyền bình chọn nội bộ!");
             return;
         }
         if(!bq.votes) bq.votes = {};
@@ -799,7 +818,7 @@ function voteBieuQuyet(bqId, optionIndex) {
         bq.votes[voterName] = optionIndex;
         saveDB();
         renderBieuQuyet();
-        alert("Đã bỏ phiếu thành công!");
+        alert("Đã bỏ phiếu!");
     }
 }
 
@@ -818,12 +837,12 @@ function renderBieuQuyet() {
     });
 
     if(filtered.length === 0) {
-        list.innerHTML = `<p class="text-gray-400 text-center py-2">Không có biểu quyết nào trong mục này.</p>`;
+        list.innerHTML = `<p class="text-gray-400 text-center py-2">Không có biểu quyết.</p>`;
         return;
     }
 
     filtered.forEach(b => {
-        let badge = b.type === 'noibo' ? '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Nội bộ (Cấp 1 & 2)</span>' : '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">Cộng đồng</span>';
+        let badge = b.type === 'noibo' ? '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Nội bộ</span>' : '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">Cộng đồng</span>';
         
         let optionsHtml = '';
         b.options.forEach((opt, idx) => {
@@ -852,7 +871,7 @@ function sendChatMessage(e) {
     e.preventDefault();
     const name = document.getElementById('chat-input-name').value.trim();
     const msg = document.getElementById('chat-input-msg').value.trim();
-    if(!name) { alert("Bắt buộc phải nhập tên mới được chat!"); return; }
+    if(!name) { alert("Nhập tên!"); return; }
     db.chatMessages.push({ id: Date.now(), name, msg });
     saveDB(); renderChatMessages(); document.getElementById('chat-input-msg').value = '';
 }
@@ -868,19 +887,18 @@ function renderChatMessages() {
 function searchOnlineThuTuc() {
     const query = document.getElementById('ai-tt-query').value.trim();
     const resultBox = document.getElementById('ai-search-result-box');
-    if(!query) { alert("Vui lòng nhập tên thủ tục cần tra cứu!"); return; }
+    if(!query) { alert("Nhập tên thủ tục!"); return; }
 
     resultBox.classList.remove('hidden');
-    resultBox.innerHTML = `<p class="animate-pulse text-teal-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang kết nối dữ liệu internet công cộng để tra cứu...</p>`;
+    resultBox.innerHTML = `<p class="animate-pulse text-teal-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tra cứu...</p>`;
 
     setTimeout(() => {
         resultBox.innerHTML = `
-            <p class="font-bold text-travelPrimary"><i class="fa-solid fa-circle-check text-teal-600 mr-1"></i> Kết quả tra cứu trực tuyến cho: "${query}"</p>
+            <p class="font-bold text-travelPrimary"><i class="fa-solid fa-circle-check text-teal-600 mr-1"></i> Kết quả tra cứu: "${query}"</p>
             <div class="space-y-1 text-gray-700 dark:text-gray-300 mt-1">
-                <p><b>1. Hồ sơ cần chuẩn bị:</b> Giấy tờ tùy thân bản chính, tờ khai hành chính theo mẫu.</p>
-                <p><b>2. Quy trình thực hiện:</b> Nộp hồ sơ trực tuyến qua cổng dịch vụ công quốc gia hoặc trực tiếp tại bộ phận một cửa xã/phường.</p>
-                <p><b>3. Thời gian giải quyết:</b> Từ 01 đến 03 ngày làm việc.</p>
-                <p class="text-[10px] text-teal-700 italic mt-1">Nguồn dữ liệu tổng hợp tự động từ Cổng Dịch Vụ Công Quốc Gia và hệ thống hành chính công.</p>
+                <p><b>1. Hồ sơ:</b> Giấy tờ tùy thân bản chính.</p>
+                <p><b>2. Quy trình:</b> Nộp trực tuyến hoặc tại bộ phận một cửa.</p>
+                <p><b>3. Thời gian:</b> 01 - 03 ngày làm việc.</p>
             </div>
         `;
     }, 800);
@@ -889,7 +907,7 @@ function searchOnlineThuTuc() {
 function officerUploadThuTuc(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu!"); return;
+        alert("Cấp 2 chỉ có quyền xem!"); return;
     }
     const title = document.getElementById('off-tt-title').value.trim();
     const fileInput = document.getElementById('off-tt-file');
@@ -904,7 +922,7 @@ function officerUploadThuTuc(e) {
                 fileName: fileInput.files[0].name,
                 uploader: currentUser ? currentUser.username : "Cán bộ"
             });
-            saveDB(); renderThuTucDocs(); e.target.reset(); alert("Đã tải lên biểu mẫu thành công!");
+            saveDB(); renderThuTucDocs(); e.target.reset(); alert("Đã tải lên!");
         };
         reader.readAsDataURL(fileInput.files[0]);
     }
@@ -917,17 +935,17 @@ function renderThuTucDocs(filter = "") {
 
     let filtered = db.thuTucDocs.filter(d => d.title.toLowerCase().includes(filter.toLowerCase()));
     if(filtered.length === 0) {
-        list.innerHTML = `<p class="text-gray-400 text-center py-2">Không tìm thấy biểu mẫu phù hợp.</p>`;
+        list.innerHTML = `<p class="text-gray-400 text-center py-2">Không tìm thấy biểu mẫu.</p>`;
         return;
     }
 
     filtered.forEach(d => {
-        let downloadBtn = d.file ? `<a href="${d.file}" download="${d.fileName || 'bieu-mau.pdf'}" class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded-lg"><i class="fa-solid fa-download"></i> Tải biểu mẫu</a>` : '';
+        let downloadBtn = d.file ? `<a href="${d.file}" download="${d.fileName || 'bieu-mau.pdf'}" class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded-lg"><i class="fa-solid fa-download"></i> Tải</a>` : '';
         list.innerHTML += `
             <div class="p-3 bg-white dark:bg-gray-800 rounded-xl border text-xs flex justify-between items-center">
                 <div>
                     <p class="font-bold text-travelPrimary">${d.title}</p>
-                    <p class="text-[10px] text-gray-400">Người đăng: ${d.uploader}</p>
+                    <p class="text-[10px] text-gray-400">Đăng bởi: ${d.uploader}</p>
                 </div>
                 ${downloadBtn}
             </div>
