@@ -12,6 +12,8 @@ function getAreaData(key) {
         let defaultData = {
             khuVuc: key,
             phuongTinh: "Phường An Khánh, TP. Cần Thơ",
+            tinhThanh: "TP. Cần Thơ",
+            phuongXa: "Phường An Khánh",
             avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
             banner: "",
             ownerEmail: "admin.thonxom@gmail.com",
@@ -32,6 +34,8 @@ function getAreaData(key) {
     }
     let parsed = JSON.parse(data);
     if(!parsed.phuongTinh) parsed.phuongTinh = "Phường An Khánh, TP. Cần Thơ";
+    if(!parsed.tinhThanh) parsed.tinhThanh = "TP. Cần Thơ";
+    if(!parsed.phuongXa) parsed.phuongXa = "Phường An Khánh";
     if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
     if(!parsed.banner) parsed.banner = "";
     if(!parsed.ownerEmail) parsed.ownerEmail = "admin.thonxom@gmail.com";
@@ -76,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if(!portalRole) {
         document.getElementById('welcome-role-modal').classList.remove('hidden');
+    } else {
+        document.getElementById('welcome-role-modal').classList.add('hidden');
     }
 });
 
@@ -101,27 +107,29 @@ function selectPortalRole(role) {
     if(role === 'chibo') {
         switchTab('tab-quanly');
     } else if(role === 'congdong') {
-        openCommunityAreaModal();
+        openCommunityProvinceStep();
     }
 }
 
-function resetAppPortal() {
+function exitAppPortal() {
     localStorage.removeItem('thonxom_portal_role');
     portalRole = null;
-    const btnHopChiBo = document.getElementById('btn-tab-hopchibo');
-    const btnQuanLy = document.getElementById('tab-btn-quanly');
-    if(btnHopChiBo) btnHopChiBo.style.display = 'block';
-    if(btnQuanLy) btnQuanLy.style.display = 'block';
     document.getElementById('welcome-role-modal').classList.remove('hidden');
 }
 
-function backToWelcomeModal() {
-    document.getElementById('community-area-modal').classList.add('hidden');
-    document.getElementById('welcome-role-modal').classList.remove('hidden');
-}
+let commStep = 'tinh';
+let selectedTinh = '';
+let selectedPhuong = '';
 
-function openCommunityAreaModal() {
-    const listContainer = document.getElementById('community-area-list');
+function openCommunityProvinceStep() {
+    commStep = 'tinh';
+    selectedTinh = '';
+    selectedPhuong = '';
+    document.getElementById('comm-modal-title').innerText = "Chọn Tỉnh / Thành Phố";
+    document.getElementById('comm-modal-subtitle').innerText = "Bước 1/3: Chọn tỉnh thành của bạn:";
+    document.getElementById('comm-back-btn').classList.add('hidden');
+
+    const listContainer = document.getElementById('community-selector-list');
     listContainer.innerHTML = '';
 
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
@@ -130,12 +138,17 @@ function openCommunityAreaModal() {
         allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     }
 
+    let tinhSet = new Set();
     allKeys.forEach(k => {
         let areaData = JSON.parse(localStorage.getItem(k));
+        tinhSet.add(areaData.tinhThanh || "TP. Cần Thơ");
+    });
+
+    tinhSet.forEach(tinh => {
         listContainer.innerHTML += `
-            <button onclick="chooseCommunityArea('${areaData.khuVuc}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
-                <span><i class="fa-solid fa-location-dot text-travelPrimary mr-2"></i> ${areaData.khuVuc}</span>
-                <span class="text-[10px] text-gray-400">${areaData.phuongTinh || ''}</span>
+            <button onclick="chooseProvince('${tinh}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                <span><i class="fa-solid fa-map text-travelPrimary mr-2"></i> ${tinh}</span>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
             </button>
         `;
     });
@@ -143,7 +156,67 @@ function openCommunityAreaModal() {
     document.getElementById('community-area-modal').classList.remove('hidden');
 }
 
-function chooseCommunityArea(areaName) {
+function chooseProvince(tinh) {
+    selectedTinh = tinh;
+    commStep = 'phuong';
+    document.getElementById('comm-modal-title').innerText = "Chọn Phường / Xã";
+    document.getElementById('comm-modal-subtitle').innerText = `Bước 2/3: Chọn phường xã thuộc ${tinh}:`;
+    document.getElementById('comm-back-btn').classList.remove('hidden');
+
+    const listContainer = document.getElementById('community-selector-list');
+    listContainer.innerHTML = '';
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let phuongSet = new Set();
+    allKeys.forEach(k => {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        if((areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
+            phuongSet.add(areaData.phuongXa || "Phường An Khánh");
+        }
+    });
+
+    phuongSet.forEach(phuong => {
+        listContainer.innerHTML += `
+            <button onclick="choosePhuong('${phuong}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                <span><i class="fa-solid fa-location-pin text-travelPrimary mr-2"></i> ${phuong}</span>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+            </button>
+        `;
+    });
+}
+
+function choosePhuong(phuong) {
+    selectedPhuong = phuong;
+    commStep = 'khuvuc';
+    document.getElementById('comm-modal-title').innerText = "Chọn Khu Vực / Thôn Xóm";
+    document.getElementById('comm-modal-subtitle').innerText = `Bước 3/3: Chọn đúng thôn xóm của bạn:`;
+
+    const listContainer = document.getElementById('community-selector-list');
+    listContainer.innerHTML = '';
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    allKeys.forEach(k => {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        if((areaData.tinhThanh || "TP. Cần Thơ") === selectedTinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
+            listContainer.innerHTML += `
+                <button onclick="chooseFinalArea('${areaData.khuVuc}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                    <span><i class="fa-solid fa-house-chimney text-travelPrimary mr-2"></i> ${areaData.khuVuc}</span>
+                    <span class="text-[10px] text-teal-600 font-semibold">Vào xem →</span>
+                </button>
+            `;
+        }
+    });
+}
+
+function backCommunityStep() {
+    if(commStep === 'phuong') {
+        openCommunityProvinceStep();
+    } else if(commStep === 'khuvuc') {
+        chooseProvince(selectedTinh);
+    }
+}
+
+function chooseFinalArea(areaName) {
     currentAreaKey = areaName;
     localStorage.setItem('thonxom_current_area', currentAreaKey);
     db = getAreaData(currentAreaKey);
@@ -151,12 +224,11 @@ function chooseCommunityArea(areaName) {
     document.getElementById('community-area-modal').classList.add('hidden');
     initAppConfig();
     switchTab('tab-tintuc');
-    location.reload();
 }
 
 function initAppConfig() {
     document.getElementById('display-khu-vuc').innerText = db.khuVuc;
-    document.getElementById('display-phuong-tinh').innerText = db.phuongTinh || "Phường An Khánh, TP. Cần Thơ";
+    document.getElementById('display-phuong-tinh').innerText = `${db.phuongXa || 'Phường An Khánh'}, ${db.tinhThanh || 'TP. Cần Thơ'}`;
     if(db.avatar) {
         document.getElementById('header-avatar').src = db.avatar;
     }
@@ -241,7 +313,7 @@ function handleLogin(e) {
 function handleLogout() {
     localStorage.removeItem('thonxom_logged_user');
     currentUser = null;
-    alert("Đã đăng xuất thành công!");
+    alert("Đã đăng xuất tài khoản thành công!");
     location.reload();
 }
 
@@ -506,8 +578,9 @@ function switchChuMonitorArea(areaName) {
 
 function chuAssignAreaAndAccount(e) {
     e.preventDefault();
+    const tinhThanh = document.getElementById('chu-new-tinh').value.trim();
+    const phuongXa = document.getElementById('chu-new-phuong').value.trim();
     const newAreaName = document.getElementById('chu-new-area-name').value.trim();
-    const newPhuongTinh = document.getElementById('chu-new-phuong-tinh').value.trim();
     const hoten = document.getElementById('chu-acc-hoten').value.trim();
     const username = document.getElementById('chu-acc-username').value.trim();
     const email = document.getElementById('chu-acc-email').value.trim();
@@ -523,7 +596,9 @@ function chuAssignAreaAndAccount(e) {
     }
 
     let newAreaData = getAreaData(newAreaName);
-    newAreaData.phuongTinh = newPhuongTinh;
+    newAreaData.tinhThanh = tinhThanh;
+    newAreaData.phuongXa = phuongXa;
+    newAreaData.phuongTinh = `${phuongXa}, ${tinhThanh}`;
     newAreaData.accounts.push({
         id: Date.now(),
         hoten,
