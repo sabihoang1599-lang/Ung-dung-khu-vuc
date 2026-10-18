@@ -11,6 +11,7 @@ function getAreaData(key) {
         let defaultData = {
             khuVuc: key,
             displayTitle: key,
+            phuongTinh: "Phường An Khánh, TP. Cần Thơ",
             avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
             banner: "",
             accounts: [
@@ -29,6 +30,7 @@ function getAreaData(key) {
     }
     let parsed = JSON.parse(data);
     if(!parsed.displayTitle) parsed.displayTitle = parsed.khuVuc;
+    if(!parsed.phuongTinh) parsed.phuongTinh = "Phường An Khánh, TP. Cần Thơ";
     if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
     if(!parsed.banner) parsed.banner = "";
     return parsed;
@@ -56,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initAppConfig() {
     document.getElementById('display-khu-vuc').innerText = db.displayTitle || db.khuVuc;
+    document.getElementById('display-phuong-tinh').innerText = db.phuongTinh || "Phường An Khánh, TP. Cần Thơ";
     if(db.avatar) {
         document.getElementById('header-avatar').src = db.avatar;
     }
@@ -151,7 +154,7 @@ function checkRolePermissions() {
     if(currentUser) {
         authBtnText.innerText = currentUser.username;
         let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ (Giám Sát)' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ - Đồng quyền)' : 'Cấp 2 (Đảng viên - Chỉ xem)');
-        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
+        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Số hóa đầu làng: <b>${db.khuVuc}</b>`;
 
         if(currentUser.type === 'chu') {
             if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
@@ -168,6 +171,7 @@ function checkRolePermissions() {
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
 
             document.getElementById('custom-khu-vuc-title').value = db.displayTitle || db.khuVuc;
+            document.getElementById('custom-phuong-tinh').value = db.phuongTinh || "Phường An Khánh, TP. Cần Thơ";
             document.getElementById('preview-avatar-box').src = db.avatar;
             if(db.banner) {
                 let bannerPrev = document.getElementById('preview-banner-box');
@@ -181,18 +185,23 @@ function checkRolePermissions() {
     }
 }
 
+// Cấp 1 chỉ đổi tiêu đề, phường/tỉnh, avatar, banner - TUYỆT ĐỐI KHÔNG ĐỔI TÊN KHU VỰC GỐC
 function saveCap1Customization(e) {
     e.preventDefault();
     const newTitle = document.getElementById('custom-khu-vuc-title').value.trim();
+    const newPhuongTinh = document.getElementById('custom-phuong-tinh').value.trim();
     const avatarFile = document.getElementById('custom-avatar-file').files[0];
     const bannerFile = document.getElementById('custom-banner-file').files[0];
 
     if(!newTitle) { alert("Nhập tiêu đề trang!"); return; }
+    if(!newPhuongTinh) { alert("Nhập thông tin phường và thành phố/tỉnh!"); return; }
+
     db.displayTitle = newTitle;
+    db.phuongTinh = newPhuongTinh;
 
     let processSave = () => {
         saveDB();
-        alert("Đã cập nhật giao diện thành công!");
+        alert("Đã cập nhật giao diện Số Hóa Đầu Làng thành công!");
         location.reload();
     };
 
