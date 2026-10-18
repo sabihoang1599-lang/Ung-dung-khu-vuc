@@ -71,7 +71,70 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccountsTable();
     checkRolePermissions();
     initChuMonitorSelect();
+    
+    // Kiểm tra xem đã chọn vai trò lúc mở app chưa
+    let portalRole = localStorage.getItem('thonxom_portal_role');
+    if(!portalRole) {
+        document.getElementById('welcome-role-modal').classList.remove('hidden');
+    } else if(portalRole === 'chibo') {
+        switchTab('tab-quanly');
+    }
 });
+
+function selectPortalRole(role) {
+    localStorage.setItem('thonxom_portal_role', role);
+    document.getElementById('welcome-role-modal').classList.add('hidden');
+
+    if(role === 'chibo') {
+        switchTab('tab-quanly');
+    } else if(role === 'congdong') {
+        openCommunityAreaModal();
+    }
+}
+
+function resetAppPortal() {
+    localStorage.removeItem('thonxom_portal_role');
+    document.getElementById('welcome-role-modal').classList.remove('hidden');
+}
+
+function backToWelcomeModal() {
+    document.getElementById('community-area-modal').classList.add('hidden');
+    document.getElementById('welcome-role-modal').classList.remove('hidden');
+}
+
+function openCommunityAreaModal() {
+    const listContainer = document.getElementById('community-area-list');
+    listContainer.innerHTML = '';
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    if(allKeys.length === 0) {
+        getAreaData('Thôn Xóm Bình An');
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    }
+
+    allKeys.forEach(k => {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        listContainer.innerHTML += `
+            <button onclick="chooseCommunityArea('${areaData.khuVuc}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                <span><i class="fa-solid fa-location-dot text-travelPrimary mr-2"></i> ${areaData.khuVuc}</span>
+                <span class="text-[10px] text-gray-400">${areaData.phuongTinh || ''}</span>
+            </button>
+        `;
+    });
+
+    document.getElementById('community-area-modal').classList.remove('hidden');
+}
+
+function chooseCommunityArea(areaName) {
+    currentAreaKey = areaName;
+    localStorage.setItem('thonxom_current_area', currentAreaKey);
+    db = getAreaData(currentAreaKey);
+
+    document.getElementById('community-area-modal').classList.add('hidden');
+    initAppConfig();
+    switchTab('tab-tintuc');
+    location.reload();
+}
 
 function initAppConfig() {
     document.getElementById('display-khu-vuc').innerText = db.khuVuc;
