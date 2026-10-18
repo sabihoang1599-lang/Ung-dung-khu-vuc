@@ -69,6 +69,7 @@
             <button onclick="switchTab('tab-hopchibo')" id="btn-tab-hopchibo" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Họp Chi Bộ</button>
             <button onclick="switchTab('tab-bieuquyet')" id="btn-tab-bieuquyet" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Biểu Quyết</button>
             <button onclick="switchTab('tab-livechat')" id="btn-tab-livechat" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Chat</button>
+            <!-- Mục quản lý mặc định ẩn, chỉ hiện khi đăng nhập -->
             <button id="tab-btn-quanly" onclick="switchTab('tab-quanly')" class="tab-btn hidden px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 transition whitespace-nowrap">Quản Lý</button>
         </nav>
 
@@ -170,7 +171,7 @@
                         </form>
                     </div>
 
-                    <!-- THAY ĐỔI VÀ LIÊN KẾT EMAIL (BẮT BUỘC XÁC THỰC OTP MỚI ĐỔI ĐƯỢC) -->
+                    <!-- THAY ĐỔI VÀ LIÊN KẾT EMAIL (XÁC THỰC OTP) -->
                     <div id="handover-section" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-2">
                         <h4 class="font-bold text-teal-900"><i class="fa-solid fa-envelope mr-1"></i> Quản Lý & Thay Đổi Email (Xác Thực OTP)</h4>
                         <form onsubmit="verifyHandoverOtp(event)" class="space-y-2">
