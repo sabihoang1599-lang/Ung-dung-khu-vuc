@@ -26,7 +26,7 @@
 
     <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[880px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col justify-between border-0 md:border-8 md:border-gray-800 relative">
 
-        <!-- Header: Hiển thị Avatar, Tiêu đề trang, Tên Phường và Thành phố/Tỉnh -->
+        <!-- Header: Hiển thị Avatar, Tiêu đề, Phường & Tỉnh -->
         <header id="app-header-bg" class="bg-gradient-to-br from-travelPrimary to-travelDark text-white p-6 rounded-b-[30px] shadow-lg relative bg-cover bg-center transition-all duration-500">
             <div class="absolute inset-0 bg-black/40 rounded-b-[30px] pointer-events-none"></div>
             <div class="relative z-10">
@@ -154,23 +154,16 @@
                 </div>
             </div>
 
-            <!-- TAB QUẢN LÝ (Cấp 1 đổi tiêu đề, ảnh đại diện, ảnh bìa - KHÔNG ĐỔI TÊN KHU VỰC) -->
+            <!-- TAB QUẢN LÝ -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
-                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Số Hóa Đầu Làng & Giao Diện Khu Vực</h3>
+                    <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Số Hóa Đầu Làng & Giao Diện</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
                     
+                    <!-- Cấp 1 chỉ đổi avatar & banner, KHÔNG được sửa tiêu đề hay tên khu vực -->
                     <div id="cap1-custom-area-box" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-3">
-                        <h4 class="font-bold text-travelPrimary flex items-center gap-1"><i class="fa-solid fa-palette"></i> Tùy Chỉnh Giao Diện & Tiêu Đề Trang</h4>
+                        <h4 class="font-bold text-travelPrimary flex items-center gap-1"><i class="fa-solid fa-palette"></i> Cập Nhật Ảnh Đại Diện & Ảnh Bìa Khu Vực</h4>
                         <form onsubmit="saveCap1Customization(event)" class="space-y-2.5">
-                            <div>
-                                <label class="block text-[11px] font-semibold mb-1">Tiêu đề trang (Được phép chỉnh sửa):</label>
-                                <input type="text" id="custom-khu-vuc-title" placeholder="Nhập tiêu đề trang mới..." class="w-full bg-white border rounded-xl px-3 py-2 outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold mb-1">Cập nhật Phường / Xã và Thành phố / Tỉnh:</label>
-                                <input type="text" id="custom-phuong-tinh" placeholder="VD: Phường An Khánh, TP. Cần Thơ..." class="w-full bg-white border rounded-xl px-3 py-2 outline-none" required>
-                            </div>
                             <div class="flex items-center gap-3 bg-white p-2 rounded-xl border">
                                 <img id="preview-avatar-box" src="" class="w-10 h-10 rounded-full object-cover border" alt="Avatar">
                                 <div class="flex-grow">
@@ -192,20 +185,23 @@
                         <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2"></select>
                     </div>
 
+                    <!-- CHỈ TÀI KHOẢN CHỦ MỚI CÓ QUYỀN TẠO TÊN KHU VỰC VÀ CẤP TÀI KHOẢN -->
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> Cấp Khu Vực & Tạo Tài Khoản Cán Bộ Cấp 1</h4>
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Chủ Hệ Thống] Tạo Khu Vực Mới & Tiêu Đề</h4>
                         <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
-                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực mới (VD: No Tôm)..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="text" id="chu-acc-hoten" required placeholder="Họ và tên cán bộ..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="text" id="chu-acc-username" required placeholder="Tên đăng nhập (Viết liền, hoa đầu, VD: CanBoNoTom)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực gốc (VD: Thôn Phước Lộc)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-area-title" required placeholder="Tiêu đề trang hiển thị (VD: Xóm Văn Minh)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-phuong-tinh" required placeholder="Phường / Xã & Tỉnh (VD: Phường An Khánh, Cần Thơ)..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-acc-hoten" required placeholder="Họ và tên cán bộ Cấp 1..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-acc-username" required placeholder="Tên đăng nhập (Viết liền, hoa đầu, VD: CanBoPhuocLoc)..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="chu-acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="password" id="chu-acc-password" required placeholder="Mật khẩu (Có chữ In hoa & Ký tự đặc biệt)..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Tạo Khu Vực & Tài Khoản</button>
+                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Tạo Khu Vực & Cấp Tài Khoản</button>
                         </form>
                     </div>
 
                     <div id="account-create-section" class="hidden space-y-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
-                        <h4 class="font-bold">Cấp Phát Tài Khoản Mới</h4>
+                        <h4 class="font-bold">Cấp Phát Tài Khoản Mới (Cấp 1 & Cấp 2)</h4>
                         <form onsubmit="createNewAccount(event)" class="space-y-2">
                             <input type="text" id="acc-hoten" required placeholder="Họ và tên..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập (Viết liền, hoa đầu)..." class="w-full bg-white border rounded-xl px-3 py-2">
