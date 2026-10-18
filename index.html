@@ -69,8 +69,8 @@
             <button onclick="switchTab('tab-hopchibo')" id="btn-tab-hopchibo" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Họp Chi Bộ</button>
             <button onclick="switchTab('tab-bieuquyet')" id="btn-tab-bieuquyet" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Biểu Quyết</button>
             <button onclick="switchTab('tab-livechat')" id="btn-tab-livechat" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 transition whitespace-nowrap">Chat</button>
-            <!-- Mục quản lý mặc định ẩn, chỉ hiện khi đăng nhập -->
-            <button id="tab-btn-quanly" onclick="switchTab('tab-quanly')" class="tab-btn hidden px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 transition whitespace-nowrap">Quản Lý</button>
+            <!-- Tab Quản lý luôn hiện, nhưng chưa đăng nhập sẽ hiển thị form đăng nhập -->
+            <button id="tab-btn-quanly" onclick="switchTab('tab-quanly')" class="tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 transition whitespace-nowrap">Quản Lý</button>
         </nav>
 
         <main class="flex-grow overflow-y-auto p-4 space-y-4">
@@ -156,8 +156,27 @@
                 </div>
             </div>
 
+            <!-- PHẦN QUẢN LÝ / ĐĂNG NHẬP -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
+                <!-- Hiển thị khi CHƯA đăng nhập -->
+                <div id="logged-out-manager-view" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border space-y-4 text-xs shadow-sm">
+                    <div class="text-center space-y-2">
+                        <i class="fa-solid fa-user-shield text-3xl text-travelPrimary"></i>
+                        <h3 class="font-bold text-base">Khu Vực Quản Trị Hệ Thống</h3>
+                        <p class="text-gray-500">Vui lòng đăng nhập tài khoản có thẩm quyền để truy cập các tính năng quản lý.</p>
+                    </div>
+                    <form onsubmit="handleLogin(event)" class="space-y-3 pt-2">
+                        <input type="text" id="inline-login-username" required placeholder="Tên đăng nhập..." class="w-full border rounded-xl px-3 py-3 outline-none bg-gray-50 dark:bg-gray-900">
+                        <input type="password" id="inline-login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-3 outline-none bg-gray-50 dark:bg-gray-900">
+                        <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-3 rounded-xl shadow transition hover:bg-teal-800">Đăng Nhập Ngay</button>
+                        <div class="text-right">
+                            <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu? (Lấy OTP qua Email)</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Hiển thị khi ĐÃ đăng nhập -->
+                <div id="logged-in-manager-view" class="hidden bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
 
