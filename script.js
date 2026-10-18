@@ -1,13 +1,19 @@
+let currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
+
+if (currentUser && currentUser.type !== 'chu' && currentUser.khuVuc) {
+    currentAreaKey = currentUser.khuVuc;
+}
 
 function getAreaData(key) {
     let data = localStorage.getItem('thonxom_data_' + key);
     if (!data) {
         let defaultData = {
-            khuVuc: "Thôn Xóm Bình An",
+            khuVuc: key,
             accounts: [
-                { id: 1, hoten: "Chủ Hệ Thống", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000" },
-                { id: 2, hoten: "Nguyễn Văn Minh", username: "Bithu", password: "@Bithu123", type: "cap1", sdt: "0901234567" }
+                { id: 1, hoten: "Chủ Hệ Thống", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+                { id: 2, hoten: "Nguyễn Văn Minh", username: "Bithu", password: "@Bithu123", type: "cap1", sdt: "0901234567", khuVuc: "Thôn Xóm Bình An" },
+                { id: 3, hoten: "Trần Văn Nam", username: "Dangvien", password: "@Dangvien123", type: "cap2", sdt: "0912345678", khuVuc: "Thôn Xóm Bình An" }
             ],
             contacts: [
                 { id: 1, dept: "Bí Thư Chi Bộ", person: "Nguyễn Văn Minh", phone: "0901234567" }
@@ -26,7 +32,6 @@ function getAreaData(key) {
 }
 
 let db = getAreaData(currentAreaKey);
-let currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
 
 function saveDB() {
     localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
@@ -43,12 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderChatMessages();
     renderAccountsTable();
     checkRolePermissions();
+    initChuMonitorSelect();
 });
 
 function initAppConfig() {
     document.getElementById('display-khu-vuc').innerText = db.khuVuc;
-    let cfgInput = document.getElementById('cfg-khu-vuc');
-    if(cfgInput) cfgInput.value = db.khuVuc;
 }
 
 function switchTab(tabId) {
@@ -64,17 +68,12 @@ function switchTab(tabId) {
     }
 }
 
-// Kiểm tra mật khẩu: Ít nhất 1 chữ In hoa và 1 ký tự đặc biệt
 function validatePassword(pwd) {
-    const hasUpperCase = /[A-Z]/.test(pwd);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
-    return hasUpperCase && hasSpecialChar;
+    return /[A-Z]/.test(pwd) && /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
 }
 
-// Kiểm tra tên đăng nhập: Viết liền không dấu, viết hoa chữ đầu
 function validateUsername(usr) {
-    const regex = /^[A-Z][a-zA-Z0-9]*$/;
-    return regex.test(usr);
+    return /^[A-Z][a-zA-Z0-9]*$/.test(usr);
 }
 
 function handleLogin(e) {
@@ -82,7 +81,20 @@ function handleLogin(e) {
     const u = document.getElementById('login-username').value.trim();
     const p = document.getElementById('login-password').value.trim();
 
-    const found = db.accounts.find(acc => acc.username === u && acc.password === p);
+    let found = null;
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    for(let k of allKeys) {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        let acc = areaData.accounts.find(a => a.username === u && a.password === p);
+        if(acc) {
+            found = acc;
+            currentAreaKey = areaData.khuVuc;
+            localStorage.setItem('thonxom_current_area', currentAreaKey);
+            db = areaData;
+            break;
+        }
+    }
+
     if(found) {
         currentUser = found;
         localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
@@ -90,7 +102,9 @@ function handleLogin(e) {
         checkRolePermissions();
         renderAccountsTable();
         renderSidebarContacts();
+        initAppConfig();
         alert("Đăng nhập thành công!");
+        location.reload();
     } else {
         alert("Sai tên đăng nhập hoặc mật khẩu!");
     }
@@ -105,7 +119,9 @@ function checkRolePermissions() {
     const addBqContainer = document.getElementById('action-add-bq-container');
     const tabQuanLyBtn = document.getElementById('tab-btn-quanly');
     const officerUploadTt = document.getElementById('officer-upload-thutuc-card');
-    const areaConfigBox = document.getElementById('area-config-box');
+    const chuCreateAreaBox = document.getElementById('chu-create-area-box');
+    const chuMonitorBox = document.getElementById('chu-monitor-box');
+    const accountCreateSec = document.getElementById('account-create-section');
     const authBtnText = document.getElementById('auth-btn-text');
     const currentUserBadge = document.getElementById('current-user-badge');
     const contactAddSec = document.getElementById('contact-add-section');
@@ -115,22 +131,30 @@ function checkRolePermissions() {
     if(addBqContainer) addBqContainer.innerHTML = '';
     if(tabQuanLyBtn) tabQuanLyBtn.classList.add('hidden');
     if(officerUploadTt) officerUploadTt.classList.add('hidden');
-    if(areaConfigBox) areaConfigBox.classList.add('hidden');
+    if(chuCreateAreaBox) chuCreateAreaBox.classList.add('hidden');
+    if(chuMonitorBox) chuMonitorBox.classList.add('hidden');
+    if(accountCreateSec) accountCreateSec.classList.add('hidden');
     if(contactAddSec) contactAddSec.classList.add('hidden');
 
     if(currentUser) {
         authBtnText.innerText = currentUser.username;
-        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ)' : 'Cấp 2 (Đảng viên)');
-        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName})`;
+        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ (Giám Sát)' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ - Đồng quyền)' : 'Cấp 2 (Đảng viên - Chỉ xem)');
+        if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Khu vực: <b>${db.khuVuc}</b>`;
 
-        if(currentUser.type === 'chu' || currentUser.type === 'cap1') {
+        if(currentUser.type === 'chu') {
+            if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
+            if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
+            if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
+        } else if(currentUser.type === 'cap1') {
             if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
-            if(areaConfigBox) areaConfigBox.classList.remove('hidden');
+            if(accountCreateSec) accountCreateSec.classList.remove('hidden');
             if(contactAddSec) contactAddSec.classList.remove('hidden');
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
+        } else if(currentUser.type === 'cap2') {
+            // Cấp 2 chỉ xem và đăng bài phản ánh/chat, không hiện công cụ quản lý
         }
     } else {
         authBtnText.innerText = "Đăng Nhập";
@@ -138,11 +162,79 @@ function checkRolePermissions() {
     }
 }
 
-// Cấp tài khoản mới
+function initChuMonitorSelect() {
+    const select = document.getElementById('chu-area-select');
+    const selectCap1 = document.getElementById('chu-select-cap1');
+    if(!select) return;
+
+    select.innerHTML = '';
+    if(selectCap1) selectCap1.innerHTML = '<option value="">-- Chọn tài khoản Cấp 1 --</option>';
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    allKeys.forEach(k => {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        let opt = document.createElement('option');
+        opt.value = areaData.khuVuc;
+        opt.innerText = areaData.khuVuc;
+        if(areaData.khuVuc === db.khuVuc) opt.selected = true;
+        select.appendChild(opt);
+
+        if(selectCap1) {
+            areaData.accounts.filter(a => a.type === 'cap1').forEach(acc => {
+                let optAcc = document.createElement('option');
+                optAcc.value = acc.username;
+                optAcc.innerText = `${acc.hoten} (${acc.username})`;
+                selectCap1.appendChild(optAcc);
+            });
+        }
+    });
+}
+
+function switchChuMonitorArea(areaName) {
+    currentAreaKey = areaName;
+    localStorage.setItem('thonxom_current_area', currentAreaKey);
+    db = getAreaData(currentAreaKey);
+    location.reload();
+}
+
+function chuAssignArea(e) {
+    e.preventDefault();
+    const username = document.getElementById('chu-select-cap1').value;
+    const newAreaName = document.getElementById('chu-new-area-name').value.trim();
+
+    if(!username || !newAreaName) { alert("Vui lòng chọn tài khoản và nhập tên khu vực!"); return; }
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let targetAcc = null;
+    for(let k of allKeys) {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        let acc = areaData.accounts.find(a => a.username === username);
+        if(acc) {
+            targetAcc = acc;
+            break;
+        }
+    }
+
+    if(targetAcc) {
+        targetAcc.khuVuc = newAreaName;
+        let newAreaData = getAreaData(newAreaName);
+        if(!newAreaData.accounts.some(a => a.username === targetAcc.username)) {
+            newAreaData.accounts.push(targetAcc);
+        }
+        localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
+        saveDB();
+        alert(`Đã cấp khu vực "${newAreaName}" thành công cho tài khoản ${targetAcc.hoten}!`);
+        location.reload();
+    } else {
+        alert("Không tìm thấy tài khoản Cấp 1!");
+    }
+}
+
+// Cấp tài khoản mới (Cấp 1 có quyền cấp thêm Cấp 1 đồng quyền hoặc Cấp 2)
 function createNewAccount(e) {
     e.preventDefault();
-    if(!currentUser || (currentUser.type !== 'chu' && currentUser.type !== 'cap1')) {
-        alert("Bạn không có quyền cấp tài khoản!"); return;
+    if(!currentUser || currentUser.type !== 'cap1') {
+        alert("Chỉ tài khoản Cấp 1 mới có quyền cấp phát tài khoản trong khu vực này!"); return;
     }
     const hoten = document.getElementById('acc-hoten').value.trim();
     const username = document.getElementById('acc-chucvu').value.trim();
@@ -151,34 +243,32 @@ function createNewAccount(e) {
     const type = document.getElementById('acc-type').value;
 
     if(!validateUsername(username)) {
-        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: BiThu)!"); return;
+        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: CanBoMoi)!"); return;
     }
     if(!validatePassword(password)) {
         alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
     }
 
-    db.accounts.push({ id: Date.now(), hoten, username, password, type, sdt });
+    db.accounts.push({ id: Date.now(), hoten, username, password, type, sdt, khuVuc: db.khuVuc });
     saveDB();
     renderAccountsTable();
     alert("Cấp tài khoản thành công!");
     e.target.reset();
 }
 
-// Hiển thị danh sách thành viên (Ẩn tài khoản Chủ)
 function renderAccountsTable() {
     const container = document.getElementById('accounts-table-body');
     if(!container) return;
     container.innerHTML = '';
     
-    // Lọc bỏ tài khoản chủ
     let visibleAccounts = db.accounts.filter(acc => acc.type !== 'chu');
     if(visibleAccounts.length === 0) {
-        container.innerHTML = `<p class="text-gray-400">Chưa có tài khoản nào khác.</p>`;
+        container.innerHTML = `<p class="text-gray-400">Chưa có thành viên nào trong khu vực này.</p>`;
         return;
     }
 
     visibleAccounts.forEach(acc => {
-        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2</span>';
+        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ đồng quyền)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên - Xem & Đăng bài)</span>';
         container.innerHTML += `
             <div class="flex justify-between items-center p-2.5 bg-gray-50 dark:bg-gray-900 rounded-xl border text-xs">
                 <div>
@@ -197,19 +287,6 @@ function deleteAccount(id) {
     renderAccountsTable();
 }
 
-// Đổi tên khu vực riêng biệt
-function saveKhuVucConfig() {
-    const kv = document.getElementById('cfg-khu-vuc').value.trim();
-    if(!kv) { alert("Nhập tên khu vực!"); return; }
-    currentAreaKey = kv;
-    localStorage.setItem('thonxom_current_area', currentAreaKey);
-    db.khuVuc = kv;
-    saveDB();
-    alert("Đã cập nhật khu vực riêng biệt!");
-    location.reload();
-}
-
-// Quản lý Danh Bạ (Cấp 1 thêm thủ công)
 function renderSidebarContacts() {
     const container = document.getElementById('sidebar-contacts-list');
     const headerEmergency = document.getElementById('header-emergency-buttons');
@@ -223,7 +300,7 @@ function renderSidebarContacts() {
                 <div><p class="font-bold">${c.dept}</p><p class="text-gray-500 text-[11px]">${c.person} - ${c.phone}</p></div>
                 <div class="flex items-center gap-2">
                     <a href="tel:${c.phone}" class="bg-teal-100 text-teal-800 font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-phone"></i> Gọi</a>
-                    ${currentUser && (currentUser.type === 'chu' || currentUser.type === 'cap1') ? `<button onclick="deleteContact(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    ${currentUser && currentUser.type === 'cap1' ? `<button onclick="deleteContact(${c.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </div>
             </div>
         `;
@@ -249,7 +326,6 @@ function deleteContact(id) {
     renderSidebarContacts();
 }
 
-// Đăng Tin (Cấp 1)
 let tempNewsImages = [];
 function openNewsModal() { document.getElementById('news-modal').classList.remove('hidden'); }
 function closeNewsModal() { document.getElementById('news-modal').classList.add('hidden'); tempNewsImages = []; }
@@ -269,6 +345,9 @@ function handleNewsImages(e) {
 }
 function submitNewsArticle(e) {
     e.preventDefault();
+    if(currentUser && currentUser.type === 'cap2') {
+        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu và tham gia tương tác, không được đăng bài!"); return;
+    }
     db.news.unshift({
         id: Date.now(),
         title: document.getElementById('news-title').value.trim(),
@@ -298,7 +377,6 @@ function renderNews(filter = "") {
 }
 function filterNews() { renderNews(document.getElementById('search-news-input').value); }
 
-// Phản Ánh (Bắt buộc họ tên, SĐT, nội dung, ít nhất 3 hình)
 let tempPaImages = [];
 function handlePaImages(e) {
     const files = e.target.files;
@@ -343,12 +421,14 @@ function renderPhanAnh() {
     });
 }
 
-// Họp Chi Bộ (3000 ký tự, tải tài liệu xem trực tiếp)
 let tempHopFile = "";
 function openHopModal() { document.getElementById('hop-modal').classList.remove('hidden'); }
 function closeHopModal() { document.getElementById('hop-modal').classList.add('hidden'); tempHopFile = ""; }
 function submitHopChiBo(e) {
     e.preventDefault();
+    if(currentUser && currentUser.type === 'cap2') {
+        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu, không được tạo lịch họp!"); return;
+    }
     const title = document.getElementById('hop-title').value.trim();
     const content = document.getElementById('hop-content').value.trim();
     const fileInput = document.getElementById('hop-file');
@@ -393,11 +473,13 @@ function renderHopChiBo() {
     });
 }
 
-// Biểu Quyết
 function openBqModal() { document.getElementById('bq-modal').classList.remove('hidden'); }
 function closeBqModal() { document.getElementById('bq-modal').classList.add('hidden'); }
 function submitBieuQuyet(e) {
     e.preventDefault();
+    if(currentUser && currentUser.type === 'cap2') {
+        alert("Tài khoản Cấp 2 không có quyền tạo biểu quyết!"); return;
+    }
     db.bieuQuyet.unshift({ id: Date.now(), title: document.getElementById('bq-title').value.trim(), options: document.getElementById('bq-options').value.split(',').map(o => o.trim()) });
     saveDB(); closeBqModal(); renderBieuQuyet(); alert("Đã phát động biểu quyết!"); e.target.reset();
 }
@@ -410,7 +492,6 @@ function renderBieuQuyet() {
     });
 }
 
-// Chat (Bắt buộc nhập tên)
 function sendChatMessage(e) {
     e.preventDefault();
     const name = document.getElementById('chat-input-name').value.trim();
@@ -440,6 +521,9 @@ function searchThuTucAI() {
 }
 function officerUploadThuTuc(e) {
     e.preventDefault();
+    if(currentUser && currentUser.type === 'cap2') {
+        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu!"); return;
+    }
     db.thuTucDocs.unshift({ id: Date.now(), title: document.getElementById('off-tt-title').value.trim(), uploader: currentUser ? currentUser.username : "Cán bộ" });
     saveDB(); renderThuTucDocs(); e.target.reset(); alert("Đã tải lên!");
 }
