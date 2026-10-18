@@ -90,9 +90,15 @@
                     </div>
                 </div>
 
-                <div class="relative mt-3">
-                    <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức Số Hóa Đầu Làng..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-3 rounded-2xl outline-none border border-white/20 shadow-inner">
-                    <i class="fa-solid fa-magnifying-glass absolute right-4 top-3.5 text-teal-200 text-xs"></i>
+                <!-- Đưa danh bạ lên ngang hàng với thanh tìm kiếm và thu ngắn lại -->
+                <div class="flex items-center gap-2 mt-3">
+                    <div class="relative flex-grow">
+                        <input type="text" id="search-news-input" oninput="filterNews()" placeholder="Tìm kiếm tin tức..." class="w-full bg-white/15 backdrop-blur-md text-white placeholder-teal-100 text-xs px-4 py-2.5 rounded-2xl outline-none border border-white/20 shadow-inner">
+                        <i class="fa-solid fa-magnifying-glass absolute right-4 top-3 text-teal-200 text-xs"></i>
+                    </div>
+                    <button onclick="openContactModal()" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-3.5 py-2.5 rounded-2xl text-xs font-bold border border-white/30 shadow transition shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-address-book"></i> Danh Bạ
+                    </button>
                 </div>
             </div>
         </header>
@@ -345,9 +351,8 @@
 
         </main>
 
-        <footer class="bg-white dark:bg-gray-900 border-t p-3 flex justify-around items-center shrink-0">
-            <div id="header-emergency-buttons" class="flex gap-2"></div>
-            <button onclick="openContactModal()" class="text-xs bg-teal-50 text-travelPrimary px-3.5 py-2 rounded-xl font-bold border border-teal-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-address-book"></i> Danh Bạ Khu Vực</button>
+        <footer class="bg-white dark:bg-gray-900 border-t p-3 flex justify-center items-center shrink-0">
+            <p class="text-[11px] text-gray-400 font-medium">Số Hóa Đầu Làng © 2026 - Kết Nối Thôn Xóm</p>
         </footer>
 
     </div>
