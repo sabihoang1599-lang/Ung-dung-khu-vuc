@@ -160,7 +160,7 @@
                     <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
                     <div id="current-user-badge" class="p-2.5 bg-teal-50 rounded-xl font-bold text-teal-800"></div>
 
-                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU (Chỉ Chủ 1, Cấp 1, Cấp 2 đổi được; Chủ ẩn 2 bị khóa) -->
+                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU (Chủ 1 & Cấp 1 tùy ý, thông tin tự động hiển thị cho 2 chủ) -->
                     <div id="change-credentials-box" class="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border space-y-2">
                         <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-key mr-1"></i> Thay Đổi Tên Đăng Nhập & Mật Khẩu Cá Nhân</h4>
                         <form onsubmit="updateMyCredentials(event)" class="space-y-2">
@@ -170,16 +170,16 @@
                         </form>
                     </div>
 
-                    <!-- BÀN GIAO SỞ HỮU TÀI KHOẢN QUA SỐ ĐIỆN THOẠI & OTP EMAIL (Cho Chủ 1 và Cấp 1) -->
+                    <!-- LIÊN KẾT EMAIL & NHẬN MÃ OTP (Chủ 1 và Cấp 1) -->
                     <div id="handover-section" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-2">
-                        <h4 class="font-bold text-teal-900"><i class="fa-solid fa-handshake mr-1"></i> Bàn Giao Sở Hữu Tài Khoản (Nhiệm Kỳ Mới)</h4>
+                        <h4 class="font-bold text-teal-900"><i class="fa-solid fa-envelope mr-1"></i> Xác Thực & Nhận OTP Qua Email</h4>
                         <form onsubmit="verifyHandoverOtp(event)" class="space-y-2">
-                            <input type="tel" id="handover-new-phone" required placeholder="Nhập Số Điện Thoại mới để tiếp nhận..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="email" id="user-email-input" required placeholder="Nhập địa chỉ Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <div class="flex gap-2">
                                 <button type="button" onclick="sendHandoverOtp()" class="bg-teal-700 text-white px-3 py-2 rounded-xl font-bold whitespace-nowrap">Gửi Mã OTP Email</button>
                                 <input type="text" id="handover-otp-input" placeholder="Nhập mã OTP..." class="flex-grow bg-white border rounded-xl px-3 py-2">
                             </div>
-                            <button type="submit" class="w-full bg-teal-600 text-white py-2 rounded-xl font-bold">Xác Nhận Đổi Số Sở Hữu</button>
+                            <button type="submit" class="w-full bg-teal-600 text-white py-2 rounded-xl font-bold">Xác Nhận OTP</button>
                         </form>
                     </div>
                     
@@ -207,18 +207,26 @@
                         <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2"></select>
                     </div>
 
+                    <!-- TẠO KHU VỰC MỚI (BỎ TIÊU ĐỀ) -->
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Chủ Hệ Thống] Tạo Khu Vực Mới & Tiêu Đề</h4>
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Chủ Hệ Thống] Tạo Khu Vực Mới</h4>
                         <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
-                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực gốc..." class="w-full bg-white border rounded-xl px-3 py-2">
-                            <input type="text" id="chu-new-area-title" required placeholder="Tiêu đề trang hiển thị..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-new-phuong-tinh" required placeholder="Phường / Xã & Tỉnh..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-acc-hoten" required placeholder="Họ và tên cán bộ Cấp 1..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-acc-username" required placeholder="Tên đăng nhập..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="email" id="chu-acc-email" required placeholder="Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="chu-acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="password" id="chu-acc-password" required placeholder="Mật khẩu..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-xl font-bold">Tạo Khu Vực & Cấp Tài Khoản</button>
                         </form>
+                    </div>
+
+                    <!-- QUYỀN XÓA KHU VỰC RIÊNG CHO TÀI KHOẢN CHỦ -->
+                    <div id="chu-delete-area-box" class="hidden p-3 bg-red-50 rounded-2xl border border-red-200 space-y-2">
+                        <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Chủ Hệ Thống] Xóa Khu Vực Đang Chọn</h4>
+                        <p class="text-[11px] text-red-700">Hành động này sẽ xóa toàn bộ dữ liệu tin tức, phản ánh và tài khoản của khu vực này vĩnh viễn.</p>
+                        <button onclick="confirmDeleteCurrentArea()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold">Xóa Khu Vực Này</button>
                     </div>
 
                     <div id="account-create-section" class="hidden space-y-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border">
@@ -226,6 +234,7 @@
                         <form onsubmit="createNewAccount(event)" class="space-y-2">
                             <input type="text" id="acc-hoten" required placeholder="Họ và tên..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="acc-chucvu" required placeholder="Tên đăng nhập..." class="w-full bg-white border rounded-xl px-3 py-2">
+                            <input type="email" id="acc-email" required placeholder="Email liên kết..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="tel" id="acc-sdt" required placeholder="Số điện thoại..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="password" id="acc-password" required placeholder="Mật khẩu..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <select id="acc-type" class="w-full bg-white border rounded-xl px-3 py-2">
@@ -262,7 +271,7 @@
                 <input type="password" id="login-password" required placeholder="Mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
                 <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl shadow">Đăng Nhập</button>
                 <div class="text-right">
-                    <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu? (Lấy OTP qua Email Chủ)</button>
+                    <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu? (Lấy OTP qua Email)</button>
                 </div>
             </form>
         </div>
@@ -272,10 +281,10 @@
     <div id="forgot-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full space-y-4 relative shadow-2xl text-xs">
             <button onclick="closeForgotModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-base text-center text-travelPrimary">Khôi Phục Mật Khẩu Qua Email Chủ</h3>
+            <h3 class="font-bold text-base text-center text-travelPrimary">Khôi Phục Mật Khẩu Qua Email</h3>
             <div id="forgot-step-1" class="space-y-3">
-                <input type="text" id="forgot-username" required placeholder="Nhập tên đăng nhập cần lấy lại mật khẩu..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
-                <input type="email" id="forgot-email" required placeholder="Nhập email liên kết tài khoản chủ..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <input type="text" id="forgot-username" required placeholder="Nhập tên đăng nhập..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
+                <input type="email" id="forgot-email" required placeholder="Nhập email liên kết..." class="w-full border rounded-xl px-3 py-2.5 outline-none">
                 <button type="button" onclick="sendForgotOtp()" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl shadow">Gửi Mã OTP</button>
             </div>
             <div id="forgot-step-2" class="space-y-3 hidden">
