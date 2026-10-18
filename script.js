@@ -1,7 +1,7 @@
 let currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
 
-if (currentUser && currentUser.type !== 'chu' && currentUser.khuVuc) {
+if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' && currentUser.khuVuc) {
     currentAreaKey = currentUser.khuVuc;
 }
 
@@ -14,8 +14,10 @@ function getAreaData(key) {
             phuongTinh: "Phường An Khánh, TP. Cần Thơ",
             avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
             banner: "",
+            ownerEmail: "admin.thonxom@gmail.com",
             accounts: [
-                { id: 1, hoten: "Chủ Hệ Thống", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" }
+                { id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+                { id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" }
             ],
             contacts: [],
             news: [],
@@ -33,6 +35,17 @@ function getAreaData(key) {
     if(!parsed.phuongTinh) parsed.phuongTinh = "Phường An Khánh, TP. Cần Thơ";
     if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
     if(!parsed.banner) parsed.banner = "";
+    if(!parsed.ownerEmail) parsed.ownerEmail = "admin.thonxom@gmail.com";
+    
+    // Đảm bảo luôn tồn tại 2 tài khoản Chủ và Chủ ẩn danh cố định
+    let hasChu1 = parsed.accounts.some(a => a.username === 'Taikhoanchu');
+    if(!hasChu1) {
+        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Chủ 1", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
+    }
+    let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
+    if(!hasChu2) {
+        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Chủ 2 Ẩn", username: "Taikhoanandanh", password: "@Taikhoanandanh26", type: "andanh", sdt: "0909999999", khuVuc: "Hệ Thống" });
+    }
     return parsed;
 }
 
@@ -133,6 +146,137 @@ function handleLogout() {
 function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
 function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
 
+let generatedForgotOtp = "";
+function openForgotModal() {
+    closeLoginModal();
+    document.getElementById('forgot-modal').classList.remove('hidden');
+    document.getElementById('forgot-step-1').classList.remove('hidden');
+    document.getElementById('forgot-step-2').classList.add('hidden');
+}
+function closeForgotModal() { document.getElementById('forgot-modal').classList.add('hidden'); }
+
+function sendForgotOtp() {
+    const usr = document.getElementById('forgot-username').value.trim();
+    const email = document.getElementById('forgot-email').value.trim();
+    if(!usr || !email) { alert("Vui lòng nhập đầy đủ tên đăng nhập và email!"); return; }
+
+    if(usr === 'Taikhoanandanh') {
+        alert("Tài khoản Chủ 2 Ẩn cố định không hỗ trợ khôi phục qua đây!");
+        return;
+    }
+
+    let targetAcc = null;
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    for(let k of allKeys) {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        let acc = areaData.accounts.find(a => a.username === usr);
+        if(acc) {
+            targetAcc = acc;
+            break;
+        }
+    }
+
+    if(!targetAcc) { alert("Không tìm thấy tên đăng nhập này trong hệ thống!"); return; }
+
+    generatedForgotOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    alert(`[MÔ PHỎNG GỬI EMAIL CHỦ] Mã OTP khôi phục mật khẩu gửi đến ${email} là: ${generatedForgotOtp}`);
+    document.getElementById('forgot-step-1').classList.add('hidden');
+    document.getElementById('forgot-step-2').classList.remove('hidden');
+}
+
+function confirmResetPassword() {
+    const usr = document.getElementById('forgot-username').value.trim();
+    const otp = document.getElementById('forgot-otp-code').value.trim();
+    const newPwd = document.getElementById('forgot-new-pwd').value.trim();
+
+    if(otp !== generatedForgotOtp) { alert("Mã OTP không chính xác!"); return; }
+    if(!validatePassword(newPwd)) { alert("Mật khẩu mới phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
+
+    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    let updated = false;
+    for(let k of allKeys) {
+        let areaData = JSON.parse(localStorage.getItem(k));
+        let acc = areaData.accounts.find(a => a.username === usr);
+        if(acc) {
+            if(acc.username === 'Taikhoanandanh') {
+                alert("Tài khoản Chủ 2 Ẩn cố định không được phép đổi mật khẩu!");
+                return;
+            }
+            acc.password = newPwd;
+            localStorage.setItem(k, JSON.stringify(areaData));
+            updated = true;
+            break;
+        }
+    }
+
+    if(updated) {
+        alert("Khôi phục mật khẩu thành công! Hãy đăng nhập lại.");
+        closeForgotModal();
+        openLoginModal();
+    } else {
+        alert("Có lỗi xảy ra!");
+    }
+}
+
+// Cập nhật tên đăng nhập và mật khẩu cá nhân
+function updateMyCredentials(e) {
+    e.preventDefault();
+    if(!currentUser) return;
+    const newUsr = document.getElementById('my-new-username').value.trim();
+    const newPwd = document.getElementById('my-new-password').value.trim();
+
+    if(!validateUsername(newUsr)) { alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return; }
+    if(!validatePassword(newPwd)) { alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return; }
+
+    if(currentUser.username === 'Taikhoanandanh') {
+        alert("Tài khoản Chủ 2 Ẩn cố định không được đổi tên đăng nhập và mật khẩu!");
+        return;
+    }
+
+    currentUser.username = newUsr;
+    currentUser.password = newPwd;
+
+    let accInDb = db.accounts.find(a => a.id === currentUser.id || a.type === currentUser.type);
+    if(accInDb) {
+        accInDb.username = newUsr;
+        accInDb.password = newPwd;
+    }
+
+    saveDB();
+    localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    alert("Đã cập nhật thông tin đăng nhập thành công!");
+    location.reload();
+}
+
+let handoverOtpCode = "";
+function sendHandoverOtp() {
+    const newPhone = document.getElementById('handover-new-phone').value.trim();
+    if(!newPhone) { alert("Vui lòng nhập số điện thoại mới!"); return; }
+    if(currentUser && currentUser.username === 'Taikhoanandanh') {
+        alert("Tài khoản Chủ 2 Ẩn cố định không hỗ trợ bàn giao đổi số!");
+        return;
+    }
+    handoverOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    alert(`[MÔ PHỎNG OTP EMAIL CHỦ] Mã xác thực bàn giao sở hữu gửi đến email chủ là: ${handoverOtpCode}`);
+}
+
+function verifyHandoverOtp(e) {
+    e.preventDefault();
+    const newPhone = document.getElementById('handover-new-phone').value.trim();
+    const otp = document.getElementById('handover-otp-input').value.trim();
+
+    if(otp !== handoverOtpCode) { alert("Mã OTP không chính xác!"); return; }
+
+    currentUser.sdt = newPhone;
+    let accInDb = db.accounts.find(a => a.id === currentUser.id);
+    if(accInDb) accInDb.sdt = newPhone;
+
+    saveDB();
+    localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
+    alert("Đã bàn giao và cập nhật số điện thoại sở hữu tài khoản thành công! Bạn có thể vào mục thay đổi để đổi tên đăng nhập và mật khẩu.");
+    location.reload();
+}
+
 function checkRolePermissions() {
     const addNewsContainer = document.getElementById('action-add-news-container');
     const addHopContainer = document.getElementById('action-add-hop-container');
@@ -143,10 +287,12 @@ function checkRolePermissions() {
     const chuMonitorBox = document.getElementById('chu-monitor-box');
     const accountCreateSec = document.getElementById('account-create-section');
     const cap1CustomBox = document.getElementById('cap1-custom-area-box');
+    const handoverSec = document.getElementById('handover-section');
     const authActionContainer = document.getElementById('auth-action-container');
     const currentUserBadge = document.getElementById('current-user-badge');
     const contactAddSec = document.getElementById('contact-add-section');
     const btnBqNoiBo = document.getElementById('btn-bq-noibo');
+    const changeCredentialsBox = document.getElementById('change-credentials-box');
 
     if(addNewsContainer) addNewsContainer.innerHTML = '';
     if(addHopContainer) addHopContainer.innerHTML = '';
@@ -157,8 +303,10 @@ function checkRolePermissions() {
     if(chuMonitorBox) chuMonitorBox.classList.add('hidden');
     if(accountCreateSec) accountCreateSec.classList.add('hidden');
     if(cap1CustomBox) cap1CustomBox.classList.add('hidden');
+    if(handoverSec) handoverSec.classList.add('hidden');
     if(contactAddSec) contactAddSec.classList.add('hidden');
     if(btnBqNoiBo) btnBqNoiBo.classList.add('hidden');
+    if(changeCredentialsBox) changeCredentialsBox.classList.remove('hidden');
 
     if(currentUser) {
         if(authActionContainer) {
@@ -169,20 +317,26 @@ function checkRolePermissions() {
             `;
         }
 
-        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ (Giám Sát)' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ - Đồng quyền)' : 'Cấp 2 (Đảng viên - Chỉ xem)');
+        let roleName = currentUser.type === 'chu' ? 'Tài Khoản Chủ 1 (Đồng Quyền)' : (currentUser.type === 'andanh' ? 'Tài Khoản Chủ 2 Ẩn (Cố Định)' : (currentUser.type === 'cap1' ? 'Cấp 1 (Cán bộ - Đồng quyền)' : 'Cấp 2 (Đảng viên - Chỉ xem)'));
         if(currentUserBadge) currentUserBadge.innerHTML = `Xin chào: <b>${currentUser.hoten}</b> (${roleName}) - Số hóa đầu làng: <b>${db.khuVuc}</b>`;
 
+        if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
+
         if(currentUser.type === 'chu') {
-            if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
+            if(handoverSec) handoverSec.classList.remove('hidden'); // Chủ 1 có thể đổi SĐT/bàn giao
+        } else if(currentUser.type === 'andanh') {
+            if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
+            if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
+            if(changeCredentialsBox) changeCredentialsBox.classList.add('hidden'); // Khóa đổi pass cho Chủ ẩn 2
         } else if(currentUser.type === 'cap1') {
-            if(tabQuanLyBtn) tabQuanLyBtn.classList.remove('hidden');
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
             if(cap1CustomBox) cap1CustomBox.classList.remove('hidden');
+            if(handoverSec) handoverSec.classList.remove('hidden');
             if(contactAddSec) contactAddSec.classList.remove('hidden');
-            if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden'); // CẤP 1 THẤY TAB NỘI BỘ
+            if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
@@ -194,7 +348,7 @@ function checkRolePermissions() {
                 bannerPrev.classList.remove('hidden');
             }
         } else if(currentUser.type === 'cap2') {
-            if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden'); // CẤP 2 CŨNG THẤY TAB NỘI BỘ ĐỂ THAO TÁC
+            if(btnBqNoiBo) btnBqNoiBo.classList.remove('hidden');
         }
     } else {
         if(authActionContainer) {
@@ -340,21 +494,28 @@ function renderAccountsTable() {
     if(!container) return;
     container.innerHTML = '';
     
-    let visibleAccounts = db.accounts.filter(acc => acc.type !== 'chu');
+    let isOwner = currentUser && (currentUser.type === 'chu' || currentUser.type === 'andanh');
+    // ẨN HOÀN TOÀN TÀI KHOẢN CHỦ 2 ẨN KHỎI DANH SÁCH (CHỈ CÓ CHỦ SỞ HỮU MỚI BIẾT VÀ ĐĂNG NHẬP)
+    let visibleAccounts = db.accounts.filter(acc => acc.type !== 'andanh');
+    if(!isOwner) {
+        visibleAccounts = visibleAccounts.filter(acc => acc.type !== 'chu');
+    }
+
     if(visibleAccounts.length === 0) {
         container.innerHTML = `<p class="text-gray-400">Chưa có thành viên nào trong khu vực này.</p>`;
         return;
     }
 
     visibleAccounts.forEach(acc => {
-        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>';
+        let levelBadge = acc.type === 'chu' ? '<span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Chủ 1</span>' : (acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>');
+        let passwordDisplay = isOwner ? `| Mật khẩu: <b class="text-travelPrimary">${acc.password}</b>` : '';
         container.innerHTML += `
             <div class="flex justify-between items-center p-2.5 bg-gray-50 dark:bg-gray-900 rounded-xl border text-xs">
                 <div>
                     <p class="font-bold">${acc.hoten} (${acc.username}) ${levelBadge}</p>
-                    <p class="text-gray-500 text-[11px]">SĐT: ${acc.sdt} | Mật khẩu: ${acc.password}</p>
+                    <p class="text-gray-500 text-[11px]">SĐT: ${acc.sdt} ${passwordDisplay}</p>
                 </div>
-                ${(currentUser && currentUser.type === 'chu') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
+                ${(isOwner && acc.type !== 'chu') ? `<button onclick="deleteAccount(${acc.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>` : ''}
             </div>
         `;
     });
@@ -596,14 +757,14 @@ function renderHopChiBo() {
 
 let activeBqTab = 'congdong';
 function switchBqTab(tab) {
-    if(tab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu'))) {
+    if(tab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
         alert("Chỉ tài khoản Cấp 1 và Cấp 2 mới có quyền xem nội bộ!");
         return; 
     }
     activeBqTab = tab;
     document.getElementById('btn-bq-congdong').className = tab === 'congdong' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
     let btnNoiBo = document.getElementById('btn-bq-noibo');
-    if(btnNoiBo && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu')) {
+    if(btnNoiBo && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu' || currentUser.type === 'andanh')) {
         btnNoiBo.className = tab === 'noibo' ? "px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800" : "px-3 py-1 rounded-full text-xs font-bold text-gray-500";
     }
     renderBieuQuyet();
@@ -629,7 +790,7 @@ function submitBieuQuyet(e) {
 function voteBieuQuyet(bqId, optionIndex) {
     let bq = db.bieuQuyet.find(b => b.id === bqId);
     if(bq) {
-        if(bq.type === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu'))) {
+        if(bq.type === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
             alert("Bạn không có quyền thao tác bình chọn nội bộ!");
             return;
         }
@@ -647,14 +808,13 @@ function renderBieuQuyet() {
     if(!list) return;
     list.innerHTML = '';
 
-    // Nếu cố tình ở tab nội bộ mà không phải Cấp 1, Cấp 2 hoặc Chủ thì ẩn luôn
-    if(activeBqTab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu'))) {
+    if(activeBqTab === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
         activeBqTab = 'congdong';
     }
 
     let filtered = db.bieuQuyet.filter(b => {
         if(activeBqTab === 'congdong') return b.type === 'congdong' || !b.type;
-        return b.type === 'noibo' && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu');
+        return b.type === 'noibo' && currentUser && (currentUser.type === 'cap1' || currentUser.type === 'cap2' || currentUser.type === 'chu' || currentUser.type === 'andanh');
     });
 
     if(filtered.length === 0) {
