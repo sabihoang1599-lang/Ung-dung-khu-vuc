@@ -113,7 +113,9 @@ function selectPortalRole(role) {
 
 function exitAppPortal() {
     localStorage.removeItem('thonxom_portal_role');
+    localStorage.removeItem('thonxom_logged_user');
     portalRole = null;
+    currentUser = null;
     document.getElementById('welcome-role-modal').classList.remove('hidden');
 }
 
@@ -312,7 +314,9 @@ function handleLogin(e) {
 
 function handleLogout() {
     localStorage.removeItem('thonxom_logged_user');
+    localStorage.removeItem('thonxom_portal_role');
     currentUser = null;
+    portalRole = null;
     alert("Đã đăng xuất tài khoản thành công!");
     location.reload();
 }
