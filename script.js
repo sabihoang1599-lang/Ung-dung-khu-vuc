@@ -11,13 +11,9 @@ function getAreaData(key) {
         let defaultData = {
             khuVuc: key,
             accounts: [
-                { id: 1, hoten: "Chủ Hệ Thống", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
-                { id: 2, hoten: "Nguyễn Văn Minh", username: "Bithu", password: "@Bithu123", type: "cap1", sdt: "0901234567", khuVuc: "Thôn Xóm Bình An" },
-                { id: 3, hoten: "Trần Văn Nam", username: "Dangvien", password: "@Dangvien123", type: "cap2", sdt: "0912345678", khuVuc: "Thôn Xóm Bình An" }
+                { id: 1, hoten: "Chủ Hệ Thống", username: "Taikhoanchu", password: "@Taikhoanchu26", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" }
             ],
-            contacts: [
-                { id: 1, dept: "Bí Thư Chi Bộ", person: "Nguyễn Văn Minh", phone: "0901234567" }
-            ],
+            contacts: [], // Danh bạ mặc định trống, nhập tay hoàn toàn
             news: [],
             phanAnh: [],
             thuTucDocs: [],
@@ -153,8 +149,6 @@ function checkRolePermissions() {
             if(addNewsContainer) addNewsContainer.innerHTML = `<button onclick="openNewsModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Đăng Bài</button>`;
             if(addHopContainer) addHopContainer.innerHTML = `<button onclick="openHopModal()" class="bg-travelPrimary text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Lịch Họp</button>`;
             if(addBqContainer) addBqContainer.innerHTML = `<button onclick="openBqModal()" class="bg-travelAccent text-white text-xs px-3 py-1.5 rounded-full font-bold shadow"><i class="fa-solid fa-plus"></i> Tạo Biểu Quyết</button>`;
-        } else if(currentUser.type === 'cap2') {
-            // Cấp 2 chỉ xem và đăng bài phản ánh/chat, không hiện công cụ quản lý
         }
     } else {
         authBtnText.innerText = "Đăng Nhập";
@@ -164,11 +158,8 @@ function checkRolePermissions() {
 
 function initChuMonitorSelect() {
     const select = document.getElementById('chu-area-select');
-    const selectCap1 = document.getElementById('chu-select-cap1');
     if(!select) return;
-
     select.innerHTML = '';
-    if(selectCap1) selectCap1.innerHTML = '<option value="">-- Chọn tài khoản Cấp 1 --</option>';
 
     let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
     allKeys.forEach(k => {
@@ -178,15 +169,6 @@ function initChuMonitorSelect() {
         opt.innerText = areaData.khuVuc;
         if(areaData.khuVuc === db.khuVuc) opt.selected = true;
         select.appendChild(opt);
-
-        if(selectCap1) {
-            areaData.accounts.filter(a => a.type === 'cap1').forEach(acc => {
-                let optAcc = document.createElement('option');
-                optAcc.value = acc.username;
-                optAcc.innerText = `${acc.hoten} (${acc.username})`;
-                selectCap1.appendChild(optAcc);
-            });
-        }
     });
 }
 
@@ -197,40 +179,39 @@ function switchChuMonitorArea(areaName) {
     location.reload();
 }
 
-function chuAssignArea(e) {
+// Tài khoản Chủ cấp tên khu vực đồng thời tạo tài khoản Cán bộ Cấp 1 mới
+function chuAssignAreaAndAccount(e) {
     e.preventDefault();
-    const username = document.getElementById('chu-select-cap1').value;
     const newAreaName = document.getElementById('chu-new-area-name').value.trim();
+    const hoten = document.getElementById('chu-acc-hoten').value.trim();
+    const username = document.getElementById('chu-acc-username').value.trim();
+    const sdt = document.getElementById('chu-acc-sdt').value.trim();
+    const password = document.getElementById('chu-acc-password').value.trim();
 
-    if(!username || !newAreaName) { alert("Vui lòng chọn tài khoản và nhập tên khu vực!"); return; }
-
-    let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    let targetAcc = null;
-    for(let k of allKeys) {
-        let areaData = JSON.parse(localStorage.getItem(k));
-        let acc = areaData.accounts.find(a => a.username === username);
-        if(acc) {
-            targetAcc = acc;
-            break;
-        }
+    if(!newAreaName) { alert("Vui lòng nhập tên khu vực!"); return; }
+    if(!validateUsername(username)) {
+        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: CanBoNoTom)!"); return;
+    }
+    if(!validatePassword(password)) {
+        alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
     }
 
-    if(targetAcc) {
-        targetAcc.khuVuc = newAreaName;
-        let newAreaData = getAreaData(newAreaName);
-        if(!newAreaData.accounts.some(a => a.username === targetAcc.username)) {
-            newAreaData.accounts.push(targetAcc);
-        }
-        localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
-        saveDB();
-        alert(`Đã cấp khu vực "${newAreaName}" thành công cho tài khoản ${targetAcc.hoten}!`);
-        location.reload();
-    } else {
-        alert("Không tìm thấy tài khoản Cấp 1!");
-    }
+    // Tạo kho dữ liệu riêng cho khu vực mới
+    let newAreaData = getAreaData(newAreaName);
+    newAreaData.accounts.push({
+        id: Date.now(),
+        hoten,
+        username,
+        password,
+        type: "cap1",
+        sdt,
+        khuVuc: newAreaName
+    });
+    localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
+    alert(`Đã tạo khu vực "${newAreaName}" và cấp tài khoản cán bộ ${hoten} thành công!`);
+    location.reload();
 }
 
-// Cấp tài khoản mới (Cấp 1 có quyền cấp thêm Cấp 1 đồng quyền hoặc Cấp 2)
 function createNewAccount(e) {
     e.preventDefault();
     if(!currentUser || currentUser.type !== 'cap1') {
@@ -243,7 +224,7 @@ function createNewAccount(e) {
     const type = document.getElementById('acc-type').value;
 
     if(!validateUsername(username)) {
-        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu (VD: CanBoMoi)!"); return;
+        alert("Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!"); return;
     }
     if(!validatePassword(password)) {
         alert("Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!"); return;
@@ -268,7 +249,7 @@ function renderAccountsTable() {
     }
 
     visibleAccounts.forEach(acc => {
-        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ đồng quyền)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên - Xem & Đăng bài)</span>';
+        let levelBadge = acc.type === 'cap1' ? '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold">Cấp 1 (Cán bộ)</span>' : '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Cấp 2 (Đảng viên)</span>';
         container.innerHTML += `
             <div class="flex justify-between items-center p-2.5 bg-gray-50 dark:bg-gray-900 rounded-xl border text-xs">
                 <div>
@@ -287,12 +268,18 @@ function deleteAccount(id) {
     renderAccountsTable();
 }
 
+// Danh bạ thủ công từng khu vực riêng biệt, tối đa 10 mục
 function renderSidebarContacts() {
     const container = document.getElementById('sidebar-contacts-list');
     const headerEmergency = document.getElementById('header-emergency-buttons');
     if(!container) return;
     container.innerHTML = '';
     if(headerEmergency) headerEmergency.innerHTML = '';
+
+    if(db.contacts.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-center py-2">Chưa có danh bạ nào được nhập.</p>`;
+        return;
+    }
 
     db.contacts.forEach(c => {
         container.innerHTML += `
@@ -309,6 +296,9 @@ function renderSidebarContacts() {
 
 function saveNewContact(e) {
     e.preventDefault();
+    if(db.contacts.length >= 10) {
+        alert("Mỗi khu vực chỉ được phép thêm tối đa 10 mục danh bạ!"); return;
+    }
     const dept = document.getElementById('ct-dept').value.trim();
     const person = document.getElementById('ct-person').value.trim();
     const phone = document.getElementById('ct-phone').value.trim();
@@ -346,7 +336,7 @@ function handleNewsImages(e) {
 function submitNewsArticle(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
-        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu và tham gia tương tác, không được đăng bài!"); return;
+        alert("Tài khoản Cấp 2 chỉ có quyền xem tài liệu, không được đăng bài!"); return;
     }
     db.news.unshift({
         id: Date.now(),
