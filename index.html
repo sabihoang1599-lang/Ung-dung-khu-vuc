@@ -24,6 +24,43 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans antialiased min-h-screen flex justify-center items-center p-0 md:p-4">
 
+    <!-- MÀN HÌNH CHỌN BAN ĐẦU (CHI BỘ HOẶC CỘNG ĐỒNG) -->
+    <div id="welcome-role-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-5 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
+            <div class="w-16 h-16 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+                <i class="fa-solid fa-network-wired"></i>
+            </div>
+            <div class="space-y-1">
+                <h2 class="font-extrabold text-lg text-travelPrimary dark:text-teal-400">Số Hóa Đầu Làng</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Vui lòng chọn vai trò truy cập ứng dụng của bạn:</p>
+            </div>
+            <div class="space-y-3 pt-1">
+                <button onclick="selectPortalRole('chibo')" class="w-full bg-gradient-to-r from-travelPrimary to-travelDark text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition hover:opacity-95 flex items-center justify-center gap-2 text-xs">
+                    <i class="fa-solid fa-user-shield text-sm"></i> Mục 1: Chi Bộ (Đăng Nhập Quản Trị)
+                </button>
+                <button onclick="selectPortalRole('congdong')" class="w-full bg-gray-100 dark:bg-gray-800 hover:bg-teal-50 text-gray-700 dark:text-gray-200 font-bold py-3.5 px-4 rounded-2xl transition border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2 text-xs">
+                    <i class="fa-solid fa-users text-sm text-travelPrimary"></i> Mục 2: Cộng Đồng (Xem & Tương Tác)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHỌN KHU VỰC CHO CỘNG ĐỒNG -->
+    <div id="community-area-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
+            <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-map-location-dot"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="font-bold text-base text-travelPrimary">Chọn Khu Vực Cộng Đồng</h3>
+                <p class="text-xs text-gray-500">Chọn đúng thôn xóm/khu vực của bạn để kết nối thông tin:</p>
+            </div>
+            <div id="community-area-list" class="space-y-2 max-h-48 overflow-y-auto text-xs pr-1"></div>
+            <button onclick="backToWelcomeModal()" class="text-xs text-gray-400 hover:underline pt-1 block mx-auto">← Quay lại chọn vai trò</button>
+        </div>
+    </div>
+
+    <!-- KHUNG CHÍNH ỨNG DỤNG -->
     <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[880px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col justify-between border-0 md:border-8 md:border-gray-800 relative">
 
         <header id="app-header-bg" class="bg-gradient-to-br from-travelPrimary to-travelDark text-white p-6 rounded-b-[30px] shadow-lg relative bg-cover bg-center transition-all duration-500">
@@ -44,7 +81,9 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <!-- Đã bỏ nút đăng nhập ở góc trên, chỉ giữ nút đổi sáng/tối -->
+                        <button onclick="resetAppPortal()" class="bg-white/15 hover:bg-white/25 text-white p-2 rounded-full transition text-[11px]" title="Đổi Vai Trò / Khu Vực">
+                            <i class="fa-solid fa-rotate text-xs"></i>
+                        </button>
                         <button onclick="toggleDarkMode()" class="bg-white/15 hover:bg-white/25 text-white p-2 rounded-full transition" title="Đổi Sáng/Tối">
                             <i id="dark-mode-icon" class="fa-solid fa-moon text-xs"></i>
                         </button>
@@ -157,7 +196,7 @@
                 <div id="logged-out-manager-view" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <div class="text-center space-y-2">
                         <i class="fa-solid fa-user-shield text-3xl text-travelPrimary"></i>
-                        <h3 class="font-bold text-base">Khu Vực Quản Trị Hệ Thống</h3>
+                        <h3 class="font-bold text-base">Khu Vực Quản Trị Hệ Thống (Chi Bộ)</h3>
                         <p class="text-gray-500">Vui lòng đăng nhập tài khoản có thẩm quyền để truy cập các tính năng quản lý.</p>
                     </div>
                     <form onsubmit="handleLogin(event)" class="space-y-3 pt-2">
@@ -233,12 +272,12 @@
                     </div>
 
                     <div id="chu-monitor-box" class="hidden p-3 bg-purple-50 rounded-2xl border border-purple-200 space-y-2">
-                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Chủ: Chọn Khu Vực Giám Sát</h4>
+                        <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Cấp Quyền: Chọn Khu Vực Giám Sát</h4>
                         <select id="chu-area-select" onchange="switchChuMonitorArea(this.value)" class="w-full bg-white border rounded-xl px-3 py-2"></select>
                     </div>
 
                     <div id="chu-create-area-box" class="hidden p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-2">
-                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Chủ Hệ Thống] Tạo Khu Vực Mới</h4>
+                        <h4 class="font-bold text-amber-900"><i class="fa-solid fa-map-location-dot mr-1"></i> [Tài Khoản Cấp Quyền] Tạo Khu Vực Mới</h4>
                         <form onsubmit="chuAssignAreaAndAccount(event)" class="space-y-2">
                             <input type="text" id="chu-new-area-name" required placeholder="Tên khu vực..." class="w-full bg-white border rounded-xl px-3 py-2">
                             <input type="text" id="chu-new-phuong-tinh" required placeholder="Phường / Xã & Tỉnh..." class="w-full bg-white border rounded-xl px-3 py-2">
@@ -257,7 +296,7 @@
                     </div>
 
                     <div id="chu-delete-area-box" class="hidden p-3 bg-red-50 rounded-2xl border border-red-200 space-y-2">
-                        <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Chủ Hệ Thống] Xóa Khu Vực Đang Chọn</h4>
+                        <h4 class="font-bold text-red-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i> [Tài Khoản Cấp Quyền] Xóa Khu Vực Đang Chọn</h4>
                         <p class="text-[11px] text-red-700">Hành động này sẽ xóa toàn bộ dữ liệu tin tức, phản ánh và tài khoản của khu vực này vĩnh viễn.</p>
                         <button onclick="confirmDeleteCurrentArea()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-bold">Xóa Khu Vực Này</button>
                     </div>
