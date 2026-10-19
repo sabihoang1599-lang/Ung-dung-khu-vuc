@@ -108,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!portalRole) {
         let roleModal = document.getElementById('welcome-role-modal');
         if(roleModal) roleModal.classList.remove('hidden');
+    } else if(portalRole === 'chibo' && !currentUser) {
+        let cbLoginModal = document.getElementById('chibo-login-modal');
+        if(cbLoginModal) cbLoginModal.classList.remove('hidden');
     }
 });
 
@@ -139,10 +142,28 @@ function selectPortalRole(role) {
     applyPortalUIVisibility();
 
     if(role === 'chibo') {
-        switchTab('tab-quanly');
+        const cbLoginModal = document.getElementById('chibo-login-modal');
+        if(cbLoginModal) cbLoginModal.classList.remove('hidden');
     } else if(role === 'congdong') {
         openCommunityProvinceStep();
     }
+}
+
+function returnToPortalRoleSelection() {
+    const cbLoginModal = document.getElementById('chibo-login-modal');
+    if(cbLoginModal) cbLoginModal.classList.add('hidden');
+    
+    portalRole = null;
+    try {
+        localStorage.removeItem('thonxom_portal_role');
+    } catch(e) {}
+
+    const roleModal = document.getElementById('welcome-role-modal');
+    if(roleModal) roleModal.classList.remove('hidden');
+}
+
+function backToWelcomeModal() {
+    returnToPortalRoleSelection();
 }
 
 let commStep = 'tinh';
@@ -166,7 +187,7 @@ function openCommunityProvinceStep() {
     if(titleEl) titleEl.innerText = "Chọn Tỉnh / Thành Phố";
     if(subEl) subEl.innerText = "Bước 1/3: Chọn tỉnh thành của bạn:";
     if(backBtn) backBtn.classList.add('hidden');
-    if(exitBtn) exitBtn.classList.remove('hidden'); // Hiện nút thoát ở bước chọn tỉnh
+    if(exitBtn) exitBtn.classList.remove('hidden');
     if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
@@ -236,7 +257,7 @@ function chooseProvince(tinh) {
     if(titleEl) titleEl.innerText = "Chọn Phường / Xã";
     if(subEl) subEl.innerText = `Bước 2/3: Chọn phường xã thuộc ${tinh}:`;
     if(backBtn) backBtn.classList.remove('hidden');
-    if(exitBtn) exitBtn.classList.add('hidden'); // Ẩn nút thoát ở các bước sau
+    if(exitBtn) exitBtn.classList.add('hidden');
     if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
@@ -415,6 +436,41 @@ function togglePasswordVisibility(inputId, iconId) {
     }
 }
 
+function handleChiBoPortalLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('cb-login-user') ? document.getElementById('cb-login-user').value.trim() : '';
+    const p = document.getElementById('cb-login-pwd') ? document.getElementById('cb-login-pwd').value.trim() : '';
+
+    let found = null;
+    let foundAreaKey = '';
+    let allKeys = [];
+    try {
+        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
+    } catch(e) { allKeys = []; }
+
+    for(let k of allKeys) {
+        try {
+            let areaData = JSON.parse(localStorage.getItem(k));
+            if(areaData && areaData.accounts) {
+                let acc = areaData.accounts.find(a => a.username === u && a.password === p);
+                if(acc) {
+                    found = acc;
+                    foundAreaKey = areaData.khuVuc;
+                    break;
+                }
+            }
+        } catch(e) {}
+    }
+
+    if(found) {
+        executeLoginSuccess(found, foundAreaKey);
+        const cbModal = document.getElementById('chibo-login-modal');
+        if(cbModal) cbModal.classList.add('hidden');
+    } else {
+        showCustomConfirm("Đăng Nhập Thất Bại", "Sai tên đăng nhập hoặc mật khẩu tài khoản khu vực!", false, () => {});
+    }
+}
+
 function handleLogin(e) {
     e.preventDefault();
     const u = document.getElementById('inline-login-username') ? document.getElementById('inline-login-username').value.trim() : '';
@@ -466,6 +522,11 @@ function executeLoginSuccess(acc, areaKey) {
     currentUser = acc;
     currentAreaKey = areaKey;
     portalRole = 'chibo';
+    
+    if(acc.type !== 'chu' && acc.type !== 'andanh' && acc.khuVuc) {
+        currentAreaKey = acc.khuVuc;
+    }
+
     try {
         localStorage.setItem('thonxom_current_area', currentAreaKey);
         localStorage.setItem('thonxom_portal_role', portalRole);
@@ -484,7 +545,7 @@ function executeLoginSuccess(acc, areaKey) {
     renderAccountsTable();
     renderSidebarContacts();
     initAppConfig();
-    showCustomConfirm("Thành Công", `Đăng nhập thành công với tư cách: ${currentUser.hoten}!`, false, () => {
+    showCustomConfirm("Thành Công", `Đăng nhập thành công vào khu vực: ${currentAreaKey} (${currentUser.hoten})!`, false, () => {
         location.reload();
     });
 }
