@@ -126,40 +126,62 @@ function applyPortalUIVisibility() {
     const paNavButtons = document.getElementById('community-pa-nav-buttons');
     const subTabViet = document.getElementById('subtab-pa-viet');
     const subTabXem = document.getElementById('subtab-pa-xem');
+    const officerFilterBar = document.getElementById('officer-pa-filter-bar');
 
     if (portalRole === 'congdong') {
         if(btnHopChiBo) btnHopChiBo.style.display = 'none';
         if(btnQuanLy) btnQuanLy.style.display = 'none';
         if(changeAreaBtn) changeAreaBtn.style.display = 'flex';
         if(paNavButtons) paNavButtons.classList.remove('hidden');
+        if(officerFilterBar) officerFilterBar.classList.add('hidden');
         switchPaSubTab('viet');
     } else if (portalRole === 'chibo') {
         if(btnHopChiBo) btnHopChiBo.style.display = 'block';
         if(btnQuanLy) btnQuanLy.style.display = 'block';
         if(changeAreaBtn) changeAreaBtn.style.display = 'none';
         if(paNavButtons) paNavButtons.classList.add('hidden');
-        if(subTabViet) subTabViet.classList.remove('hidden');
+        if(subTabViet) subTabViet.classList.add('hidden');
         if(subTabXem) subTabXem.classList.remove('hidden');
+        if(officerFilterBar) officerFilterBar.classList.remove('hidden');
+        renderPhanAnh('all');
     }
 }
 
+let currentPaFilter = 'all';
 function switchPaSubTab(tab) {
     const subTabViet = document.getElementById('subtab-pa-viet');
     const subTabXem = document.getElementById('subtab-pa-xem');
     const btnViet = document.getElementById('btn-pasub-viet');
     const btnXem = document.getElementById('btn-pasub-xem');
+    const officerFilterBar = document.getElementById('officer-pa-filter-bar');
 
     if(tab === 'viet') {
         if(subTabViet) subTabViet.classList.remove('hidden');
         if(subTabXem) subTabXem.classList.add('hidden');
         if(btnViet) btnViet.className = "flex-1 bg-travelPrimary text-white font-bold py-2 rounded-xl text-xs shadow";
         if(btnXem) btnXem.className = "flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition";
+        if(officerFilterBar) officerFilterBar.classList.add('hidden');
     } else {
         if(subTabViet) subTabViet.classList.add('hidden');
         if(subTabXem) subTabXem.classList.remove('hidden');
         if(btnViet) btnViet.className = "flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition";
         if(btnXem) btnXem.className = "flex-1 bg-travelPrimary text-white font-bold py-2 rounded-xl text-xs shadow";
+        if(portalRole === 'chibo' && officerFilterBar) officerFilterBar.classList.remove('hidden');
+        renderPhanAnh(currentPaFilter);
     }
+}
+
+function filterOfficerPaStatus(status) {
+    currentPaFilter = status;
+    document.querySelectorAll('#officer-pa-filter-bar button').forEach(b => {
+        b.className = "px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold whitespace-nowrap";
+    });
+    if(status === 'all') document.getElementById('btn-pa-filter-all').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
+    else if(status === 'Đang chờ') document.getElementById('btn-pa-filter-cho').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
+    else if(status === 'Đang xử lý') document.getElementById('btn-pa-filter-dang').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
+    else if(status === 'Đã xử lý') document.getElementById('btn-pa-filter-da').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
+
+    renderPhanAnh(status);
 }
 
 function selectPortalRole(role) {
@@ -841,7 +863,10 @@ function checkRolePermissions() {
     const changeCredentialsBox = document.getElementById('change-credentials-box');
     const loggedOutManagerView = document.getElementById('logged-out-manager-view');
     const loggedInManagerView = document.getElementById('logged-in-manager-view');
+    const paNavButtons = document.getElementById('community-pa-nav-buttons');
     const subTabViet = document.getElementById('subtab-pa-viet');
+    const subTabXem = document.getElementById('subtab-pa-xem');
+    const officerFilterBar = document.getElementById('officer-pa-filter-bar');
 
     if(addNewsContainer) addNewsContainer.innerHTML = '';
     if(addHopContainer) addHopContainer.innerHTML = '';
@@ -862,8 +887,11 @@ function checkRolePermissions() {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
 
-        // PHẦN PHẢN ÁNH: CHI BỘ KHÔNG HIỆN FORM ĐIỀN, CHỈ HIỆN DANH SÁCH BÀI
+        // TÀI KHOẢN CHI BỘ: ẨN NÚT CHUYỂN, ẨN FORM ĐIỀN, HIỆN DANH SÁCH VÀ BỘ LỌC
+        if(paNavButtons) paNavButtons.classList.add('hidden');
         if(subTabViet) subTabViet.classList.add('hidden');
+        if(subTabXem) subTabXem.classList.remove('hidden');
+        if(officerFilterBar) officerFilterBar.classList.remove('hidden');
 
         if(currentUser.type === 'chu' || currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
@@ -897,7 +925,8 @@ function checkRolePermissions() {
     } else {
         if(loggedOutManagerView) loggedOutManagerView.classList.remove('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.add('hidden');
-        if(subTabViet) subTabViet.classList.remove('hidden');
+        if(paNavButtons) paNavButtons.classList.remove('hidden');
+        if(officerFilterBar) officerFilterBar.classList.add('hidden');
         if(activeBqTab === 'noibo') {
             switchBqTab('congdong');
         }
@@ -1614,7 +1643,7 @@ function promptDeletePhanAnh(id) {
         if(isYes) {
             db.phanAnh = db.phanAnh.filter(p => p.id !== id);
             saveDB();
-            renderPhanAnh();
+            renderPhanAnh(currentPaFilter);
             showCustomConfirm("Thành Công", "Đã xóa bài phản ánh!", false, () => {});
         }
     });
@@ -1625,23 +1654,28 @@ function updatePhanAnhStatus(id, newStatus) {
     if(item) {
         item.status = newStatus;
         saveDB();
-        renderPhanAnh();
+        renderPhanAnh(currentPaFilter);
     }
 }
 
-function renderPhanAnh() {
+function renderPhanAnh(filterStatus = 'all') {
     const container = document.getElementById('phan-anh-list-container');
     if(!container) return;
     container.innerHTML = '';
 
-    if(db.phanAnh.length === 0) {
+    let itemsToRender = db.phanAnh;
+    if(portalRole === 'chibo' && filterStatus !== 'all') {
+        itemsToRender = db.phanAnh.filter(p => p.status === filterStatus);
+    }
+
+    if(itemsToRender.length === 0) {
         container.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">Chưa có phản ánh nào.</p>`;
         return;
     }
 
     let isOfficer = currentUser && (currentUser.type === 'cap1' || currentUser.type === 'chu' || currentUser.type === 'andanh');
 
-    db.phanAnh.forEach(p => {
+    itemsToRender.forEach(p => {
         let imgsHtml = '';
         if(p.images && p.images.length > 0) {
             let encodedImgs = encodeURIComponent(JSON.stringify(p.images));
@@ -1663,9 +1697,9 @@ function renderPhanAnh() {
             officerActions = `
                 <div class="flex gap-1 mt-2 pt-2 border-t items-center justify-between">
                     <div class="flex gap-1">
-                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang tiếp nhận')" class="px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold">Tiếp Nhận</button>
-                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] font-semibold">Đang Xử Lý</button>
-                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-semibold">Đã Xử Lý</button>
+                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang chờ')" class="px-2 py-1 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">Chưa xử lý</button>
+                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] font-semibold">Đang xử lý</button>
+                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-semibold">Đã xử lý</button>
                     </div>
                     <button onclick="promptDeletePhanAnh(${p.id})" class="text-red-500 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Xóa Bài</button>
                 </div>
@@ -1752,7 +1786,6 @@ function setupLightboxGestures() {
             let diffX = touchEndX - touchStartX;
             let diffY = touchEndY - touchStartY;
 
-            // Kéo sang trái / phải xem ảnh kế tiếp
             if(Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
                 if(diffX < 0) {
                     nextLightboxImage();
@@ -1760,7 +1793,6 @@ function setupLightboxGestures() {
                     prevLightboxImage();
                 }
             }
-            // Trượt lên / xuống để thoát trạng thái xem ảnh
             else if(Math.abs(diffY) > 80 && Math.abs(diffY) > Math.abs(diffX)) {
                 closeLightbox();
             }
