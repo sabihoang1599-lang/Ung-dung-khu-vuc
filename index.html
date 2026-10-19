@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <!-- LIGHTBOX XEM ẢNH TOÀN MÀN HÌNH (VUỐT TRƯỢT NGANG / LÊN XUỐNG) -->
+    <!-- LIGHTBOX XEM ẢNH TOÀN MÀN HÌNH -->
     <div id="lightbox-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex flex-col items-center justify-center p-2 touch-none">
         <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/30 w-10 h-10 rounded-full flex items-center justify-center transition z-50"><i class="fa-solid fa-xmark"></i></button>
         <div id="lightbox-container-box" class="relative max-w-4xl w-full flex items-center justify-center px-10 h-[85vh]">
@@ -166,13 +166,15 @@
                 <div id="news-feed-list" class="grid grid-cols-1 gap-3"></div>
             </div>
 
-            <!-- PHẦN PHẢN ÁNH ĐƯỢC CHIA 2 PHẦN CHO CỘNG ĐỒNG VÀ HIỆN DANH SÁCH CHO CHI BỘ -->
+            <!-- PHẦN PHẢN ÁNH PHÂN TÁCH RIÊNG CHI BỘ VÀ CỘNG ĐỒNG -->
             <div id="tab-phananh" class="tab-content hidden space-y-4">
-                <div id="community-pa-nav-buttons" class="flex gap-2 hidden">
+                <!-- NÚT CHUYỂN ĐỔI DÀNH CHO CỘNG ĐỒNG (VIẾT / XEM) -->
+                <div id="community-pa-nav-buttons" class="flex gap-2">
                     <button onclick="switchPaSubTab('viet')" id="btn-pasub-viet" class="flex-1 bg-travelPrimary text-white font-bold py-2 rounded-xl text-xs shadow">Viết Phản Ánh</button>
                     <button onclick="switchPaSubTab('xem')" id="btn-pasub-xem" class="flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition">Xem Phản Ánh</button>
                 </div>
 
+                <!-- TAB CON VIẾT PHẢN ÁNH (CHỈ CỘNG ĐỒNG THẤY) -->
                 <div id="subtab-pa-viet" class="space-y-4">
                     <div class="bg-teal-50 dark:bg-gray-800 p-4 rounded-3xl border border-teal-100 dark:border-gray-700 space-y-3 shadow-sm">
                         <h3 class="font-bold text-xs text-travelPrimary dark:text-teal-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Gửi Phản Ánh Trực Tuyến</h3>
@@ -182,7 +184,6 @@
                             <input type="text" id="pa-diachi" required placeholder="Địa chỉ hiện tại..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
                             <textarea id="pa-noidung" required maxlength="1000" rows="3" placeholder="Nội dung phản ánh..." class="w-full bg-white dark:bg-gray-900 border rounded-xl p-3 outline-none"></textarea>
                             
-                            <!-- LẤY ĐỊNH VỊ GPS -->
                             <div class="flex items-center gap-2">
                                 <button type="button" onclick="captureMyLocation()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-3 py-2 rounded-xl text-[11px] transition flex items-center gap-1.5 shrink-0">
                                     <i class="fa-solid fa-location-crosshairs"></i> Gửi Định Vị GPS
@@ -201,7 +202,6 @@
                         </form>
                     </div>
 
-                    <!-- KHUNG XÓA HOẶC SỬA BÀI PHẢN ÁNH DÀNH CHO CỘNG ĐỒNG -->
                     <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border shadow-sm space-y-2">
                         <h4 class="font-bold text-xs text-travelPrimary"><i class="fa-solid fa-pen-to-square mr-1"></i> Quản Lý Bài Phản Ánh Của Bạn</h4>
                         <p class="text-[11px] text-gray-500">Nhập số điện thoại đã gửi bài để tìm và thực hiện sửa/xóa bài phản ánh:</p>
@@ -213,7 +213,16 @@
                     </div>
                 </div>
 
+                <!-- TAB CON XEM PHẢN ÁNH HOẶC QUẢN LÝ DÀNH CHO CHI BỘ -->
                 <div id="subtab-pa-xem" class="space-y-3">
+                    <!-- BỘ LỌC TRẠNG THÁI DÀNH CHO CHI BỘ -->
+                    <div id="officer-pa-filter-bar" class="flex gap-1.5 overflow-x-auto pb-1 hidden">
+                        <button onclick="filterOfficerPaStatus('all')" id="btn-pa-filter-all" class="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap">Tất Cả</button>
+                        <button onclick="filterOfficerPaStatus('Đang chờ')" id="btn-pa-filter-cho" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold whitespace-nowrap">Chưa Xử Lý</button>
+                        <button onclick="filterOfficerPaStatus('Đang xử lý')" id="btn-pa-filter-dang" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold whitespace-nowrap">Đang Xử Lý</button>
+                        <button onclick="filterOfficerPaStatus('Đã xử lý')" id="btn-pa-filter-da" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold whitespace-nowrap">Đã Xử Lý</button>
+                    </div>
+
                     <div id="phan-anh-list-container" class="space-y-3"></div>
                 </div>
             </div>
