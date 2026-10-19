@@ -4,7 +4,7 @@ try {
 } catch(e) { currentUser = null; }
 
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
-let portalRole = null; // Luôn bắt đầu bằng null để ép hiện bảng chọn vai trò
+let portalRole = localStorage.getItem('thonxom_portal_role') || (currentUser ? 'chibo' : null);
 
 if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' && currentUser.khuVuc) {
     currentAreaKey = currentUser.khuVuc;
@@ -92,11 +92,13 @@ function saveDB() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Xóa sạch bộ nhớ vai trò cũ để ép buộc hiện bảng chọn Chi Bộ / Cộng Đồng khi tải lại trang
-    portalRole = null;
-    try {
-        localStorage.removeItem('thonxom_portal_role');
-    } catch(e) {}
+    // Nếu đã đăng nhập thì giữ nguyên vai trò Chi Bộ, không hiện bảng chọn lại nữa
+    if (currentUser) {
+        portalRole = 'chibo';
+        try {
+            localStorage.setItem('thonxom_portal_role', 'chibo');
+        } catch(e) {}
+    }
 
     initAppConfig();
     renderSidebarContacts();
@@ -109,10 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccountsTable();
     checkRolePermissions();
     initChuMonitorSelects();
+    applyPortalUIVisibility();
     
-    // Luôn hiển thị màn hình chọn vai trò đầu tiên khi mở web
-    let roleModal = document.getElementById('welcome-role-modal');
-    if(roleModal) roleModal.classList.remove('hidden');
+    // Chỉ hiện bảng chọn vai trò ban đầu khi chưa có vai trò hoặc chưa đăng nhập
+    if(!portalRole) {
+        let roleModal = document.getElementById('welcome-role-modal');
+        if(roleModal) roleModal.classList.remove('hidden');
+    }
 });
 
 function applyPortalUIVisibility() {
