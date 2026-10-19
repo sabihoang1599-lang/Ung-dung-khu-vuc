@@ -36,12 +36,39 @@
             </div>
             <div class="space-y-3 pt-1">
                 <button onclick="selectPortalRole('chibo')" class="w-full bg-gradient-to-r from-travelPrimary to-travelDark text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition hover:opacity-95 flex items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-user-shield text-sm"></i> Mục 1: Chi Bộ
+                    <i class="fa-solid fa-user-shield text-sm"></i> Mục 1: Chi Bộ (Đăng Nhập Riêng)
                 </button>
                 <button onclick="selectPortalRole('congdong')" class="w-full bg-gray-100 dark:bg-gray-800 hover:bg-teal-50 text-gray-700 dark:text-gray-200 font-bold py-3.5 px-4 rounded-2xl transition border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-users text-sm text-travelPrimary"></i> Mục 2: Cộng Đồng
+                    <i class="fa-solid fa-users text-sm text-travelPrimary"></i> Mục 2: Cộng Đồng (Chọn Tỉnh 3 Bước)
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP RIÊNG CHO MỤC 1: CHI BỘ -->
+    <div id="chibo-login-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
+            <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="font-bold text-base text-travelPrimary">Đăng Nhập Mục 1: Chi Bộ</h3>
+                <p class="text-xs text-gray-500">Nhập tài khoản khu vực của bạn để quản lý và xem tài liệu:</p>
+            </div>
+            <form onsubmit="handleChiBoPortalLogin(event)" class="space-y-3 text-xs pt-1">
+                <input type="text" id="cb-login-user" required placeholder="Tên đăng nhập..." class="w-full bg-gray-50 dark:bg-gray-900 border rounded-xl px-3 py-3 outline-none">
+                <div class="relative">
+                    <input type="password" id="cb-login-pwd" required placeholder="Mật khẩu..." class="w-full bg-gray-50 dark:bg-gray-900 border rounded-xl px-3 py-3 pr-10 outline-none">
+                    <button type="button" onclick="togglePasswordVisibility('cb-login-pwd', 'icon-cb-pwd')" class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
+                        <i id="icon-cb-pwd" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+                <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-3 rounded-xl shadow transition hover:bg-teal-800">Đăng Nhập Vào Chi Bộ</button>
+                <div class="flex justify-between items-center pt-1">
+                    <button type="button" onclick="backToWelcomeModal()" class="text-gray-500 hover:underline font-semibold text-[11px]">Quay lại</button>
+                    <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu?</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -219,8 +246,9 @@
                             </button>
                         </div>
                         <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-3 rounded-xl shadow transition hover:bg-teal-800">Đăng Nhập Ngay</button>
-                        <div class="text-right">
-                            <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline text-[11px]">Quên mật khẩu?</button>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <button type="button" onclick="returnToPortalRoleSelection()" class="text-gray-500 hover:underline font-semibold">Chọn lại vai trò</button>
+                            <button type="button" onclick="openForgotModal()" class="text-teal-700 font-semibold hover:underline">Quên mật khẩu?</button>
                         </div>
                     </form>
                 </div>
