@@ -24,7 +24,7 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans antialiased min-h-screen flex justify-center items-center p-0 md:p-4">
 
-    <!-- MÀN HÌNH CHỌN BAN ĐẦU (CHI BỘ HOẶC CỘNG ĐỒNG) -->
+    <!-- MÀN HÌNH CHỌN VAI TRÒ BAN ĐẦU (CHI BỘ HOẶC CỘNG ĐỒNG) -->
     <div id="welcome-role-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-5 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-16 h-16 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
@@ -32,27 +32,27 @@
             </div>
             <div class="space-y-1">
                 <h2 class="font-extrabold text-lg text-travelPrimary dark:text-teal-400">Số Hóa Đầu Làng</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Vui lòng chọn vai trò truy cập ứng dụng của bạn:</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Vui lòng chọn vai trò truy cập ứng dụng:</p>
             </div>
             <div class="space-y-3 pt-1">
                 <button onclick="selectPortalRole('chibo')" class="w-full bg-gradient-to-r from-travelPrimary to-travelDark text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition hover:opacity-95 flex items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-user-shield text-sm"></i> Mục 1: Chi Bộ (Đăng Nhập Riêng)
+                    <i class="fa-solid fa-user-shield text-sm"></i> Chi Bộ
                 </button>
                 <button onclick="selectPortalRole('congdong')" class="w-full bg-gray-100 dark:bg-gray-800 hover:bg-teal-50 text-gray-700 dark:text-gray-200 font-bold py-3.5 px-4 rounded-2xl transition border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-users text-sm text-travelPrimary"></i> Mục 2: Cộng Đồng (Chọn Tỉnh 3 Bước)
+                    <i class="fa-solid fa-users text-sm text-travelPrimary"></i> Cộng Đồng
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL ĐĂNG NHẬP RIÊNG CHO MỤC 1: CHI BỘ -->
+    <!-- MODAL ĐĂNG NHẬP RIÊNG CHO CHI BỘ -->
     <div id="chibo-login-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
                 <i class="fa-solid fa-user-shield"></i>
             </div>
             <div class="space-y-1">
-                <h3 class="font-bold text-base text-travelPrimary">Đăng Nhập Mục 1: Chi Bộ</h3>
+                <h3 class="font-bold text-base text-travelPrimary">Đăng Nhập Chi Bộ</h3>
                 <p class="text-xs text-gray-500">Nhập tài khoản khu vực của bạn để quản lý và xem tài liệu:</p>
             </div>
             <form onsubmit="handleChiBoPortalLogin(event)" class="space-y-3 text-xs pt-1">
