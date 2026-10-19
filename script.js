@@ -4,7 +4,7 @@ try {
 } catch(e) { currentUser = null; }
 
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
-let portalRole = localStorage.getItem('thonxom_portal_role') || null;
+let portalRole = null; // Luôn bắt đầu bằng null để ép hiện bảng chọn vai trò
 
 if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' && currentUser.khuVuc) {
     currentAreaKey = currentUser.khuVuc;
@@ -92,6 +92,12 @@ function saveDB() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Xóa sạch bộ nhớ vai trò cũ để ép buộc hiện bảng chọn Chi Bộ / Cộng Đồng khi tải lại trang
+    portalRole = null;
+    try {
+        localStorage.removeItem('thonxom_portal_role');
+    } catch(e) {}
+
     initAppConfig();
     renderSidebarContacts();
     renderNews();
@@ -103,15 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccountsTable();
     checkRolePermissions();
     initChuMonitorSelects();
-    applyPortalUIVisibility();
     
-    if(!portalRole) {
-        let roleModal = document.getElementById('welcome-role-modal');
-        if(roleModal) roleModal.classList.remove('hidden');
-    } else if(portalRole === 'chibo' && !currentUser) {
-        let cbLoginModal = document.getElementById('chibo-login-modal');
-        if(cbLoginModal) cbLoginModal.classList.remove('hidden');
-    }
+    // Luôn hiển thị màn hình chọn vai trò đầu tiên khi mở web
+    let roleModal = document.getElementById('welcome-role-modal');
+    if(roleModal) roleModal.classList.remove('hidden');
 });
 
 function applyPortalUIVisibility() {
