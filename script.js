@@ -92,7 +92,6 @@ function saveDB() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Nếu đã đăng nhập thì giữ nguyên vai trò Chi Bộ, không hiện bảng chọn lại nữa
     if (currentUser) {
         portalRole = 'chibo';
         try {
@@ -113,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initChuMonitorSelects();
     applyPortalUIVisibility();
     
-    // Chỉ hiện bảng chọn vai trò ban đầu khi chưa có vai trò hoặc chưa đăng nhập
     if(!portalRole) {
         let roleModal = document.getElementById('welcome-role-modal');
         if(roleModal) roleModal.classList.remove('hidden');
@@ -199,7 +197,6 @@ function openCommunityProvinceStep() {
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
         listContainer.innerHTML = '';
-
         let allKeys = [];
         try {
             allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
@@ -269,7 +266,6 @@ function chooseProvince(tinh) {
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
         listContainer.innerHTML = '';
-
         let allKeys = [];
         try {
             allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
@@ -315,7 +311,6 @@ function choosePhuong(phuong) {
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
         listContainer.innerHTML = '';
-
         let allKeys = [];
         try {
             allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
@@ -389,9 +384,7 @@ function initAppConfig() {
     
     if(kvEl) kvEl.innerText = db.khuVuc;
     if(ptEl) ptEl.innerText = `${db.phuongXa || 'Phường An Khánh'}, ${db.tinhThanh || 'TP. Cần Thơ'}`;
-    if(avEl && db.avatar) {
-        avEl.src = db.avatar;
-    }
+    if(avEl && db.avatar) avEl.src = db.avatar;
     if(db.banner) {
         let header = document.getElementById('app-header-bg');
         if(header) header.style.backgroundImage = `url('${db.banner}')`;
@@ -504,26 +497,12 @@ function handleLogin(e) {
     }
 
     if(found) {
-        let activeSessions = {};
-        try {
-            activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
-        } catch(e) { activeSessions = {}; }
-
-        if(activeSessions[found.username] && activeSessions[found.username] !== socketSessionId) {
-            showCustomConfirm("Xác Nhận Đăng Nhập", `Tài khoản "${found.username}" đang có người đăng nhập. Bạn có muốn tiếp tục đăng nhập không?`, false, (isYes) => {
-                if(isYes) {
-                    executeLoginSuccess(found, foundAreaKey);
-                }
-            });
-            return;
-        }
         executeLoginSuccess(found, foundAreaKey);
     } else {
         showCustomConfirm("Đăng Nhập Thất Bại", "Sai tên đăng nhập hoặc mật khẩu!", false, () => {});
     }
 }
 
-let socketSessionId = Math.random().toString(36).substring(2);
 function executeLoginSuccess(acc, areaKey) {
     currentUser = acc;
     currentAreaKey = areaKey;
@@ -536,17 +515,10 @@ function executeLoginSuccess(acc, areaKey) {
     try {
         localStorage.setItem('thonxom_current_area', currentAreaKey);
         localStorage.setItem('thonxom_portal_role', portalRole);
+        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
     } catch(e) {}
     db = getAreaData(currentAreaKey);
     
-    let activeSessions = {};
-    try {
-        activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
-        activeSessions[acc.username] = socketSessionId;
-        localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
-        localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
-    } catch(e) {}
-
     checkRolePermissions();
     renderAccountsTable();
     renderSidebarContacts();
@@ -607,17 +579,12 @@ function promptDeleteArea() {
 }
 
 function handleLogout() {
-    if(currentUser) {
-        try {
-            let activeSessions = JSON.parse(localStorage.getItem('thonxom_active_sessions')) || {};
-            delete activeSessions[currentUser.username];
-            localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
-            localStorage.removeItem('thonxom_logged_user');
-            localStorage.removeItem('thonxom_portal_role');
-        } catch(e) {}
-    }
     currentUser = null;
     portalRole = null;
+    try {
+        localStorage.removeItem('thonxom_logged_user');
+        localStorage.removeItem('thonxom_portal_role');
+    } catch(e) {}
     showCustomConfirm("Đã Đăng Xuất", "Đăng xuất tài khoản thành công!", false, () => {
         location.reload();
     });
@@ -723,13 +690,11 @@ function updateMyCredentials(e) {
         if(isYes) {
             currentUser.username = newUsr;
             currentUser.password = newPwd;
-
             let accInDb = db.accounts.find(a => a.id === currentUser.id || a.type === currentUser.type);
             if(accInDb) {
                 accInDb.username = newUsr;
                 accInDb.password = newPwd;
             }
-
             saveDB();
             try {
                 localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
@@ -874,14 +839,6 @@ function checkRolePermissions() {
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
             if(chuEditAreaDetailsBox) chuEditAreaDetailsBox.classList.remove('hidden');
             if(handoverSec) handoverSec.classList.remove('hidden');
-
-            let editAreaNameInput = document.getElementById('edit-area-name');
-            let editAreaPhuongInput = document.getElementById('edit-area-phuong');
-            let editAreaTinhInput = document.getElementById('edit-area-tinh');
-            if(editAreaNameInput) editAreaNameInput.value = db.khuVuc || '';
-            if(editAreaPhuongInput) editAreaPhuongInput.value = db.phuongXa || '';
-            if(editAreaTinhInput) editAreaTinhInput.value = db.tinhThanh || '';
-
         } else if(currentUser.type === 'cap1') {
             if(officerUploadTt) officerUploadTt.classList.remove('hidden');
             if(accountCreateSec) accountCreateSec.classList.remove('hidden');
@@ -908,7 +865,6 @@ function checkRolePermissions() {
     } else {
         if(loggedOutManagerView) loggedOutManagerView.classList.remove('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.add('hidden');
-
         if(activeBqTab === 'noibo') {
             switchBqTab('congdong');
         }
@@ -1154,7 +1110,6 @@ function renderAccountsTable() {
     container.innerHTML = '';
     
     let visibleAccounts = db.accounts.filter(acc => acc.type === 'cap1' || acc.type === 'cap2');
-
     if(visibleAccounts.length === 0) {
         container.innerHTML = `<p class="text-gray-400">Chưa có thành viên Cấp 1 hoặc Cấp 2 nào.</p>`;
         return;
@@ -1248,81 +1203,232 @@ function deleteContact(id) {
     renderSidebarContacts();
 }
 
+// ================= TIN TỨC =================
 let tempNewsImages = [];
-function openNewsModal() { const m = document.getElementById('news-modal'); if(m) m.classList.remove('hidden'); }
-function closeNewsModal() { const m = document.getElementById('news-modal'); if(m) m.classList.add('hidden'); tempNewsImages = []; }
+function openNewsModal(id = null) {
+    const m = document.getElementById('news-modal');
+    const titleEl = document.getElementById('news-modal-title');
+    const submitBtn = document.getElementById('news-submit-btn');
+    const editIdInput = document.getElementById('edit-news-id');
+    
+    if(!m) return;
+    tempNewsImages = [];
+    document.getElementById('news-image-preview').innerHTML = '';
+
+    if(id) {
+        let item = db.news.find(n => n.id === id);
+        if(item) {
+            if(titleEl) titleEl.innerText = "Chỉnh Sửa Bài Tin Tức";
+            if(submitBtn) submitBtn.innerText = "Lưu Thay Đổi";
+            if(editIdInput) editIdInput.value = item.id;
+            document.getElementById('news-title').value = item.title;
+            document.getElementById('news-content').value = item.content;
+            if(item.images) {
+                tempNewsImages = [...item.images];
+                renderNewsImagePreviews();
+            }
+        }
+    } else {
+        if(titleEl) titleEl.innerText = "Đăng Bài Tin Tức Số Hóa Đầu Làng";
+        if(submitBtn) submitBtn.innerText = "Đăng Bài";
+        if(editIdInput) editIdInput.value = "";
+        document.getElementById('news-title').value = "";
+        document.getElementById('news-content').value = "";
+    }
+    m.classList.remove('hidden');
+}
+
+function closeNewsModal() {
+    const m = document.getElementById('news-modal');
+    if(m) m.classList.add('hidden');
+    tempNewsImages = [];
+}
+
 function handleNewsImages(e) {
     const files = e.target.files;
-    tempNewsImages = [];
-    const preview = document.getElementById('news-image-preview');
-    if(!preview) return;
-    preview.innerHTML = '';
-    for(let i=0; i<Math.min(files.length, 5); i++) {
+    for(let i=0; i<files.length; i++) {
         const reader = new FileReader();
         reader.onload = function(evt) {
             tempNewsImages.push(evt.target.result);
-            preview.innerHTML += `<img src="${evt.target.result}" class="w-12 h-12 object-cover rounded-xl border">`;
+            renderNewsImagePreviews();
         };
         reader.readAsDataURL(files[i]);
     }
 }
+
+function renderNewsImagePreviews() {
+    const preview = document.getElementById('news-image-preview');
+    if(!preview) return;
+    preview.innerHTML = '';
+    tempNewsImages.forEach((imgSrc, idx) => {
+        preview.innerHTML += `
+            <div class="relative inline-block">
+                <img src="${imgSrc}" class="w-14 h-14 object-cover rounded-xl border">
+                <button type="button" onclick="removeTempNewsImage(${idx})" class="absolute -top-1 -right-1 bg-red-600 text-white w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold shadow hover:bg-red-700"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        `;
+    });
+}
+
+function removeTempNewsImage(idx) {
+    tempNewsImages.splice(idx, 1);
+    renderNewsImagePreviews();
+}
+
 function submitNewsArticle(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
         showCustomConfirm("Lỗi", "Cấp 2 chỉ có quyền xem!", false, () => {}); return;
     }
-    db.news.unshift({
-        id: Date.now(),
-        title: document.getElementById('news-title').value.trim(),
-        content: document.getElementById('news-content').value.trim(),
-        images: [...tempNewsImages],
-        author: currentUser ? currentUser.username : "Cán bộ",
-        date: new Date().toLocaleDateString('vi-VN')
-    });
-    saveDB(); closeNewsModal(); renderNews(); e.target.reset();
-    showCustomConfirm("Thành Công", "Đã đăng bài viết mới!", false, () => {});
+    const editId = document.getElementById('edit-news-id').value;
+    const title = document.getElementById('news-title').value.trim();
+    const content = document.getElementById('news-content').value.trim();
+
+    if(editId) {
+        let item = db.news.find(n => n.id == editId);
+        if(item) {
+            item.title = title;
+            item.content = content;
+            item.images = [...tempNewsImages];
+        }
+        showCustomConfirm("Thành Công", "Đã cập nhật bài viết tin tức!", false, () => {});
+    } else {
+        db.news.unshift({
+            id: Date.now(),
+            title,
+            content,
+            images: [...tempNewsImages],
+            author: currentUser ? currentUser.username : "Cán bộ",
+            date: new Date().toLocaleDateString('vi-VN')
+        });
+        showCustomConfirm("Thành Công", "Đã đăng bài viết mới!", false, () => {});
+    }
+    saveDB();
+    closeNewsModal();
+    renderNews();
 }
+
+function promptDeleteNews(id) {
+    showCustomConfirm("Xác Nhận Xóa", "Bạn có chắc chắn muốn xóa bài viết này không?", true, (isYes) => {
+        if(isYes) {
+            db.news = db.news.filter(n => n.id !== id);
+            saveDB();
+            renderNews();
+            showCustomConfirm("Thành Công", "Đã xóa bài viết thành công!", false, () => {});
+        }
+    });
+}
+
 function renderNews(filter = "") {
     const list = document.getElementById('news-feed-list');
     if(!list) return;
     list.innerHTML = '';
     let filtered = db.news.filter(n => n.title.toLowerCase().includes(filter.toLowerCase()));
+
+    if(filtered.length === 0) {
+        list.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">Chưa có bản tin nào.</p>`;
+        return;
+    }
+
     filtered.forEach(n => {
-        let imgTag = n.images && n.images[0] ? `<img src="${n.images[0]}" class="w-full h-36 object-cover rounded-2xl mb-2">` : '';
+        let imgsHtml = '';
+        if(n.images && n.images.length > 0) {
+            let encodedImgs = encodeURIComponent(JSON.stringify(n.images));
+            n.images.forEach((img, i) => {
+                imgsHtml += `<img src="${img}" onclick="openLightboxFromGallery('${encodedImgs}', ${i})" class="w-20 h-20 object-cover rounded-xl border cursor-pointer hover:opacity-90 transition">`;
+            });
+        }
+
+        let officerActions = '';
+        if(currentUser && currentUser.type === 'cap1') {
+            officerActions = `
+                <div class="flex gap-2 pt-2 border-t">
+                    <button onclick="openNewsModal(${n.id})" class="text-teal-700 font-bold hover:underline"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                    <button onclick="promptDeleteNews(${n.id})" class="text-red-500 font-bold hover:underline"><i class="fa-solid fa-trash"></i> Xóa</button>
+                </div>
+            `;
+        }
+
         list.innerHTML += `
             <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border shadow-sm space-y-2 text-xs">
-                ${imgTag}
                 <div class="flex justify-between text-[11px] text-gray-400"><span>${n.author}</span><span>${n.date}</span></div>
                 <h4 class="font-bold text-sm text-travelPrimary">${n.title}</h4>
-                <p class="text-gray-600 dark:text-gray-300">${n.content}</p>
+                <p class="text-gray-600 dark:text-gray-300 whitespace-pre-line">${n.content}</p>
+                <div class="flex gap-2 flex-wrap pt-1">${imgsHtml}</div>
+                ${officerActions}
             </div>
         `;
     });
 }
+
 function filterNews() {
     const searchInput = document.getElementById('search-news-input');
     renderNews(searchInput ? searchInput.value : "");
 }
 
+// ================= PHẢN ÁNH =================
 let tempPaImages = [];
+let currentGpsLat = "";
+let currentGpsLng = "";
+
+function captureMyLocation() {
+    const statusEl = document.getElementById('pa-gps-status');
+    if(!navigator.geolocation) {
+        if(statusEl) statusEl.innerText = "Trình duyệt không hỗ trợ GPS";
+        return;
+    }
+    if(statusEl) statusEl.innerText = "Đang lấy định vị GPS...";
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            currentGpsLat = pos.coords.latitude;
+            currentGpsLng = pos.coords.longitude;
+            document.getElementById('pa-lat').value = currentGpsLat;
+            document.getElementById('pa-lng').value = currentGpsLng;
+            if(statusEl) statusEl.innerText = `Đã lấy GPS: ${currentGpsLat.toFixed(4)}, ${currentGpsLng.toFixed(4)}`;
+        },
+        (err) => {
+            if(statusEl) statusEl.innerText = "Lấy GPS thất bại. Hãy bật định vị!";
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
 function handlePaImages(e) {
     const files = e.target.files;
-    tempPaImages = [];
-    const preview = document.getElementById('pa-image-preview');
-    if(!preview) return;
-    preview.innerHTML = '';
     for(let i=0; i<files.length; i++) {
         const reader = new FileReader();
         reader.onload = function(evt) {
             tempPaImages.push(evt.target.result);
-            preview.innerHTML += `<img src="${evt.target.result}" class="w-10 h-10 object-cover rounded-lg border">`;
+            renderPaImagePreviews();
         };
         reader.readAsDataURL(files[i]);
     }
 }
+
+function renderPaImagePreviews() {
+    const preview = document.getElementById('pa-image-preview');
+    if(!preview) return;
+    preview.innerHTML = '';
+    tempPaImages.forEach((imgSrc, idx) => {
+        preview.innerHTML += `
+            <div class="relative inline-block">
+                <img src="${imgSrc}" class="w-12 h-12 object-cover rounded-xl border">
+                <button type="button" onclick="removeTempPaImage(${idx})" class="absolute -top-1 -right-1 bg-red-600 text-white w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-bold shadow"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        `;
+    });
+}
+
+function removeTempPaImage(idx) {
+    tempPaImages.splice(idx, 1);
+    renderPaImagePreviews();
+}
+
 function submitPhanAnh(e) {
     e.preventDefault();
-    if(tempPaImages.length < 1) { showCustomConfirm("Lỗi", "Bắt buộc có ít nhất 1 hình ảnh!", false, () => {}); return; }
+    if(tempPaImages.length < 1) { showCustomConfirm("Lỗi", "Bắt buộc đính kèm ít nhất 1 hình ảnh minh chứng!", false, () => {}); return; }
+    if(!currentGpsLat || !currentGpsLng) { showCustomConfirm("Lỗi", "Vui lòng bấm nút 'Gửi Định Vị GPS' trước khi gửi phản ánh!", false, () => {}); return; }
+
     db.phanAnh.unshift({
         id: Date.now(),
         hoten: document.getElementById('pa-hoten').value.trim(),
@@ -1330,14 +1436,152 @@ function submitPhanAnh(e) {
         diachi: document.getElementById('pa-diachi').value.trim(),
         noidung: document.getElementById('pa-noidung').value.trim(),
         images: [...tempPaImages],
+        lat: currentGpsLat,
+        lng: currentGpsLng,
         status: "Đang chờ",
         date: new Date().toLocaleDateString('vi-VN')
     });
-    saveDB(); renderPhanAnh(); e.target.reset(); tempPaImages = [];
+
+    saveDB();
+    renderPhanAnh();
+    e.target.reset();
+    tempPaImages = [];
+    currentGpsLat = "";
+    currentGpsLng = "";
     const preview = document.getElementById('pa-image-preview');
     if(preview) preview.innerHTML = '';
+    const statusEl = document.getElementById('pa-gps-status');
+    if(statusEl) statusEl.innerText = "Chưa có định vị (bắt buộc lấy GPS)";
     showCustomConfirm("Thành Công", "Đã gửi phản ánh thành công!", false, () => {});
 }
+
+function loadMyPhanAnhList() {
+    const phoneInput = document.getElementById('manage-pa-phone');
+    const container = document.getElementById('my-phananh-manage-container');
+    if(!phoneInput || !container) return;
+    const phone = phoneInput.value.trim();
+
+    if(!phone) {
+        showCustomConfirm("Lỗi", "Vui lòng nhập số điện thoại của bạn!", false, () => {});
+        return;
+    }
+
+    let myItems = db.phanAnh.filter(p => p.sdt === phone);
+    if(myItems.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-xs py-1">Không tìm thấy bài phản ánh nào với SĐT: ${phone}</p>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    myItems.forEach(p => {
+        container.innerHTML += `
+            <div class="p-2.5 bg-gray-50 dark:bg-gray-900 rounded-xl border flex justify-between items-center text-xs">
+                <div class="truncate pr-2">
+                    <p class="font-bold truncate">${p.noidung}</p>
+                    <p class="text-[10px] text-gray-400">${p.date} - ${p.status}</p>
+                </div>
+                <div class="flex gap-1.5 shrink-0">
+                    <button onclick="openEditPaModal(${p.id}, '${phone}')" class="bg-teal-100 text-teal-800 px-2 py-1 rounded font-bold">Sửa</button>
+                    <button onclick="deleteMyPhanAnh(${p.id}, '${phone}')" class="bg-red-100 text-red-600 px-2 py-1 rounded font-bold">Xóa</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function deleteMyPhanAnh(id, phone) {
+    showCustomConfirm("Xác Nhận Xóa", "Bạn có chắc chắn muốn xóa bài phản ánh này không?", true, (isYes) => {
+        if(isYes) {
+            db.phanAnh = db.phanAnh.filter(p => p.id !== id);
+            saveDB();
+            renderPhanAnh();
+            loadMyPhanAnhList();
+            showCustomConfirm("Thành Công", "Đã xóa bài phản ánh thành công!", false, () => {});
+        }
+    });
+}
+
+let tempEditPaImages = [];
+function openEditPaModal(id, phone) {
+    let item = db.phanAnh.find(p => p.id === id && p.sdt === phone);
+    if(!item) { showCustomConfirm("Lỗi", "Không tìm thấy bài phản ánh khớp SĐT!", false, () => {}); return; }
+
+    const m = document.getElementById('edit-pa-modal');
+    if(!m) return;
+    document.getElementById('edit-pa-id').value = item.id;
+    document.getElementById('edit-pa-hoten').value = item.hoten;
+    document.getElementById('edit-pa-sdt').value = item.sdt;
+    document.getElementById('edit-pa-diachi').value = item.diachi;
+    document.getElementById('edit-pa-noidung').value = item.noidung;
+    tempEditPaImages = item.images ? [...item.images] : [];
+    renderEditPaImagePreviews();
+    m.classList.remove('hidden');
+}
+
+function closeEditPaModal() {
+    const m = document.getElementById('edit-pa-modal');
+    if(m) m.classList.add('hidden');
+    tempEditPaImages = [];
+}
+
+function handleEditPaImages(e) {
+    const files = e.target.files;
+    for(let i=0; i<files.length; i++) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            tempEditPaImages.push(evt.target.result);
+            renderEditPaImagePreviews();
+        };
+        reader.readAsDataURL(files[i]);
+    }
+}
+
+function renderEditPaImagePreviews() {
+    const preview = document.getElementById('edit-pa-image-preview');
+    if(!preview) return;
+    preview.innerHTML = '';
+    tempEditPaImages.forEach((imgSrc, idx) => {
+        preview.innerHTML += `
+            <div class="relative inline-block">
+                <img src="${imgSrc}" class="w-12 h-12 object-cover rounded-xl border">
+                <button type="button" onclick="removeTempEditPaImage(${idx})" class="absolute -top-1 -right-1 bg-red-600 text-white w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-bold shadow"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        `;
+    });
+}
+
+function removeTempEditPaImage(idx) {
+    tempEditPaImages.splice(idx, 1);
+    renderEditPaImagePreviews();
+}
+
+function submitEditPhanAnh(e) {
+    e.preventDefault();
+    const id = document.getElementById('edit-pa-id').value;
+    let item = db.phanAnh.find(p => p.id == id);
+    if(item) {
+        item.hoten = document.getElementById('edit-pa-hoten').value.trim();
+        item.diachi = document.getElementById('edit-pa-diachi').value.trim();
+        item.noidung = document.getElementById('edit-pa-noidung').value.trim();
+        if(tempEditPaImages.length > 0) item.images = [...tempEditPaImages];
+        saveDB();
+        renderPhanAnh();
+        closeEditPaModal();
+        showCustomConfirm("Thành Công", "Đã cập nhật bài phản ánh thành công!", false, () => {});
+    }
+}
+
+function promptDeletePhanAnh(id) {
+    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có muốn xóa bài phản ánh không đúng lĩnh vực/không hợp lệ này không?", true, (isYes) => {
+        if(isYes) {
+            db.phanAnh = db.phanAnh.filter(p => p.id !== id);
+            saveDB();
+            renderPhanAnh();
+            showCustomConfirm("Thành Công", "Đã xóa bài phản ánh!", false, () => {});
+        }
+    });
+}
+
 function updatePhanAnhStatus(id, newStatus) {
     let item = db.phanAnh.find(p => p.id === id);
     if(item) {
@@ -1346,38 +1590,60 @@ function updatePhanAnhStatus(id, newStatus) {
         renderPhanAnh();
     }
 }
+
 function renderPhanAnh() {
     const container = document.getElementById('phan-anh-list-container');
     if(!container) return;
     container.innerHTML = '';
+
+    if(db.phanAnh.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">Chưa có phản ánh nào.</p>`;
+        return;
+    }
+
+    let isOfficer = currentUser && (currentUser.type === 'cap1' || currentUser.type === 'chu' || currentUser.type === 'andanh');
+
     db.phanAnh.forEach(p => {
         let imgsHtml = '';
-        if(p.images) {
-            p.images.forEach(img => {
-                imgsHtml += `<img src="${img}" class="w-14 h-14 object-cover rounded-xl border mt-1">`;
+        if(p.images && p.images.length > 0) {
+            let encodedImgs = encodeURIComponent(JSON.stringify(p.images));
+            p.images.forEach((img, i) => {
+                imgsHtml += `<img src="${img}" onclick="openLightboxFromGallery('${encodedImgs}', ${i})" class="w-16 h-16 object-cover rounded-xl border cursor-pointer hover:opacity-90 transition">`;
             });
         }
 
         let statusColor = p.status === 'Đang chờ' ? 'text-amber-600 bg-amber-50' : (p.status === 'Đang xử lý' ? 'text-blue-600 bg-blue-50' : 'text-teal-600 bg-teal-50');
+        
+        let contactInfoHtml = '';
         let officerActions = '';
-        if(currentUser && currentUser.type === 'cap1') {
+
+        if(isOfficer) {
+            contactInfoHtml = `<p class="font-bold text-travelPrimary">Người gửi: ${p.hoten} - SĐT: ${p.sdt}</p>`;
+            if(p.lat && p.lng) {
+                contactInfoHtml += `<p class="text-[10px] text-purple-700 font-semibold"><i class="fa-solid fa-location-dot"></i> GPS: ${p.lat}, ${p.lng} (<a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="underline">Mở Bản Đồ</a>)</p>`;
+            }
             officerActions = `
-                <div class="flex gap-1 mt-2 pt-2 border-t">
-                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đang tiếp nhận')" class="px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold">Tiếp Nhận</button>
-                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] font-semibold">Đang Xử Lý</button>
-                    <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-semibold">Đã Xử Lý</button>
+                <div class="flex gap-1 mt-2 pt-2 border-t items-center justify-between">
+                    <div class="flex gap-1">
+                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang tiếp nhận')" class="px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold">Tiếp Nhận</button>
+                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] font-semibold">Đang Xử Lý</button>
+                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-semibold">Đã Xử Lý</button>
+                    </div>
+                    <button onclick="promptDeletePhanAnh(${p.id})" class="text-red-500 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Xóa Bài</button>
                 </div>
             `;
+        } else {
+            contactInfoHtml = `<p class="font-bold text-gray-700 dark:text-gray-300">Người gửi: ${p.hoten}</p>`;
         }
 
         container.innerHTML += `
-            <div class="bg-white dark:bg-gray-800 p-3 rounded-2xl border text-xs space-y-1.5 shadow-sm">
-                <div class="flex justify-between font-bold">
-                    <span>${p.hoten} (${p.sdt})</span>
-                    <span class="px-2 py-0.5 rounded font-bold ${statusColor}">${p.status}</span>
+            <div class="bg-white dark:bg-gray-800 p-3.5 rounded-2xl border text-xs space-y-1.5 shadow-sm">
+                <div class="flex justify-between items-center font-bold">
+                    ${contactInfoHtml}
+                    <span class="px-2 py-0.5 rounded font-bold ${statusColor} shrink-0">${p.status}</span>
                 </div>
-                <p class="text-gray-600 dark:text-gray-300">${p.noidung}</p>
-                <div class="flex gap-1.5 flex-wrap">${imgsHtml}</div>
+                <p class="text-gray-600 dark:text-gray-300 whitespace-pre-line">${p.noidung}</p>
+                <div class="flex gap-1.5 flex-wrap pt-1">${imgsHtml}</div>
                 <p class="text-[10px] text-gray-400">Địa chỉ: ${p.diachi} | Ngày: ${p.date}</p>
                 ${officerActions}
             </div>
@@ -1385,6 +1651,50 @@ function renderPhanAnh() {
     });
 }
 
+// ================= LIGHTBOX XEM ẢNH TRƯỢT NGANG =================
+let lightboxImagesArray = [];
+let lightboxCurrentIndex = 0;
+
+function openLightboxFromGallery(encodedJsonStr, index) {
+    try {
+        lightboxImagesArray = JSON.parse(decodeURIComponent(encodedJsonStr));
+        lightboxCurrentIndex = index;
+        showLightboxImage();
+        const lb = document.getElementById('lightbox-modal');
+        if(lb) lb.classList.remove('hidden');
+    } catch(e) {}
+}
+
+function showLightboxImage() {
+    const imgEl = document.getElementById('lightbox-img-el');
+    const counterEl = document.getElementById('lightbox-counter');
+    if(imgEl && lightboxImagesArray.length > 0) {
+        imgEl.src = lightboxImagesArray[lightboxCurrentIndex];
+    }
+    if(counterEl) {
+        counterEl.innerText = `Ảnh ${lightboxCurrentIndex + 1} / ${lightboxImagesArray.length}`;
+    }
+}
+
+function nextLightboxImage() {
+    if(lightboxImagesArray.length === 0) return;
+    lightboxCurrentIndex = (lightboxCurrentIndex + 1) % lightboxImagesArray.length;
+    showLightboxImage();
+}
+
+function prevLightboxImage() {
+    if(lightboxImagesArray.length === 0) return;
+    lightboxCurrentIndex = (lightboxCurrentIndex - 1 + lightboxImagesArray.length) % lightboxImagesArray.length;
+    showLightboxImage();
+}
+
+function closeLightbox() {
+    const lb = document.getElementById('lightbox-modal');
+    if(lb) lb.classList.add('hidden');
+    lightboxImagesArray = [];
+}
+
+// ================= CÁC TÍNH NĂNG KHÁC =================
 let tempHopFile = "";
 function openHopModal() { const m = document.getElementById('hop-modal'); if(m) m.classList.remove('hidden'); }
 function closeHopModal() { const m = document.getElementById('hop-modal'); if(m) m.classList.add('hidden'); tempHopFile = ""; }
@@ -1509,7 +1819,6 @@ function renderBieuQuyet() {
 
     filtered.forEach(b => {
         let badge = b.type === 'noibo' ? '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Nội bộ</span>' : '<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-[10px] font-bold">Cộng đồng</span>';
-        
         let optionsHtml = '';
         b.options.forEach((opt, idx) => {
             let count = 0;
