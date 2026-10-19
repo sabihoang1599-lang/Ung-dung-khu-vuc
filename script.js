@@ -1,6 +1,5 @@
-// Lấy các hàm Firebase từ window.firebaseModules đã định nghĩa ở index.html
-const { initializeApp } = window.firebaseModules;
-const { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } = window.firebaseModules;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Cấu hình Firebase của dự án
 const firebaseConfig = {
@@ -69,8 +68,10 @@ function initRealtimeSync() {
         if (docSnap.exists()) {
             db = docSnap.data();
         } else {
+            // Nếu chưa có trên mây thì khởi tạo mặc định lên Firestore
             saveDB();
         }
+        // Gọi lại các hàm render giao diện để cập nhật dữ liệu mới nhất
         initAppConfig();
         renderSidebarContacts();
         renderNews();
@@ -754,6 +755,7 @@ function promptSaveAreaDetails(e) {
             db.phuongTinh = `${newPhuong}, ${newTinh}`;
 
             try {
+                // Xóa document cũ trên Firestore và tạo document mới
                 const oldDocRef = doc(dbCloud, "thonxom_areas", oldKey);
                 await deleteDoc(oldDocRef);
 
@@ -1986,3 +1988,131 @@ function filterThuTucDocs() {
 function toggleDarkMode() { document.documentElement.classList.toggle('dark'); }
 function openContactModal() { const m = document.getElementById('contact-modal'); if(m) m.classList.remove('hidden'); }
 function closeContactModal() { const m = document.getElementById('contact-modal'); if(m) m.classList.add('hidden'); }
+
+
+// Các hàm được gọi từ onclick/onsubmit trong HTML cần công khai trên window khi dùng ES module.
+Object.assign(window, {
+  backCommunityStep: backCommunityStep,
+  backToWelcomeModal: backToWelcomeModal,
+  captureMyLocation: captureMyLocation,
+  chuAssignAreaAndAccount: chuAssignAreaAndAccount,
+  closeBqModal: closeBqModal,
+  closeContactModal: closeContactModal,
+  closeCustomConfirm: closeCustomConfirm,
+  closeEditPaModal: closeEditPaModal,
+  closeForgotModal: closeForgotModal,
+  closeHopModal: closeHopModal,
+  closeLightbox: closeLightbox,
+  closeNewsModal: closeNewsModal,
+  confirmCommunityArea: confirmCommunityArea,
+  confirmResetPassword: confirmResetPassword,
+  createNewAccount: createNewAccount,
+  executeSwitchChuMonitorArea: executeSwitchChuMonitorArea,
+  exitToRoleModalFromProvince: exitToRoleModalFromProvince,
+  filterNews: filterNews,
+  filterOfficerPaStatus: filterOfficerPaStatus,
+  filterThuTucDocs: filterThuTucDocs,
+  handleChiBoPortalLogin: handleChiBoPortalLogin,
+  handleEditPaImages: handleEditPaImages,
+  handleLogin: handleLogin,
+  handleNewsImages: handleNewsImages,
+  handlePaImages: handlePaImages,
+  loadMyPhanAnhList: loadMyPhanAnhList,
+  nextLightboxImage: nextLightboxImage,
+  officerUploadThuTuc: officerUploadThuTuc,
+  onChuPhuongChange: onChuPhuongChange,
+  onChuTinhChange: onChuTinhChange,
+  openCommunityProvinceStep: openCommunityProvinceStep,
+  openContactModal: openContactModal,
+  openForgotModal: openForgotModal,
+  prevLightboxImage: prevLightboxImage,
+  promptDeleteArea: promptDeleteArea,
+  promptLogout: promptLogout,
+  promptSaveAreaDetails: promptSaveAreaDetails,
+  returnToPortalRoleSelection: returnToPortalRoleSelection,
+  saveCap1Customization: saveCap1Customization,
+  saveNewContact: saveNewContact,
+  searchOnlineThuTuc: searchOnlineThuTuc,
+  selectPortalRole: selectPortalRole,
+  sendChatMessage: sendChatMessage,
+  sendForgotOtp: sendForgotOtp,
+  sendHandoverOtp: sendHandoverOtp,
+  submitBieuQuyet: submitBieuQuyet,
+  submitEditPhanAnh: submitEditPhanAnh,
+  submitHopChiBo: submitHopChiBo,
+  submitNewsArticle: submitNewsArticle,
+  submitPhanAnh: submitPhanAnh,
+  switchBqTab: switchBqTab,
+  switchPaSubTab: switchPaSubTab,
+  switchTab: switchTab,
+  toggleDarkMode: toggleDarkMode,
+  togglePasswordVisibility: togglePasswordVisibility,
+  updateMyCredentials: updateMyCredentials,
+  verifyHandoverOtp: verifyHandoverOtp
+});
+
+window.addEventListener("unhandledrejection", (event) => { console.error("Lỗi tác vụ ứng dụng:", event.reason); });
+
+
+// Công khai các hàm được gọi bởi thuộc tính onclick/onsubmit trong HTML.
+Object.assign(window, {
+  backCommunityStep: backCommunityStep,
+  backToWelcomeModal: backToWelcomeModal,
+  captureMyLocation: captureMyLocation,
+  chuAssignAreaAndAccount: chuAssignAreaAndAccount,
+  closeBqModal: closeBqModal,
+  closeContactModal: closeContactModal,
+  closeCustomConfirm: closeCustomConfirm,
+  closeEditPaModal: closeEditPaModal,
+  closeForgotModal: closeForgotModal,
+  closeHopModal: closeHopModal,
+  closeLightbox: closeLightbox,
+  closeNewsModal: closeNewsModal,
+  confirmCommunityArea: confirmCommunityArea,
+  confirmResetPassword: confirmResetPassword,
+  createNewAccount: createNewAccount,
+  executeSwitchChuMonitorArea: executeSwitchChuMonitorArea,
+  exitToRoleModalFromProvince: exitToRoleModalFromProvince,
+  filterNews: filterNews,
+  filterOfficerPaStatus: filterOfficerPaStatus,
+  filterThuTucDocs: filterThuTucDocs,
+  handleChiBoPortalLogin: handleChiBoPortalLogin,
+  handleEditPaImages: handleEditPaImages,
+  handleLogin: handleLogin,
+  handleNewsImages: handleNewsImages,
+  handlePaImages: handlePaImages,
+  loadMyPhanAnhList: loadMyPhanAnhList,
+  nextLightboxImage: nextLightboxImage,
+  officerUploadThuTuc: officerUploadThuTuc,
+  onChuPhuongChange: onChuPhuongChange,
+  onChuTinhChange: onChuTinhChange,
+  openCommunityProvinceStep: openCommunityProvinceStep,
+  openContactModal: openContactModal,
+  openForgotModal: openForgotModal,
+  prevLightboxImage: prevLightboxImage,
+  promptDeleteArea: promptDeleteArea,
+  promptLogout: promptLogout,
+  promptSaveAreaDetails: promptSaveAreaDetails,
+  returnToPortalRoleSelection: returnToPortalRoleSelection,
+  saveCap1Customization: saveCap1Customization,
+  saveNewContact: saveNewContact,
+  searchOnlineThuTuc: searchOnlineThuTuc,
+  selectPortalRole: selectPortalRole,
+  sendChatMessage: sendChatMessage,
+  sendForgotOtp: sendForgotOtp,
+  sendHandoverOtp: sendHandoverOtp,
+  submitBieuQuyet: submitBieuQuyet,
+  submitEditPhanAnh: submitEditPhanAnh,
+  submitHopChiBo: submitHopChiBo,
+  submitNewsArticle: submitNewsArticle,
+  submitPhanAnh: submitPhanAnh,
+  switchBqTab: switchBqTab,
+  switchPaSubTab: switchPaSubTab,
+  switchTab: switchTab,
+  toggleDarkMode: toggleDarkMode,
+  togglePasswordVisibility: togglePasswordVisibility,
+  updateMyCredentials: updateMyCredentials,
+  verifyHandoverOtp: verifyHandoverOtp
+});
+
+window.addEventListener("unhandledrejection", (event) => { console.error("Lỗi tác vụ ứng dụng:", event.reason); });
