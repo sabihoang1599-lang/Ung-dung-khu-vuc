@@ -4,7 +4,7 @@ try {
 } catch(e) { currentUser = null; }
 
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
-let portalRole = null; // Luôn hiển thị màn hình chọn Mục 1 / Mục 2 ban đầu khi vào / thoát / đăng xuất
+let portalRole = localStorage.getItem('thonxom_portal_role') || null;
 
 if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' && currentUser.khuVuc) {
     currentAreaKey = currentUser.khuVuc;
@@ -103,27 +103,36 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccountsTable();
     checkRolePermissions();
     initChuMonitorSelects();
+    applyPortalUIVisibility();
     
-    // Luôn hiển thị màn hình chọn Mục 1 / Mục 2 ban đầu khi load ứng dụng
-    let roleModal = document.getElementById('welcome-role-modal');
-    if(roleModal) roleModal.classList.remove('hidden');
+    if(!portalRole) {
+        let roleModal = document.getElementById('welcome-role-modal');
+        if(roleModal) roleModal.classList.remove('hidden');
+    }
 });
 
 function applyPortalUIVisibility() {
     const btnHopChiBo = document.getElementById('btn-tab-hopchibo');
     const btnQuanLy = document.getElementById('tab-btn-quanly');
+    const changeAreaBtn = document.getElementById('header-change-area-btn');
 
     if (portalRole === 'congdong') {
         if(btnHopChiBo) btnHopChiBo.style.display = 'none';
         if(btnQuanLy) btnQuanLy.style.display = 'none';
+        if(changeAreaBtn) changeAreaBtn.style.display = 'flex';
     } else if (portalRole === 'chibo') {
         if(btnHopChiBo) btnHopChiBo.style.display = 'block';
         if(btnQuanLy) btnQuanLy.style.display = 'block';
+        if(changeAreaBtn) changeAreaBtn.style.display = 'none';
     }
 }
 
 function selectPortalRole(role) {
     portalRole = role;
+    try {
+        localStorage.setItem('thonxom_portal_role', role);
+    } catch(e) {}
+    
     const roleModal = document.getElementById('welcome-role-modal');
     if(roleModal) roleModal.classList.add('hidden');
     
@@ -136,33 +145,27 @@ function selectPortalRole(role) {
     }
 }
 
-function exitAppPortal() {
-    try {
-        localStorage.removeItem('thonxom_logged_user');
-    } catch(e) {}
-    portalRole = null;
-    currentUser = null;
-    const roleModal = document.getElementById('welcome-role-modal');
-    if(roleModal) roleModal.classList.remove('hidden');
-}
-
 let commStep = 'tinh';
 let selectedTinh = '';
 let selectedPhuong = '';
+let selectedTemporaryArea = '';
 
 function openCommunityProvinceStep() {
     commStep = 'tinh';
     selectedTinh = '';
     selectedPhuong = '';
+    selectedTemporaryArea = '';
     
     const titleEl = document.getElementById('comm-modal-title');
     const subEl = document.getElementById('comm-modal-subtitle');
     const backBtn = document.getElementById('comm-back-btn');
+    const confirmBtn = document.getElementById('comm-confirm-btn');
     const commModal = document.getElementById('community-area-modal');
     
     if(titleEl) titleEl.innerText = "Chọn Tỉnh / Thành Phố";
     if(subEl) subEl.innerText = "Bước 1/3: Chọn tỉnh thành của bạn:";
     if(backBtn) backBtn.classList.add('hidden');
+    if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
@@ -211,10 +214,12 @@ function chooseProvince(tinh) {
     const titleEl = document.getElementById('comm-modal-title');
     const subEl = document.getElementById('comm-modal-subtitle');
     const backBtn = document.getElementById('comm-back-btn');
+    const confirmBtn = document.getElementById('comm-confirm-btn');
     
     if(titleEl) titleEl.innerText = "Chọn Phường / Xã";
     if(subEl) subEl.innerText = `Bước 2/3: Chọn phường xã thuộc ${tinh}:`;
     if(backBtn) backBtn.classList.remove('hidden');
+    if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
@@ -252,9 +257,13 @@ function choosePhuong(phuong) {
     
     const titleEl = document.getElementById('comm-modal-title');
     const subEl = document.getElementById('comm-modal-subtitle');
+    const backBtn = document.getElementById('comm-back-btn');
+    const confirmBtn = document.getElementById('comm-confirm-btn');
     
     if(titleEl) titleEl.innerText = "Chọn Khu Vực / Thôn Xóm";
     if(subEl) subEl.innerText = `Bước 3/3: Chọn đúng thôn xóm của bạn:`;
+    if(backBtn) backBtn.classList.remove('hidden');
+    if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
@@ -270,15 +279,49 @@ function choosePhuong(phuong) {
                 let areaData = JSON.parse(localStorage.getItem(k));
                 if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === selectedTinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
                     listContainer.innerHTML += `
-                        <button onclick="chooseFinalArea('${areaData.khuVuc}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                        <button onclick="highlightTemporaryArea('${areaData.khuVuc}', this)" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
                             <span><i class="fa-solid fa-house-chimney text-travelPrimary mr-2"></i> ${areaData.khuVuc}</span>
-                            <span class="text-[10px] text-teal-600 font-semibold">Vào xem →</span>
+                            <span class="text-[10px] text-teal-600 font-semibold select-status">Chọn</span>
                         </button>
                     `;
                 }
             } catch(e) {}
         });
     }
+}
+
+function highlightTemporaryArea(areaName, btnEl) {
+    selectedTemporaryArea = areaName;
+    document.querySelectorAll('#community-selector-list button').forEach(b => {
+        b.classList.remove('border-travelPrimary', 'bg-teal-50', 'dark:bg-teal-900/30');
+    });
+    btnEl.classList.add('border-travelPrimary', 'bg-teal-50', 'dark:bg-teal-900/30');
+    
+    const confirmBtn = document.getElementById('comm-confirm-btn');
+    if(confirmBtn) confirmBtn.classList.remove('hidden');
+}
+
+function confirmCommunityArea() {
+    if(!selectedTemporaryArea) {
+        showCustomConfirm("Lỗi", "Vui lòng chọn một khu vực cụ thể!", false, () => {});
+        return;
+    }
+    currentAreaKey = selectedTemporaryArea;
+    try {
+        localStorage.setItem('thonxom_current_area', currentAreaKey);
+    } catch(e) {}
+    db = getAreaData(currentAreaKey);
+
+    const commModal = document.getElementById('community-area-modal');
+    if(commModal) commModal.classList.add('hidden');
+    initAppConfig();
+    renderSidebarContacts();
+    renderNews();
+    renderPhanAnh();
+    renderThuTucDocs();
+    renderHopChiBo();
+    renderBieuQuyet();
+    switchTab('tab-tintuc');
 }
 
 function backCommunityStep() {
@@ -289,23 +332,11 @@ function backCommunityStep() {
     }
 }
 
-function chooseFinalArea(areaName) {
-    currentAreaKey = areaName;
-    try {
-        localStorage.setItem('thonxom_current_area', currentAreaKey);
-    } catch(e) {}
-    db = getAreaData(currentAreaKey);
-
-    const commModal = document.getElementById('community-area-modal');
-    if(commModal) commModal.classList.add('hidden');
-    initAppConfig();
-    switchTab('tab-tintuc');
-}
-
 function initAppConfig() {
     const kvEl = document.getElementById('display-khu-vuc');
     const ptEl = document.getElementById('display-phuong-tinh');
     const avEl = document.getElementById('header-avatar');
+    const kvLink = document.getElementById('display-khu-vuc-link');
     
     if(kvEl) kvEl.innerText = db.khuVuc;
     if(ptEl) ptEl.innerText = `${db.phuongXa || 'Phường An Khánh'}, ${db.tinhThanh || 'TP. Cần Thơ'}`;
@@ -315,6 +346,10 @@ function initAppConfig() {
     if(db.banner) {
         let header = document.getElementById('app-header-bg');
         if(header) header.style.backgroundImage = `url('${db.banner}')`;
+    }
+    if(kvLink) {
+        let mapsQuery = encodeURIComponent(`${db.khuVuc}, ${db.phuongXa || 'Phường An Khánh'}, ${db.tinhThanh || 'TP. Cần Thơ'}`);
+        kvLink.href = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
     }
 }
 
@@ -408,9 +443,10 @@ let socketSessionId = Math.random().toString(36).substring(2);
 function executeLoginSuccess(acc, areaKey) {
     currentUser = acc;
     currentAreaKey = areaKey;
-    portalRole = 'chibo'; // Gán role chi bộ khi đã đăng nhập quản lý
+    portalRole = 'chibo';
     try {
         localStorage.setItem('thonxom_current_area', currentAreaKey);
+        localStorage.setItem('thonxom_portal_role', portalRole);
     } catch(e) {}
     db = getAreaData(currentAreaKey);
     
@@ -488,6 +524,7 @@ function handleLogout() {
             delete activeSessions[currentUser.username];
             localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
             localStorage.removeItem('thonxom_logged_user');
+            localStorage.removeItem('thonxom_portal_role');
         } catch(e) {}
     }
     currentUser = null;
