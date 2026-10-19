@@ -62,9 +62,11 @@ async function saveDB() {
 }
 
 // Lắng nghe dữ liệu thời gian thực (Real-time sync) từ Firestore
+let stopRealtimeSync = null;
 function initRealtimeSync() {
+    if (typeof stopRealtimeSync === "function") stopRealtimeSync();
     const docRef = doc(dbCloud, "thonxom_areas", currentAreaKey);
-    onSnapshot(docRef, (docSnap) => {
+    stopRealtimeSync = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
             db = docSnap.data();
         } else {
@@ -106,6 +108,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function isOfficerSession() {
+    return !!currentUser && ['cap1', 'cap2', 'chu', 'andanh'].includes(currentUser.type);
+}
+function canManageContent() {
+    return !!currentUser && ['cap1', 'chu', 'andanh'].includes(currentUser.type);
+}
+function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function normalizePaStatus(status) {
+    if (status === 'Đang chờ' || status === 'Chưa xử lý' || status === 'Chưa Xử Lý' || !status) return 'Chưa Xử Lý';
+    if (status === 'Đang xử lý' || status === 'Đang Xử Lý') return 'Đang Xử Lý';
+    if (status === 'Đã xử lý' || status === 'Đã Xử Lý') return 'Đã Xử Lý';
+    return status;
+}
+
 function applyPortalUIVisibility() {
     const btnHopChiBo = document.getElementById('btn-tab-hopchibo');
     const btnQuanLy = document.getElementById('tab-btn-quanly');
@@ -114,23 +132,24 @@ function applyPortalUIVisibility() {
     const subTabViet = document.getElementById('subtab-pa-viet');
     const subTabXem = document.getElementById('subtab-pa-xem');
     const officerFilterBar = document.getElementById('officer-pa-filter-bar');
+    const loggedIn = isOfficerSession();
+    const isCommunity = portalRole === 'congdong' && !loggedIn;
 
-    if (portalRole === 'congdong') {
-        if(btnHopChiBo) btnHopChiBo.style.display = 'none';
-        if(btnQuanLy) btnQuanLy.style.display = 'none';
-        if(changeAreaBtn) changeAreaBtn.style.display = 'flex';
-        if(paNavButtons) paNavButtons.classList.remove('hidden');
-        if(officerFilterBar) officerFilterBar.classList.add('hidden');
+    // Tab nội bộ luôn ẩn cho đến khi đã xác thực phiên cán bộ.
+    if (btnHopChiBo) btnHopChiBo.classList.toggle('hidden', !loggedIn);
+    if (btnQuanLy) btnQuanLy.classList.toggle('hidden', !loggedIn);
+    if (changeAreaBtn) changeAreaBtn.classList.toggle('hidden', !isCommunity);
+    if (paNavButtons) paNavButtons.classList.toggle('hidden', !isCommunity);
+    if (officerFilterBar) officerFilterBar.classList.toggle('hidden', !loggedIn);
+
+    if (isCommunity) {
+        if (subTabViet) subTabViet.classList.remove('hidden');
+        if (subTabXem) subTabXem.classList.remove('hidden');
         switchPaSubTab('viet');
-    } else if (portalRole === 'chibo') {
-        if(btnHopChiBo) btnHopChiBo.style.display = 'block';
-        if(btnQuanLy) btnQuanLy.style.display = 'block';
-        if(changeAreaBtn) changeAreaBtn.style.display = 'none';
-        if(paNavButtons) paNavButtons.classList.add('hidden');
-        if(subTabViet) subTabViet.classList.add('hidden');
-        if(subTabXem) subTabXem.classList.remove('hidden');
-        if(officerFilterBar) officerFilterBar.classList.remove('hidden');
-        renderPhanAnh('all');
+    } else if (loggedIn) {
+        if (subTabViet) subTabViet.classList.add('hidden');
+        if (subTabXem) subTabXem.classList.remove('hidden');
+        switchPaSubTab('xem');
     }
 }
 
@@ -159,16 +178,14 @@ function switchPaSubTab(tab) {
 }
 
 function filterOfficerPaStatus(status) {
-    currentPaFilter = status;
+    currentPaFilter = status === 'all' ? 'all' : normalizePaStatus(status);
     document.querySelectorAll('#officer-pa-filter-bar button').forEach(b => {
-        b.className = "px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold whitespace-nowrap";
+        b.className = 'px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold whitespace-nowrap';
     });
-    if(status === 'all') document.getElementById('btn-pa-filter-all').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
-    else if(status === 'Đang chờ') document.getElementById('btn-pa-filter-cho').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
-    else if(status === 'Đang xử lý') document.getElementById('btn-pa-filter-dang').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
-    else if(status === 'Đã xử lý') document.getElementById('btn-pa-filter-da').className = "px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap";
-
-    renderPhanAnh(status);
+    const map = {'all':'btn-pa-filter-all','Chưa Xử Lý':'btn-pa-filter-cho','Đang Xử Lý':'btn-pa-filter-dang','Đã Xử Lý':'btn-pa-filter-da'};
+    const active = document.getElementById(map[currentPaFilter]);
+    if (active) active.className = 'px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold whitespace-nowrap';
+    renderPhanAnh(currentPaFilter);
 }
 
 function selectPortalRole(role) {
@@ -415,11 +432,16 @@ function initAppConfig() {
 }
 
 function switchTab(tabId) {
-    if(portalRole === 'congdong' && (tabId === 'tab-hopchibo' || tabId === 'tab-quanly')) {
+    if((tabId === 'tab-hopchibo' || tabId === 'tab-quanly') && !isOfficerSession() && tabId !== 'tab-quanly') {
         showCustomConfirm("Thông Báo", "Khu vực cộng đồng không có quyền truy cập mục này!", false, () => {});
         return;
     }
 
+    if (tabId === 'tab-quanly' && !isOfficerSession()) {
+        const loginModal = document.getElementById('chibo-login-modal');
+        if (portalRole !== 'chibo') { selectPortalRole('chibo'); return; }
+        if (loginModal) loginModal.classList.remove('hidden');
+    }
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     const tabEl = document.getElementById(tabId);
     if(tabEl) tabEl.classList.remove('hidden');
@@ -431,6 +453,7 @@ function switchTab(tabId) {
     if(activeBtn) {
         activeBtn.className = "tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-travelPrimary border border-teal-200 transition whitespace-nowrap";
     }
+    applyPortalUIVisibility();
 }
 
 function validatePassword(pwd) {
@@ -530,6 +553,8 @@ function executeLoginSuccess(acc, areaKey) {
     } catch(e) {}
     
     initRealtimeSync();
+    applyPortalUIVisibility();
+    checkRolePermissions();
     showCustomConfirm("Thành Công", `Đăng nhập thành công vào khu vực: ${currentAreaKey} (${currentUser.hoten})!`, false, () => {
         location.reload();
     });
@@ -827,7 +852,7 @@ function checkRolePermissions() {
     if(btnBqNoiBo) btnBqNoiBo.classList.add('hidden');
     if(changeCredentialsBox) changeCredentialsBox.classList.remove('hidden');
 
-    if(currentUser) {
+    if(isOfficerSession()) {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
 
@@ -875,6 +900,7 @@ function checkRolePermissions() {
         }
     }
     renderBieuQuyet();
+    applyPortalUIVisibility();
 }
 
 function saveCap1Customization(e) {
@@ -1426,6 +1452,7 @@ function removeTempPaImage(idx) {
 
 async function submitPhanAnh(e) {
     e.preventDefault();
+    if(!/^0[0-9]{9}$/.test(document.getElementById('pa-sdt').value.trim())) { showCustomConfirm("Số điện thoại chưa đúng", "Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số, bắt đầu bằng số 0.", false, () => {}); return; }
     if(tempPaImages.length < 1) { showCustomConfirm("Lỗi", "Bắt buộc đính kèm ít nhất 1 hình ảnh minh chứng!", false, () => {}); return; }
     if(!currentGpsLat || !currentGpsLng) { showCustomConfirm("Lỗi", "Vui lòng bấm nút 'Gửi Định Vị GPS' trước khi đăng bài!", false, () => {}); return; }
 
@@ -1438,7 +1465,7 @@ async function submitPhanAnh(e) {
         images: [...tempPaImages],
         lat: currentGpsLat,
         lng: currentGpsLng,
-        status: "Đang chờ",
+        status: "Chưa Xử Lý",
         date: new Date().toLocaleDateString('vi-VN')
     });
 
@@ -1598,66 +1625,34 @@ async function updatePhanAnhStatus(id, newStatus) {
 
 function renderPhanAnh(filterStatus = 'all') {
     const container = document.getElementById('phan-anh-list-container');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
-
-    let itemsToRender = db.phanAnh;
-    if(portalRole === 'chibo' && filterStatus !== 'all') {
-        itemsToRender = db.phanAnh.filter(p => p.status === filterStatus);
+    const isOfficer = isOfficerSession();
+    let itemsToRender = Array.isArray(db.phanAnh) ? [...db.phanAnh] : [];
+    if (isOfficer && filterStatus !== 'all') {
+        itemsToRender = itemsToRender.filter(p => normalizePaStatus(p.status) === normalizePaStatus(filterStatus));
     }
-
-    if(itemsToRender.length === 0) {
-        container.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">Chưa có phản ánh nào.</p>`;
+    if (itemsToRender.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comment-dots"></i><p>Chưa có phản ánh nào trong mục này.</p></div>`;
         return;
     }
-
-    let isOfficer = currentUser && (currentUser.type === 'cap1' || currentUser.type === 'chu' || currentUser.type === 'andanh');
-
+    itemsToRender.sort((a,b) => Number(b.id || 0) - Number(a.id || 0));
     itemsToRender.forEach(p => {
-        let imgsHtml = '';
-        if(p.images && p.images.length > 0) {
-            let encodedImgs = encodeURIComponent(JSON.stringify(p.images));
-            p.images.forEach((img, i) => {
-                imgsHtml += `<img src="${img}" onclick="openLightboxFromGallery('${encodedImgs}', ${i})" class="w-16 h-16 object-cover rounded-xl border cursor-pointer hover:opacity-90 transition">`;
-            });
-        }
-
-        let statusColor = p.status === 'Đang chờ' ? 'text-amber-600 bg-amber-50' : (p.status === 'Đang xử lý' ? 'text-blue-600 bg-blue-50' : 'text-teal-600 bg-teal-50');
-        
-        let contactInfoHtml = '';
-        let officerActions = '';
-
-        if(isOfficer) {
-            contactInfoHtml = `<p class="font-bold text-travelPrimary">Người gửi: ${p.hoten} - SĐT: ${p.sdt}</p>`;
-            if(p.lat && p.lng) {
-                contactInfoHtml += `<p class="text-[10px] text-purple-700 font-semibold"><i class="fa-solid fa-location-dot"></i> GPS: ${p.lat}, ${p.lng} (<a href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" class="underline">Mở Bản Đồ</a>)</p>`;
+        const images = Array.isArray(p.images) ? p.images : [];
+        const encodedImgs = encodeURIComponent(JSON.stringify(images));
+        const imgsHtml = images.map((img, i) => `<img src="${escapeHTML(img)}" alt="Ảnh minh chứng ${i+1}" onclick="openLightboxFromGallery('${encodedImgs}', ${i})" class="report-image" loading="lazy">`).join('');
+        const status = normalizePaStatus(p.status);
+        const statusClass = status === 'Chưa Xử Lý' ? 'status-pending' : status === 'Đang Xử Lý' ? 'status-progress' : 'status-done';
+        let privateDetails = '';
+        let actions = '';
+        if (isOfficer) {
+            privateDetails = `<div class="report-private"><p><i class="fa-regular fa-user"></i> <b>${escapeHTML(p.hoten || 'Chưa cung cấp')}</b></p><p><i class="fa-solid fa-phone"></i> <a href="tel:${escapeHTML(p.sdt || '')}">${escapeHTML(p.sdt || 'Chưa cung cấp')}</a></p>${p.lat !== undefined && p.lat !== '' && p.lng !== undefined && p.lng !== '' ? `<p><i class="fa-solid fa-location-dot"></i> GPS: <code>${escapeHTML(p.lat)}, ${escapeHTML(p.lng)}</code> · <a target="_blank" rel="noopener" href="https://www.google.com/maps?q=${encodeURIComponent(String(p.lat)+','+String(p.lng))}">Mở Google Maps <i class="fa-solid fa-arrow-up-right-from-square"></i></a></p>` : '<p>Chưa có tọa độ GPS.</p>'}</div>`;
+            if (canManageContent()) {
+                actions = `<div class="report-actions"><div class="report-status-actions"><button onclick="updatePhanAnhStatus(${Number(p.id)}, 'Chưa Xử Lý')" class="status-btn pending">Chưa xử lý</button><button onclick="updatePhanAnhStatus(${Number(p.id)}, 'Đang Xử Lý')" class="status-btn progress">Đang xử lý</button><button onclick="updatePhanAnhStatus(${Number(p.id)}, 'Đã Xử Lý')" class="status-btn done">Đã xử lý</button></div><button onclick="promptDeletePhanAnh(${Number(p.id)})" class="delete-report-btn"><i class="fa-regular fa-trash-can"></i> Xóa</button></div>`;
             }
-            officerActions = `
-                <div class="flex gap-1 mt-2 pt-2 border-t items-center justify-between">
-                    <div class="flex gap-1">
-                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang chờ')" class="px-2 py-1 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">Chưa xử lý</button>
-                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đang xử lý')" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] font-semibold">Đang xử lý</button>
-                        <button onclick="updatePhanAnhStatus(${p.id}, 'Đã xử lý')" class="px-2 py-1 bg-teal-100 text-teal-800 rounded text-[10px] font-semibold">Đã xử lý</button>
-                    </div>
-                    <button onclick="promptDeletePhanAnh(${p.id})" class="text-red-500 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Xóa Bài</button>
-                </div>
-            `;
-        } else {
-            contactInfoHtml = `<p class="font-bold text-gray-700 dark:text-gray-300">Người gửi: ${p.hoten}</p>`;
         }
-
-        container.innerHTML += `
-            <div class="bg-white dark:bg-gray-800 p-3.5 rounded-2xl border text-xs space-y-1.5 shadow-sm">
-                <div class="flex justify-between items-center font-bold">
-                    ${contactInfoHtml}
-                    <span class="px-2 py-0.5 rounded font-bold ${statusColor} shrink-0">${p.status}</span>
-                </div>
-                <p class="text-gray-600 dark:text-gray-300 whitespace-pre-line">${p.noidung}</p>
-                <div class="flex gap-1.5 flex-wrap pt-1">${imgsHtml}</div>
-                <p class="text-[10px] text-gray-400">Địa chỉ: ${p.diachi} | Ngày: ${p.date}</p>
-                ${officerActions}
-            </div>
-        `;
+        // Cộng đồng chỉ nhận được thông tin công khai trong giao diện: không có tên, số điện thoại hoặc GPS.
+        container.insertAdjacentHTML('beforeend', `<article class="report-card"><div class="report-card-top"><span class="report-label"><i class="fa-solid fa-message"></i> Phản ánh người dân</span><span class="status-pill ${statusClass}">${escapeHTML(status)}</span></div><p class="report-content">${escapeHTML(p.noidung || '')}</p>${imgsHtml ? `<div class="report-gallery">${imgsHtml}</div>` : ''}<div class="report-meta"><span><i class="fa-solid fa-location-dot"></i> ${escapeHTML(p.diachi || 'Chưa cập nhật địa chỉ')}</span><span><i class="fa-regular fa-calendar"></i> ${escapeHTML(p.date || '')}</span></div>${privateDetails}${actions}</article>`);
     });
 }
 
@@ -2116,3 +2111,13 @@ Object.assign(window, {
 });
 
 window.addEventListener("unhandledrejection", (event) => { console.error("Lỗi tác vụ ứng dụng:", event.reason); });
+
+// Các hàm được gọi từ HTML tạo động (thẻ phản ánh, tin tức, biểu quyết, danh bạ...).
+// Vì script.js chạy dưới dạng ES module, cần công khai các hàm này trên window.
+Object.assign(window, {
+  choosePhuong, chooseProvince, deleteMyPhanAnh, highlightTemporaryArea,
+  openBqModal, openEditPaModal, openHopModal, openLightboxFromGallery,
+  openNewsModal, promptDeleteAccount, promptDeleteContact, promptDeleteNews,
+  promptDeletePhanAnh, removeTempEditPaImage, removeTempNewsImage,
+  removeTempPaImage, updatePhanAnhStatus, voteBieuQuyet
+});
