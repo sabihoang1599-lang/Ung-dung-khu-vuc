@@ -4,7 +4,7 @@ try {
 } catch(e) { currentUser = null; }
 
 let currentAreaKey = localStorage.getItem('thonxom_current_area') || 'Thôn Xóm Bình An';
-let portalRole = localStorage.getItem('thonxom_portal_role') || null;
+let portalRole = null; // Luôn hiển thị màn hình chọn Mục 1 / Mục 2 ban đầu khi vào / thoát / đăng xuất
 
 if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' && currentUser.khuVuc) {
     currentAreaKey = currentUser.khuVuc;
@@ -103,15 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAccountsTable();
     checkRolePermissions();
     initChuMonitorSelects();
-    applyPortalUIVisibility();
     
-    if(!portalRole) {
-        let roleModal = document.getElementById('welcome-role-modal');
-        if(roleModal) roleModal.classList.remove('hidden');
-    } else {
-        let roleModal = document.getElementById('welcome-role-modal');
-        if(roleModal) roleModal.classList.add('hidden');
-    }
+    // Luôn hiển thị màn hình chọn Mục 1 / Mục 2 ban đầu khi load ứng dụng
+    let roleModal = document.getElementById('welcome-role-modal');
+    if(roleModal) roleModal.classList.remove('hidden');
 });
 
 function applyPortalUIVisibility() {
@@ -129,10 +124,6 @@ function applyPortalUIVisibility() {
 
 function selectPortalRole(role) {
     portalRole = role;
-    try {
-        localStorage.setItem('thonxom_portal_role', role);
-    } catch(e) {}
-    
     const roleModal = document.getElementById('welcome-role-modal');
     if(roleModal) roleModal.classList.add('hidden');
     
@@ -147,7 +138,6 @@ function selectPortalRole(role) {
 
 function exitAppPortal() {
     try {
-        localStorage.removeItem('thonxom_portal_role');
         localStorage.removeItem('thonxom_logged_user');
     } catch(e) {}
     portalRole = null;
@@ -418,6 +408,7 @@ let socketSessionId = Math.random().toString(36).substring(2);
 function executeLoginSuccess(acc, areaKey) {
     currentUser = acc;
     currentAreaKey = areaKey;
+    portalRole = 'chibo'; // Gán role chi bộ khi đã đăng nhập quản lý
     try {
         localStorage.setItem('thonxom_current_area', currentAreaKey);
     } catch(e) {}
@@ -497,7 +488,6 @@ function handleLogout() {
             delete activeSessions[currentUser.username];
             localStorage.setItem('thonxom_active_sessions', JSON.stringify(activeSessions));
             localStorage.removeItem('thonxom_logged_user');
-            localStorage.removeItem('thonxom_portal_role');
         } catch(e) {}
     }
     currentUser = null;
@@ -695,6 +685,26 @@ function promptSaveAreaDetails(e) {
     });
 }
 
+function executeSwitchChuMonitorArea() {
+    const selKhuVuc = document.getElementById('chu-sel-khuvuc');
+    if(!selKhuVuc) return;
+    let areaName = selKhuVuc.value;
+    if(!areaName) {
+        showCustomConfirm("Lỗi", "Vui lòng chọn khu vực giám sát!", false, () => {});
+        return;
+    }
+    showCustomConfirm("Xác Nhận Chuyển", `Bạn có muốn chuyển sang giám sát khu vực "${areaName}" không?`, false, (isYes) => {
+        if(isYes) {
+            currentAreaKey = areaName;
+            try {
+                localStorage.setItem('thonxom_current_area', currentAreaKey);
+            } catch(e) {}
+            db = getAreaData(currentAreaKey);
+            location.reload();
+        }
+    });
+}
+
 function checkRolePermissions() {
     const addNewsContainer = document.getElementById('action-add-news-container');
     const addHopContainer = document.getElementById('action-add-hop-container');
@@ -737,7 +747,7 @@ function checkRolePermissions() {
             if(chuDeleteAreaBox) chuDeleteAreaBox.classList.remove('hidden');
             if(chuMonitorBox) chuMonitorBox.classList.remove('hidden');
             if(chuEditAreaDetailsBox) chuEditAreaDetailsBox.classList.remove('hidden');
-            if(handoverSec) chuCreateAreaBox.classList.remove('hidden'); // Cấp quyền đầy đủ
+            if(handoverSec) handoverSec.classList.remove('hidden');
 
             let editAreaNameInput = document.getElementById('edit-area-name');
             let editAreaPhuongInput = document.getElementById('edit-area-phuong');
@@ -919,16 +929,6 @@ function onChuPhuongChange(phuong) {
             }
         } catch(e) {}
     });
-}
-
-function switchChuMonitorArea(areaName) {
-    if(!areaName) return;
-    currentAreaKey = areaName;
-    try {
-        localStorage.setItem('thonxom_current_area', currentAreaKey);
-    } catch(e) {}
-    db = getAreaData(currentAreaKey);
-    location.reload();
 }
 
 function chuAssignAreaAndAccount(e) {
