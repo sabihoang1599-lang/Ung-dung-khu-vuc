@@ -159,12 +159,14 @@ function openCommunityProvinceStep() {
     const titleEl = document.getElementById('comm-modal-title');
     const subEl = document.getElementById('comm-modal-subtitle');
     const backBtn = document.getElementById('comm-back-btn');
+    const exitBtn = document.getElementById('comm-exit-btn');
     const confirmBtn = document.getElementById('comm-confirm-btn');
     const commModal = document.getElementById('community-area-modal');
     
     if(titleEl) titleEl.innerText = "Chọn Tỉnh / Thành Phố";
     if(subEl) subEl.innerText = "Bước 1/3: Chọn tỉnh thành của bạn:";
     if(backBtn) backBtn.classList.add('hidden');
+    if(exitBtn) exitBtn.classList.remove('hidden'); // Hiện nút thoát ở bước chọn tỉnh
     if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
@@ -207,6 +209,20 @@ function openCommunityProvinceStep() {
     if(commModal) commModal.classList.remove('hidden');
 }
 
+function exitToRoleModalFromProvince() {
+    const commModal = document.getElementById('community-area-modal');
+    if(commModal) commModal.classList.add('hidden');
+    
+    portalRole = null;
+    try {
+        localStorage.removeItem('thonxom_portal_role');
+        localStorage.removeItem('thonxom_logged_user');
+    } catch(e) {}
+    
+    const roleModal = document.getElementById('welcome-role-modal');
+    if(roleModal) roleModal.classList.remove('hidden');
+}
+
 function chooseProvince(tinh) {
     selectedTinh = tinh;
     commStep = 'phuong';
@@ -214,11 +230,13 @@ function chooseProvince(tinh) {
     const titleEl = document.getElementById('comm-modal-title');
     const subEl = document.getElementById('comm-modal-subtitle');
     const backBtn = document.getElementById('comm-back-btn');
+    const exitBtn = document.getElementById('comm-exit-btn');
     const confirmBtn = document.getElementById('comm-confirm-btn');
     
     if(titleEl) titleEl.innerText = "Chọn Phường / Xã";
     if(subEl) subEl.innerText = `Bước 2/3: Chọn phường xã thuộc ${tinh}:`;
     if(backBtn) backBtn.classList.remove('hidden');
+    if(exitBtn) exitBtn.classList.add('hidden'); // Ẩn nút thoát ở các bước sau
     if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
@@ -258,11 +276,13 @@ function choosePhuong(phuong) {
     const titleEl = document.getElementById('comm-modal-title');
     const subEl = document.getElementById('comm-modal-subtitle');
     const backBtn = document.getElementById('comm-back-btn');
+    const exitBtn = document.getElementById('comm-exit-btn');
     const confirmBtn = document.getElementById('comm-confirm-btn');
     
     if(titleEl) titleEl.innerText = "Chọn Khu Vực / Thôn Xóm";
     if(subEl) subEl.innerText = `Bước 3/3: Chọn đúng thôn xóm của bạn:`;
     if(backBtn) backBtn.classList.remove('hidden');
+    if(exitBtn) exitBtn.classList.add('hidden');
     if(confirmBtn) confirmBtn.classList.add('hidden');
 
     const listContainer = document.getElementById('community-selector-list');
@@ -298,7 +318,9 @@ function highlightTemporaryArea(areaName, btnEl) {
     btnEl.classList.add('border-travelPrimary', 'bg-teal-50', 'dark:bg-teal-900/30');
     
     const confirmBtn = document.getElementById('comm-confirm-btn');
+    const exitBtn = document.getElementById('comm-exit-btn');
     if(confirmBtn) confirmBtn.classList.remove('hidden');
+    if(exitBtn) exitBtn.classList.add('hidden');
 }
 
 function confirmCommunityArea() {
