@@ -1,5 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "firebase/firestore";
+// Lấy các hàm Firebase từ window.firebaseModules đã định nghĩa ở index.html
+const { initializeApp } = window.firebaseModules;
+const { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } = window.firebaseModules;
 
 // Cấu hình Firebase của dự án
 const firebaseConfig = {
@@ -68,10 +69,8 @@ function initRealtimeSync() {
         if (docSnap.exists()) {
             db = docSnap.data();
         } else {
-            // Nếu chưa có trên mây thì khởi tạo mặc định lên Firestore
             saveDB();
         }
-        // Gọi lại các hàm render giao diện để cập nhật dữ liệu mới nhất
         initAppConfig();
         renderSidebarContacts();
         renderNews();
@@ -755,7 +754,6 @@ function promptSaveAreaDetails(e) {
             db.phuongTinh = `${newPhuong}, ${newTinh}`;
 
             try {
-                // Xóa document cũ trên Firestore và tạo document mới
                 const oldDocRef = doc(dbCloud, "thonxom_areas", oldKey);
                 await deleteDoc(oldDocRef);
 
