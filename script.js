@@ -1,3 +1,19 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "firebase/firestore";
+
+// Cấu hình Firebase của dự án
+const firebaseConfig = {
+  apiKey: "AIzaSyDMY3den170DUa3iyBPNhqoIMRa9NXbv8E",
+  authDomain: "so-hoa-dau-lang-bdd8e.firebaseapp.com",
+  projectId: "so-hoa-dau-lang-bdd8e",
+  storageBucket: "so-hoa-dau-lang-bdd8e.firebasestorage.app",
+  messagingSenderId: "906894359133",
+  appId: "1:906894359133:web:b9285b9bb52c6c4bc4abb4"
+};
+
+const app = initializeApp(firebaseConfig);
+const dbCloud = getFirestore(app);
+
 let currentUser = null;
 try {
     currentUser = JSON.parse(localStorage.getItem('thonxom_logged_user')) || null;
@@ -10,85 +26,64 @@ if (currentUser && currentUser.type !== 'chu' && currentUser.type !== 'andanh' &
     currentAreaKey = currentUser.khuVuc;
 }
 
-function getAreaData(key) {
-    let data = null;
-    try {
-        data = localStorage.getItem('thonxom_data_' + key);
-    } catch(e) { data = null; }
-
-    if (!data) {
-        let defaultData = {
-            khuVuc: key,
-            phuongTinh: "Phường An Khánh, TP. Cần Thơ",
-            tinhThanh: "TP. Cần Thơ",
-            phuongXa: "Phường An Khánh",
-            avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
-            banner: "",
-            ownerEmail: "admin.thonxom@gmail.com",
-            accounts: [
-                { id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
-                { id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
-            ],
-            contacts: [
-                { id: 101, dept: "Công An Xã / Phường", person: "Trực ban", phone: "02923000111" },
-                { id: 102, dept: "Y Tế / Trạm Y Tế", person: "Bác sĩ trực", phone: "02923000222" }
-            ],
-            news: [],
-            phanAnh: [],
-            thuTucDocs: [],
-            hopChiBo: [],
-            bieuQuyet: [],
-            chatMessages: []
-        };
-        try {
-            localStorage.setItem('thonxom_data_' + key, JSON.stringify(defaultData));
-        } catch(e) {}
-        return defaultData;
-    }
-
-    let parsed = {};
-    try {
-        parsed = JSON.parse(data);
-    } catch(e) {
-        parsed = { khuVuc: key };
-    }
-
-    if(!parsed.phuongTinh) parsed.phuongTinh = "Phường An Khánh, TP. Cần Thơ";
-    if(!parsed.tinhThanh) parsed.tinhThanh = "TP. Cần Thơ";
-    if(!parsed.phuongXa) parsed.phuongXa = "Phường An Khánh";
-    if(!parsed.avatar) parsed.avatar = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100";
-    if(!parsed.banner) parsed.banner = "";
-    if(!parsed.ownerEmail) parsed.ownerEmail = "admin.thonxom@gmail.com";
-    if(!parsed.accounts) parsed.accounts = [];
-    if(!parsed.contacts) parsed.contacts = [
+// Biến chứa dữ liệu đồng bộ real-time từ Firestore
+let db = {
+    khuVuc: currentAreaKey,
+    phuongTinh: "Phường An Khánh, TP. Cần Thơ",
+    tinhThanh: "TP. Cần Thơ",
+    phuongXa: "Phường An Khánh",
+    avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
+    banner: "",
+    ownerEmail: "admin.thonxom@gmail.com",
+    accounts: [
+        { id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+        { id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
+    ],
+    contacts: [
         { id: 101, dept: "Công An Xã / Phường", person: "Trực ban", phone: "02923000111" },
         { id: 102, dept: "Y Tế / Trạm Y Tế", person: "Bác sĩ trực", phone: "02923000222" }
-    ];
-    if(!parsed.news) parsed.news = [];
-    if(!parsed.phanAnh) parsed.phanAnh = [];
-    if(!parsed.thuTucDocs) parsed.thuTucDocs = [];
-    if(!parsed.hopChiBo) parsed.hopChiBo = [];
-    if(!parsed.bieuQuyet) parsed.bieuQuyet = [];
-    if(!parsed.chatMessages) parsed.chatMessages = [];
-    
-    let hasChu1 = parsed.accounts.some(a => a.username === 'Taikhoanchu');
-    if(!hasChu1) {
-        parsed.accounts.unshift({ id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" });
-    }
+    ],
+    news: [],
+    phanAnh: [],
+    thuTucDocs: [],
+    hopChiBo: [],
+    bieuQuyet: [],
+    chatMessages: []
+};
 
-    let hasChu2 = parsed.accounts.some(a => a.username === 'Taikhoanandanh');
-    if(!hasChu2) {
-        parsed.accounts.push({ id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" });
+// Hàm lưu dữ liệu lên Firestore
+async function saveDB() {
+    try {
+        const docRef = doc(dbCloud, "thonxom_areas", currentAreaKey);
+        await setDoc(docRef, db);
+    } catch(e) {
+        console.error("Lỗi khi lưu dữ liệu lên Firestore: ", e);
     }
-    return parsed;
 }
 
-let db = getAreaData(currentAreaKey);
-
-function saveDB() {
-    try {
-        localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
-    } catch(e) {}
+// Lắng nghe dữ liệu thời gian thực (Real-time sync) từ Firestore
+function initRealtimeSync() {
+    const docRef = doc(dbCloud, "thonxom_areas", currentAreaKey);
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            db = docSnap.data();
+        } else {
+            // Nếu chưa có trên mây thì khởi tạo mặc định lên Firestore
+            saveDB();
+        }
+        // Gọi lại các hàm render giao diện để cập nhật dữ liệu mới nhất
+        initAppConfig();
+        renderSidebarContacts();
+        renderNews();
+        renderPhanAnh();
+        renderThuTucDocs();
+        renderHopChiBo();
+        renderBieuQuyet();
+        renderChatMessages();
+        renderAccountsTable();
+    }, (error) => {
+        console.error("Lỗi lắng nghe dữ liệu real-time: ", error);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -99,15 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {}
     }
 
-    initAppConfig();
-    renderSidebarContacts();
-    renderNews();
-    renderPhanAnh();
-    renderThuTucDocs();
-    renderHopChiBo();
-    renderBieuQuyet();
-    renderChatMessages();
-    renderAccountsTable();
+    initRealtimeSync();
     checkRolePermissions();
     initChuMonitorSelects();
     applyPortalUIVisibility();
@@ -225,7 +212,7 @@ let selectedTinh = '';
 let selectedPhuong = '';
 let selectedTemporaryArea = '';
 
-function openCommunityProvinceStep() {
+async function openCommunityProvinceStep() {
     commStep = 'tinh';
     selectedTinh = '';
     selectedPhuong = '';
@@ -246,38 +233,34 @@ function openCommunityProvinceStep() {
 
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
-        listContainer.innerHTML = '';
-        let allKeys = [];
+        listContainer.innerHTML = `<p class="text-gray-400 text-center py-2">Đang tải danh sách khu vực...</p>`;
         try {
-            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-        } catch(e) { allKeys = []; }
+            const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+            listContainer.innerHTML = '';
+            let tinhSet = new Set();
+            
+            querySnapshot.forEach((doc) => {
+                let areaData = doc.data();
+                if(areaData && areaData.tinhThanh) {
+                    tinhSet.add(areaData.tinhThanh);
+                } else {
+                    tinhSet.add("TP. Cần Thơ");
+                }
+            });
 
-        if(allKeys.length === 0) {
-            getAreaData('Thôn Xóm Bình An');
-            try {
-                allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-            } catch(e) { allKeys = []; }
+            if(tinhSet.size === 0) tinhSet.add("TP. Cần Thơ");
+
+            tinhSet.forEach(tinh => {
+                listContainer.innerHTML += `
+                    <button onclick="chooseProvince('${tinh}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                        <span><i class="fa-solid fa-map text-travelPrimary mr-2"></i> ${tinh}</span>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                    </button>
+                `;
+            });
+        } catch(e) {
+            listContainer.innerHTML = `<p class="text-red-500 text-center py-2">Lỗi tải dữ liệu từ mây.</p>`;
         }
-
-        let tinhSet = new Set();
-        allKeys.forEach(k => {
-            try {
-                let areaData = JSON.parse(localStorage.getItem(k));
-                if(areaData && areaData.tinhThanh) tinhSet.add(areaData.tinhThanh);
-                else tinhSet.add("TP. Cần Thơ");
-            } catch(e) {
-                tinhSet.add("TP. Cần Thơ");
-            }
-        });
-
-        tinhSet.forEach(tinh => {
-            listContainer.innerHTML += `
-                <button onclick="chooseProvince('${tinh}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
-                    <span><i class="fa-solid fa-map text-travelPrimary mr-2"></i> ${tinh}</span>
-                    <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
-                </button>
-            `;
-        });
     }
 
     if(commModal) commModal.classList.remove('hidden');
@@ -297,7 +280,7 @@ function exitToRoleModalFromProvince() {
     if(roleModal) roleModal.classList.remove('hidden');
 }
 
-function chooseProvince(tinh) {
+async function chooseProvince(tinh) {
     selectedTinh = tinh;
     commStep = 'phuong';
     
@@ -316,33 +299,29 @@ function chooseProvince(tinh) {
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
         listContainer.innerHTML = '';
-        let allKeys = [];
         try {
-            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-        } catch(e) { allKeys = []; }
-
-        let phuongSet = new Set();
-        allKeys.forEach(k => {
-            try {
-                let areaData = JSON.parse(localStorage.getItem(k));
+            const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+            let phuongSet = new Set();
+            querySnapshot.forEach((doc) => {
+                let areaData = doc.data();
                 if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
                     phuongSet.add(areaData.phuongXa || "Phường An Khánh");
                 }
-            } catch(e) {}
-        });
+            });
 
-        phuongSet.forEach(phuong => {
-            listContainer.innerHTML += `
-                <button onclick="choosePhuong('${phuong}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
-                    <span><i class="fa-solid fa-location-pin text-travelPrimary mr-2"></i> ${phuong}</span>
-                    <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
-                </button>
-            `;
-        });
+            phuongSet.forEach(phuong => {
+                listContainer.innerHTML += `
+                    <button onclick="choosePhuong('${phuong}')" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
+                        <span><i class="fa-solid fa-location-pin text-travelPrimary mr-2"></i> ${phuong}</span>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                    </button>
+                `;
+            });
+        } catch(e) {}
     }
 }
 
-function choosePhuong(phuong) {
+async function choosePhuong(phuong) {
     selectedPhuong = phuong;
     commStep = 'khuvuc';
     
@@ -361,14 +340,10 @@ function choosePhuong(phuong) {
     const listContainer = document.getElementById('community-selector-list');
     if(listContainer) {
         listContainer.innerHTML = '';
-        let allKeys = [];
         try {
-            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-        } catch(e) { allKeys = []; }
-
-        allKeys.forEach(k => {
-            try {
-                let areaData = JSON.parse(localStorage.getItem(k));
+            const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+            querySnapshot.forEach((doc) => {
+                let areaData = doc.data();
                 if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === selectedTinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
                     listContainer.innerHTML += `
                         <button onclick="highlightTemporaryArea('${areaData.khuVuc}', this)" class="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-teal-50 border rounded-2xl flex justify-between items-center transition font-bold text-gray-700 dark:text-gray-200">
@@ -377,8 +352,8 @@ function choosePhuong(phuong) {
                         </button>
                     `;
                 }
-            } catch(e) {}
-        });
+            });
+        } catch(e) {}
     }
 }
 
@@ -404,17 +379,11 @@ function confirmCommunityArea() {
     try {
         localStorage.setItem('thonxom_current_area', currentAreaKey);
     } catch(e) {}
-    db = getAreaData(currentAreaKey);
 
     const commModal = document.getElementById('community-area-modal');
     if(commModal) commModal.classList.add('hidden');
-    initAppConfig();
-    renderSidebarContacts();
-    renderNews();
-    renderPhanAnh();
-    renderThuTucDocs();
-    renderHopChiBo();
-    renderBieuQuyet();
+    
+    initRealtimeSync();
     switchTab('tab-tintuc');
 }
 
@@ -485,21 +454,17 @@ function togglePasswordVisibility(inputId, iconId) {
     }
 }
 
-function handleChiBoPortalLogin(e) {
+async function handleChiBoPortalLogin(e) {
     e.preventDefault();
     const u = document.getElementById('cb-login-user') ? document.getElementById('cb-login-user').value.trim() : '';
     const p = document.getElementById('cb-login-pwd') ? document.getElementById('cb-login-pwd').value.trim() : '';
 
     let found = null;
     let foundAreaKey = '';
-    let allKeys = [];
     try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
-
-    for(let k of allKeys) {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
+        const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+        for(let docSnap of querySnapshot.docs) {
+            let areaData = docSnap.data();
             if(areaData && areaData.accounts) {
                 let acc = areaData.accounts.find(a => a.username === u && a.password === p);
                 if(acc) {
@@ -508,8 +473,8 @@ function handleChiBoPortalLogin(e) {
                     break;
                 }
             }
-        } catch(e) {}
-    }
+        }
+    } catch(e) {}
 
     if(found) {
         executeLoginSuccess(found, foundAreaKey);
@@ -520,21 +485,17 @@ function handleChiBoPortalLogin(e) {
     }
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     const u = document.getElementById('inline-login-username') ? document.getElementById('inline-login-username').value.trim() : '';
     const p = document.getElementById('inline-login-password') ? document.getElementById('inline-login-password').value.trim() : '';
 
     let found = null;
     let foundAreaKey = '';
-    let allKeys = [];
     try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
-
-    for(let k of allKeys) {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
+        const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+        for(let docSnap of querySnapshot.docs) {
+            let areaData = docSnap.data();
             if(areaData && areaData.accounts) {
                 let acc = areaData.accounts.find(a => a.username === u && a.password === p);
                 if(acc) {
@@ -543,8 +504,8 @@ function handleLogin(e) {
                     break;
                 }
             }
-        } catch(e) {}
-    }
+        }
+    } catch(e) {}
 
     if(found) {
         executeLoginSuccess(found, foundAreaKey);
@@ -567,12 +528,8 @@ function executeLoginSuccess(acc, areaKey) {
         localStorage.setItem('thonxom_portal_role', portalRole);
         localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
     } catch(e) {}
-    db = getAreaData(currentAreaKey);
     
-    checkRolePermissions();
-    renderAccountsTable();
-    renderSidebarContacts();
-    initAppConfig();
+    initRealtimeSync();
     showCustomConfirm("Thành Công", `Đăng nhập thành công vào khu vực: ${currentAreaKey} (${currentUser.hoten})!`, false, () => {
         location.reload();
     });
@@ -654,34 +611,33 @@ function closeForgotModal() {
     if(m) m.classList.add('hidden');
 }
 
-function sendForgotOtp() {
+async function sendForgotOtp() {
     const usr = document.getElementById('forgot-username').value.trim();
     const email = document.getElementById('forgot-email').value.trim();
     if(!usr || !email) { showCustomConfirm("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và email!", false, () => {}); return; }
 
-    let targetAcc = null;
-    let allKeys = [];
+    let targetDocRef = null;
+    let targetAreaData = null;
     try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
-
-    for(let k of allKeys) {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
+        const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+        for(let docSnap of querySnapshot.docs) {
+            let areaData = docSnap.data();
             if(areaData && areaData.accounts) {
                 let acc = areaData.accounts.find(a => a.username === usr && (a.email === email || a.type === 'chu' || a.type === 'andanh' || a.type === 'cap1' || a.type === 'cap2'));
                 if(acc) {
-                    targetAcc = acc;
+                    targetDocRef = doc(dbCloud, "thonxom_areas", docSnap.id);
+                    targetAreaData = areaData;
                     break;
                 }
             }
-        } catch(e) {}
-    }
+        }
+    } catch(e) {}
 
-    if(!targetAcc) { showCustomConfirm("Lỗi", "Không tìm thấy tài khoản hoặc email không khớp!", false, () => {}); return; }
+    if(!targetAreaData) { showCustomConfirm("Lỗi", "Không tìm thấy tài khoản hoặc email không khớp!", false, () => {}); return; }
 
     generatedForgotOtp = Math.floor(100000 + Math.random() * 900000).toString();
     showCustomConfirm("Mã OTP Khôi Phục", `[MÔ PHỎNG EMAIL] Mã OTP gửi đến ${email} là: ${generatedForgotOtp}`, false, () => {
+        window.tempForgotTarget = { ref: targetDocRef, data: targetAreaData, usr: usr };
         const s1 = document.getElementById('forgot-step-1');
         const s2 = document.getElementById('forgot-step-2');
         if(s1) s1.classList.add('hidden');
@@ -689,42 +645,28 @@ function sendForgotOtp() {
     });
 }
 
-function confirmResetPassword() {
-    const usr = document.getElementById('forgot-username').value.trim();
+async function confirmResetPassword() {
     const otp = document.getElementById('forgot-otp-code').value.trim();
     const newPwd = document.getElementById('forgot-new-pwd').value.trim();
 
     if(otp !== generatedForgotOtp) { showCustomConfirm("Lỗi", "Mã OTP không chính xác!", false, () => {}); return; }
     if(!validatePassword(newPwd)) { showCustomConfirm("Lỗi", "Mật khẩu mới phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return; }
 
-    let allKeys = [];
-    try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
-
-    let updated = false;
-    for(let k of allKeys) {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
-            if(areaData && areaData.accounts) {
-                let acc = areaData.accounts.find(a => a.username === usr);
-                if(acc) {
-                    acc.password = newPwd;
-                    localStorage.setItem(k, JSON.stringify(areaData));
-                    updated = true;
-                    break;
-                }
-            }
-        } catch(e) {}
+    if(window.tempForgotTarget) {
+        let { ref, data, usr } = window.tempForgotTarget;
+        let acc = data.accounts.find(a => a.username === usr);
+        if(acc) {
+            acc.password = newPwd;
+            try {
+                await setDoc(ref, data);
+                showCustomConfirm("Thành Công", "Khôi phục mật khẩu thành công! Hãy đăng nhập lại.", false, () => {
+                    closeForgotModal();
+                });
+                return;
+            } catch(e) {}
+        }
     }
-
-    if(updated) {
-        showCustomConfirm("Thành Công", "Khôi phục mật khẩu thành công! Hãy đăng nhập lại.", false, () => {
-            closeForgotModal();
-        });
-    } else {
-        showCustomConfirm("Lỗi", "Có lỗi xảy ra khi đổi mật khẩu!", false, () => {});
-    }
+    showCustomConfirm("Lỗi", "Có lỗi xảy ra khi đổi mật khẩu!", false, () => {});
 }
 
 function updateMyCredentials(e) {
@@ -736,7 +678,7 @@ function updateMyCredentials(e) {
     if(!validateUsername(newUsr)) { showCustomConfirm("Lỗi", "Tên đăng nhập phải viết liền không dấu và viết hoa chữ cái đầu!", false, () => {}); return; }
     if(!validatePassword(newPwd)) { showCustomConfirm("Lỗi", "Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return; }
 
-    showCustomConfirm("Xác Nhận Cập Nhật", "Bạn có chắc chắn muốn thay đổi thông tin tài khoản cá nhân không?", false, (isYes) => {
+    showCustomConfirm("Xác Nhận Cập Nhật", "Bạn có chắc chắn muốn thay đổi thông tin tài khoản cá nhân không?", false, async (isYes) => {
         if(isYes) {
             currentUser.username = newUsr;
             currentUser.password = newPwd;
@@ -745,7 +687,7 @@ function updateMyCredentials(e) {
                 accInDb.username = newUsr;
                 accInDb.password = newPwd;
             }
-            saveDB();
+            await saveDB();
             try {
                 localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
             } catch(e) {}
@@ -771,13 +713,13 @@ function verifyHandoverOtp(e) {
 
     if(otp !== handoverOtpCode) { showCustomConfirm("Lỗi", "Mã OTP không chính xác!", false, () => {}); return; }
 
-    showCustomConfirm("Xác Nhận Đổi Email", "Bạn có chắc chắn muốn cập nhật email mới này không?", false, (isYes) => {
+    showCustomConfirm("Xác Nhận Đổi Email", "Bạn có chắc chắn muốn cập nhật email mới này không?", false, async (isYes) => {
         if(isYes) {
             currentUser.email = email;
             let accInDb = db.accounts.find(a => a.id === currentUser.id);
             if(accInDb) accInDb.email = email;
 
-            saveDB();
+            await saveDB();
             try {
                 localStorage.setItem('thonxom_logged_user', JSON.stringify(currentUser));
             } catch(e) {}
@@ -804,7 +746,7 @@ function promptSaveAreaDetails(e) {
         return;
     }
 
-    showCustomConfirm("Xác Nhận Cập Nhật", `Bạn có muốn đổi tên khu vực thành "${newAreaName}" không?`, false, (isYes) => {
+    showCustomConfirm("Xác Nhận Cập Nhật", `Bạn có muốn đổi tên khu vực thành "${newAreaName}" không?`, false, async (isYes) => {
         if(isYes) {
             let oldKey = currentAreaKey;
             db.khuVuc = newAreaName;
@@ -813,10 +755,13 @@ function promptSaveAreaDetails(e) {
             db.phuongTinh = `${newPhuong}, ${newTinh}`;
 
             try {
-                localStorage.removeItem('thonxom_data_' + oldKey);
+                // Xóa document cũ trên Firestore và tạo document mới
+                const oldDocRef = doc(dbCloud, "thonxom_areas", oldKey);
+                await deleteDoc(oldDocRef);
+
                 currentAreaKey = newAreaName;
                 localStorage.setItem('thonxom_current_area', currentAreaKey);
-                localStorage.setItem('thonxom_data_' + currentAreaKey, JSON.stringify(db));
+                await saveDB();
             } catch(e) {}
 
             showCustomConfirm("Thành Công", "Đã cập nhật thông tin khu vực thành công!", false, () => {
@@ -840,7 +785,6 @@ function executeSwitchChuMonitorArea() {
             try {
                 localStorage.setItem('thonxom_current_area', currentAreaKey);
             } catch(e) {}
-            db = getAreaData(currentAreaKey);
             location.reload();
         }
     });
@@ -887,7 +831,6 @@ function checkRolePermissions() {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
 
-        // TÀI KHOẢN CHI BỘ: ẨN NÚT CHUYỂN, ẨN FORM ĐIỀN, HIỆN DANH SÁCH VÀ BỘ LỌC
         if(paNavButtons) paNavButtons.classList.add('hidden');
         if(subTabViet) subTabViet.classList.add('hidden');
         if(subTabXem) subTabXem.classList.remove('hidden');
@@ -941,8 +884,8 @@ function saveCap1Customization(e) {
     const avatarFile = avatarFileInput && avatarFileInput.files ? avatarFileInput.files[0] : null;
     const bannerFile = bannerFileInput && bannerFileInput.files ? bannerFileInput.files[0] : null;
 
-    let processSave = () => {
-        saveDB();
+    let processSave = async () => {
+        await saveDB();
         showCustomConfirm("Thành Công", "Đã cập nhật giao diện thành công!", false, () => {
             location.reload();
         });
@@ -958,49 +901,40 @@ function saveCap1Customization(e) {
 
     if (avatarFile) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             db.avatar = evt.target.result;
             filesProcessed++;
-            if (filesProcessed === totalFiles) processSave();
+            if (filesProcessed === totalFiles) await processSave();
         };
         reader.readAsDataURL(avatarFile);
     }
 
     if (bannerFile) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             db.banner = evt.target.result;
             filesProcessed++;
-            if (filesProcessed === totalFiles) processSave();
+            if (filesProcessed === totalFiles) await processSave();
         };
         reader.readAsDataURL(bannerFile);
     }
 }
 
-function initChuMonitorSelects() {
+async function initChuMonitorSelects() {
     const selTinh = document.getElementById('chu-sel-tinh');
     if(!selTinh) return;
 
-    let allKeys = [];
-    try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
-
-    if(allKeys.length === 0) {
-        getAreaData('Thôn Xóm Bình An');
-        try {
-            allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-        } catch(e) { allKeys = []; }
-    }
-
     let tinhSet = new Set();
-    allKeys.forEach(k => {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
+    try {
+        const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+        querySnapshot.forEach((doc) => {
+            let areaData = doc.data();
             if(areaData && areaData.tinhThanh) tinhSet.add(areaData.tinhThanh);
             else tinhSet.add("TP. Cần Thơ");
-        } catch(e) {}
-    });
+        });
+    } catch(e) {}
+
+    if(tinhSet.size === 0) tinhSet.add("TP. Cần Thơ");
 
     selTinh.innerHTML = '';
     tinhSet.forEach(tinh => {
@@ -1014,28 +948,24 @@ function initChuMonitorSelects() {
     onChuTinhChange(selTinh.value);
 }
 
-function onChuTinhChange(tinh) {
+async function onChuTinhChange(tinh) {
     const selPhuong = document.getElementById('chu-sel-phuong');
     if(!selPhuong) return;
-
-    let allKeys = [];
-    try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
 
     let phuongSet = new Set();
     let firstPhuong = '';
 
-    allKeys.forEach(k => {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
+    try {
+        const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+        querySnapshot.forEach((doc) => {
+            let areaData = doc.data();
             if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === tinh) {
                 let phuong = areaData.phuongXa || "Phường An Khánh";
                 phuongSet.add(phuong);
                 if(!firstPhuong) firstPhuong = phuong;
             }
-        } catch(e) {}
-    });
+        });
+    } catch(e) {}
 
     selPhuong.innerHTML = '';
     phuongSet.forEach(phuong => {
@@ -1049,21 +979,17 @@ function onChuTinhChange(tinh) {
     onChuPhuongChange(selPhuong.value);
 }
 
-function onChuPhuongChange(phuong) {
+async function onChuPhuongChange(phuong) {
     const selKhuVuc = document.getElementById('chu-sel-khuvuc');
     const selTinh = document.getElementById('chu-sel-tinh');
     if(!selKhuVuc || !selTinh) return;
 
     let tinh = selTinh.value;
-    let allKeys = [];
-    try {
-        allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-    } catch(e) { allKeys = []; }
-
     selKhuVuc.innerHTML = '';
-    allKeys.forEach(k => {
-        try {
-            let areaData = JSON.parse(localStorage.getItem(k));
+    try {
+        const querySnapshot = await getDocs(collection(dbCloud, "thonxom_areas"));
+        querySnapshot.forEach((doc) => {
+            let areaData = doc.data();
             if(areaData && (areaData.tinhThanh || "TP. Cần Thơ") === tinh && (areaData.phuongXa || "Phường An Khánh") === phuong) {
                 let opt = document.createElement('option');
                 opt.value = areaData.khuVuc;
@@ -1071,8 +997,8 @@ function onChuPhuongChange(phuong) {
                 if(areaData.khuVuc === db.khuVuc) opt.selected = true;
                 selKhuVuc.appendChild(opt);
             }
-        } catch(e) {}
-    });
+        });
+    } catch(e) {}
 }
 
 function chuAssignAreaAndAccount(e) {
@@ -1094,45 +1020,57 @@ function chuAssignAreaAndAccount(e) {
         showCustomConfirm("Lỗi", "Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return;
     }
 
-    showCustomConfirm("Xác Nhận", `Bạn có muốn tạo khu vực mới "${newAreaName}" không?`, false, (isYes) => {
+    showCustomConfirm("Xác Nhận", `Bạn có muốn tạo khu vực mới "${newAreaName}" không?`, false, async (isYes) => {
         if(isYes) {
-            let newAreaData = getAreaData(newAreaName);
-            newAreaData.tinhThanh = tinhThanh;
-            newAreaData.phuongXa = phuongXa;
-            newAreaData.phuongTinh = `${phuongXa}, ${tinhThanh}`;
-            newAreaData.accounts.push({
-                id: Date.now(),
-                hoten,
-                username,
-                password,
-                email,
-                type: "cap1",
-                sdt,
-                khuVuc: newAreaName
-            });
+            let newAreaData = {
+                khuVuc: newAreaName,
+                phuongTinh: `${phuongXa}, ${tinhThanh}`,
+                tinhThanh: tinhThanh,
+                phuongXa: phuongXa,
+                avatar: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=100",
+                banner: "",
+                ownerEmail: email,
+                accounts: [
+                    { id: Date.now(), hoten, username, password, email, type: "cap1", sdt, khuVuc: newAreaName },
+                    { id: 1, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanchu", password: "@Taikhoanchu26", email: "chu1@gmail.com", type: "chu", sdt: "0909000000", khuVuc: "Hệ Thống" },
+                    { id: 2, hoten: "Tài Khoản Cấp Quyền khu vực", username: "Taikhoanandanh", password: "@Taikhoanandanh26", email: "chu2@gmail.com", type: "andanh", sdt: "", khuVuc: "Hệ Thống" }
+                ],
+                contacts: [
+                    { id: 101, dept: "Công An Xã / Phường", person: "Trực ban", phone: "02923000111" },
+                    { id: 102, dept: "Y Tế / Trạm Y Tế", person: "Bác sĩ trực", phone: "02923000222" }
+                ],
+                news: [],
+                phanAnh: [],
+                thuTucDocs: [],
+                hopChiBo: [],
+                bieuQuyet: [],
+                chatMessages: []
+            };
             try {
-                localStorage.setItem('thonxom_data_' + newAreaName, JSON.stringify(newAreaData));
-            } catch(e) {}
-            showCustomConfirm("Thành Công", `Đã tạo khu vực "${newAreaName}" thành công!`, false, () => {
-                location.reload();
-            });
+                const docRef = doc(dbCloud, "thonxom_areas", newAreaName);
+                await setDoc(docRef, newAreaData);
+                showCustomConfirm("Thành Công", `Đã tạo khu vực "${newAreaName}" thành công!`, false, () => {
+                    location.reload();
+                });
+            } catch(e) {
+                showCustomConfirm("Lỗi", "Không thể tạo khu vực trên mây.", false, () => {});
+            }
         }
     });
 }
 
 function executeDeleteCurrentArea() {
-    try {
-        localStorage.removeItem('thonxom_data_' + currentAreaKey);
-        let allKeys = Object.keys(localStorage).filter(k => k.startsWith('thonxom_data_'));
-        if(allKeys.length > 0) {
-            let firstArea = JSON.parse(localStorage.getItem(allKeys[0])).khuVuc;
-            localStorage.setItem('thonxom_current_area', firstArea);
-        } else {
+    showCustomConfirm("Xác Nhận Xóa", "Đang tiến hành xóa...", false, async () => {
+        try {
+            const docRef = doc(dbCloud, "thonxom_areas", currentAreaKey);
+            await deleteDoc(docRef);
             localStorage.setItem('thonxom_current_area', 'Thôn Xóm Bình An');
+            showCustomConfirm("Thành Công", "Đã xóa khu vực thành công!", false, () => {
+                location.reload();
+            });
+        } catch(e) {
+            showCustomConfirm("Lỗi", "Không thể xóa khu vực.", false, () => {});
         }
-    } catch(e) {}
-    showCustomConfirm("Thành Công", "Đã xóa khu vực thành công!", false, () => {
-        location.reload();
     });
 }
 
@@ -1155,10 +1093,10 @@ function createNewAccount(e) {
         showCustomConfirm("Lỗi", "Mật khẩu phải chứa ít nhất 1 chữ In hoa và 1 ký tự đặc biệt!", false, () => {}); return;
     }
 
-    showCustomConfirm("Xác Nhận", `Bạn có muốn cấp tài khoản "${username}" không?`, false, (isYes) => {
+    showCustomConfirm("Xác Nhận", `Bạn có muốn cấp tài khoản "${username}" không?`, false, async (isYes) => {
         if(isYes) {
             db.accounts.push({ id: Date.now(), hoten, username, password, email, type, sdt, khuVuc: db.khuVuc });
-            saveDB();
+            await saveDB();
             renderAccountsTable();
             showCustomConfirm("Thành Công", "Cấp tài khoản thành công!", false, () => {});
             e.target.reset();
@@ -1204,9 +1142,9 @@ function promptDeleteAccount(id) {
     });
 }
 
-function deleteAccount(id) {
+async function deleteAccount(id) {
     db.accounts = db.accounts.filter(a => a.id !== id);
-    saveDB();
+    await saveDB();
     renderAccountsTable();
     showCustomConfirm("Thành Công", "Đã xóa tài khoản thành công!", false, () => {});
 }
@@ -1243,7 +1181,7 @@ function promptDeleteContact(id) {
     });
 }
 
-function saveNewContact(e) {
+async function saveNewContact(e) {
     e.preventDefault();
     if(db.contacts.length >= 10) {
         showCustomConfirm("Lỗi", "Tối đa 10 mục danh bạ!", false, () => {}); return;
@@ -1253,15 +1191,15 @@ function saveNewContact(e) {
     const phone = document.getElementById('ct-phone').value.trim();
 
     db.contacts.push({ id: Date.now(), dept, person, phone });
-    saveDB();
+    await saveDB();
     renderSidebarContacts();
     showCustomConfirm("Thành Công", "Đã thêm danh bạ thành công!", false, () => {});
     e.target.reset();
 }
 
-function deleteContact(id) {
+async function deleteContact(id) {
     db.contacts = db.contacts.filter(c => c.id !== id);
-    saveDB();
+    await saveDB();
     renderSidebarContacts();
 }
 
@@ -1337,7 +1275,7 @@ function removeTempNewsImage(idx) {
     renderNewsImagePreviews();
 }
 
-function submitNewsArticle(e) {
+async function submitNewsArticle(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
         showCustomConfirm("Lỗi", "Cấp 2 chỉ có quyền xem!", false, () => {}); return;
@@ -1365,16 +1303,16 @@ function submitNewsArticle(e) {
         });
         showCustomConfirm("Thành Công", "Đã đăng bài viết mới!", false, () => {});
     }
-    saveDB();
+    await saveDB();
     closeNewsModal();
     renderNews();
 }
 
 function promptDeleteNews(id) {
-    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có chắc chắn muốn xóa bài viết thô tục hoặc không đúng thẩm quyền này không?", true, (isYes) => {
+    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có chắc chắn muốn xóa bài viết này không?", true, async (isYes) => {
         if(isYes) {
             db.news = db.news.filter(n => n.id !== id);
-            saveDB();
+            await saveDB();
             renderNews();
             showCustomConfirm("Thành Công", "Đã xóa bài viết thành công!", false, () => {});
         }
@@ -1486,7 +1424,7 @@ function removeTempPaImage(idx) {
     renderPaImagePreviews();
 }
 
-function submitPhanAnh(e) {
+async function submitPhanAnh(e) {
     e.preventDefault();
     if(tempPaImages.length < 1) { showCustomConfirm("Lỗi", "Bắt buộc đính kèm ít nhất 1 hình ảnh minh chứng!", false, () => {}); return; }
     if(!currentGpsLat || !currentGpsLng) { showCustomConfirm("Lỗi", "Vui lòng bấm nút 'Gửi Định Vị GPS' trước khi đăng bài!", false, () => {}); return; }
@@ -1504,7 +1442,7 @@ function submitPhanAnh(e) {
         date: new Date().toLocaleDateString('vi-VN')
     });
 
-    saveDB();
+    await saveDB();
     renderPhanAnh();
     e.target.reset();
     tempPaImages = [];
@@ -1557,10 +1495,10 @@ function loadMyPhanAnhList() {
 }
 
 function deleteMyPhanAnh(id, phone) {
-    showCustomConfirm("Xác Nhận Xóa", "Bạn có chắc chắn muốn xóa bài phản ánh này không?", true, (isYes) => {
+    showCustomConfirm("Xác Nhận Xóa", "Bạn có chắc chắn muốn xóa bài phản ánh này không?", true, async (isYes) => {
         if(isYes) {
             db.phanAnh = db.phanAnh.filter(p => p.id !== id);
-            saveDB();
+            await saveDB();
             renderPhanAnh();
             loadMyPhanAnhList();
             showCustomConfirm("Thành Công", "Đã xóa bài phản ánh thành công!", false, () => {});
@@ -1622,7 +1560,7 @@ function removeTempEditPaImage(idx) {
     renderEditPaImagePreviews();
 }
 
-function submitEditPhanAnh(e) {
+async function submitEditPhanAnh(e) {
     e.preventDefault();
     const id = document.getElementById('edit-pa-id').value;
     let item = db.phanAnh.find(p => p.id == id);
@@ -1631,29 +1569,29 @@ function submitEditPhanAnh(e) {
         item.diachi = document.getElementById('edit-pa-diachi').value.trim();
         item.noidung = document.getElementById('edit-pa-noidung').value.trim();
         if(tempEditPaImages.length > 0) item.images = [...tempEditPaImages];
-        saveDB();
+        await saveDB();
         renderPhanAnh();
         closeEditPaModal();
-        showCustomConfirm("Thành Công", "Đã đăng bài phản ánh sau khi sửa thành công!", false, () => {});
+        showCustomConfirm("Thành Công", "Đã cập nhật phản ánh thành công!", false, () => {});
     }
 }
 
 function promptDeletePhanAnh(id) {
-    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có muốn xóa bài phản ánh thô tục hoặc không đúng lĩnh vực này không?", true, (isYes) => {
+    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có muốn xóa bài phản ánh này không?", true, async (isYes) => {
         if(isYes) {
             db.phanAnh = db.phanAnh.filter(p => p.id !== id);
-            saveDB();
+            await saveDB();
             renderPhanAnh(currentPaFilter);
             showCustomConfirm("Thành Công", "Đã xóa bài phản ánh!", false, () => {});
         }
     });
 }
 
-function updatePhanAnhStatus(id, newStatus) {
+async function updatePhanAnhStatus(id, newStatus) {
     let item = db.phanAnh.find(p => p.id === id);
     if(item) {
         item.status = newStatus;
-        saveDB();
+        await saveDB();
         renderPhanAnh(currentPaFilter);
     }
 }
@@ -1813,7 +1751,7 @@ function submitHopChiBo(e) {
     const content = document.getElementById('hop-content').value.trim();
     const fileInput = document.getElementById('hop-file');
 
-    let saveRecord = () => {
+    let saveRecord = async () => {
         db.hopChiBo.unshift({
             id: Date.now(),
             title,
@@ -1822,15 +1760,15 @@ function submitHopChiBo(e) {
             fileName: fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : "",
             author: currentUser ? currentUser.username : "Cán bộ"
         });
-        saveDB(); closeHopModal(); renderHopChiBo(); e.target.reset();
+        await saveDB(); closeHopModal(); renderHopChiBo(); e.target.reset();
         showCustomConfirm("Thành Công", "Đăng lịch họp thành công!", false, () => {});
     };
 
     if(fileInput && fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             tempHopFile = evt.target.result;
-            saveRecord();
+            await saveRecord();
         };
         reader.readAsDataURL(fileInput.files[0]);
     } else {
@@ -1872,7 +1810,7 @@ function switchBqTab(tab) {
 
 function openBqModal() { const m = document.getElementById('bq-modal'); if(m) m.classList.remove('hidden'); }
 function closeBqModal() { const m = document.getElementById('bq-modal'); if(m) m.classList.add('hidden'); }
-function submitBieuQuyet(e) {
+async function submitBieuQuyet(e) {
     e.preventDefault();
     if(currentUser && currentUser.type === 'cap2') {
         showCustomConfirm("Lỗi", "Cấp 2 không có quyền tạo!", false, () => {}); return;
@@ -1884,11 +1822,11 @@ function submitBieuQuyet(e) {
         type: document.getElementById('bq-type').value,
         votes: {}
     });
-    saveDB(); closeBqModal(); renderBieuQuyet(); e.target.reset();
+    await saveDB(); closeBqModal(); renderBieuQuyet(); e.target.reset();
     showCustomConfirm("Thành Công", "Đã phát động biểu quyết mới!", false, () => {});
 }
 
-function voteBieuQuyet(bqId, optionIndex) {
+async function voteBieuQuyet(bqId, optionIndex) {
     let bq = db.bieuQuyet.find(b => b.id === bqId);
     if(bq) {
         if(bq.type === 'noibo' && (!currentUser || (currentUser.type !== 'cap1' && currentUser.type !== 'cap2' && currentUser.type !== 'chu' && currentUser.type !== 'andanh'))) {
@@ -1898,7 +1836,7 @@ function voteBieuQuyet(bqId, optionIndex) {
         if(!bq.votes) bq.votes = {};
         let voterName = currentUser ? currentUser.username : ('Khách_' + Math.floor(Math.random()*1000));
         bq.votes[voterName] = optionIndex;
-        saveDB();
+        await saveDB();
         renderBieuQuyet();
         showCustomConfirm("Thành Công", "Đã bỏ phiếu thành công!", false, () => {});
     }
@@ -1948,7 +1886,7 @@ function renderBieuQuyet() {
     });
 }
 
-function sendChatMessage(e) {
+async function sendChatMessage(e) {
     e.preventDefault();
     const nameEl = document.getElementById('chat-input-name');
     const msgEl = document.getElementById('chat-input-msg');
@@ -1956,7 +1894,7 @@ function sendChatMessage(e) {
     const msg = msgEl ? msgEl.value.trim() : '';
     if(!name) { showCustomConfirm("Lỗi", "Vui lòng nhập tên!", false, () => {}); return; }
     db.chatMessages.push({ id: Date.now(), name, msg });
-    saveDB(); renderChatMessages();
+    await saveDB(); renderChatMessages();
     if(msgEl) msgEl.value = '';
 }
 function renderChatMessages() {
@@ -2003,7 +1941,7 @@ function officerUploadThuTuc(e) {
 
     if(fileInput && fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             db.thuTucDocs.unshift({
                 id: Date.now(),
                 title,
@@ -2011,7 +1949,7 @@ function officerUploadThuTuc(e) {
                 fileName: fileInput.files[0].name,
                 uploader: currentUser ? currentUser.username : "Cán bộ"
             });
-            saveDB(); renderThuTucDocs(); e.target.reset();
+            await saveDB(); renderThuTucDocs(); e.target.reset();
             showCustomConfirm("Thành Công", "Đã tải lên biểu mẫu thành công!", false, () => {});
         };
         reader.readAsDataURL(fileInput.files[0]);
