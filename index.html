@@ -24,7 +24,7 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans antialiased min-h-screen flex justify-center items-center p-0 md:p-4">
 
-    <!-- MÀN HÌNH CHỌN VAI TRÒ BAN ĐẦU (CHI BỘ HOẶC CỘNG ĐỒNG) -->
+    <!-- MÀN HÌNH CHỌN VAI TRÒ BAN ĐẦU -->
     <div id="welcome-role-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-5 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-16 h-16 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    <!-- MODAL ĐĂNG NHẬP RIÊNG CHO CHI BỘ -->
+    <!-- MODAL ĐĂNG NHẬP CHI BỘ -->
     <div id="chibo-login-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
@@ -53,7 +53,7 @@
             </div>
             <div class="space-y-1">
                 <h3 class="font-bold text-base text-travelPrimary">Đăng Nhập Chi Bộ</h3>
-                <p class="text-xs text-gray-500">Nhập tài khoản khu vực của bạn để quản lý và xem tài liệu:</p>
+                <p class="text-xs text-gray-500">Nhập tài khoản khu vực của bạn để quản lý:</p>
             </div>
             <form onsubmit="handleChiBoPortalLogin(event)" class="space-y-3 text-xs pt-1">
                 <input type="text" id="cb-login-user" required placeholder="Tên đăng nhập..." class="w-full bg-gray-50 dark:bg-gray-900 border rounded-xl px-3 py-3 outline-none">
@@ -72,7 +72,7 @@
         </div>
     </div>
 
-    <!-- MODAL CHỌN KHU VỰC PHÂN CẤP CỘNG ĐỒNG (TỈNH -> PHƯỜNG -> KHU VỰC) -->
+    <!-- MODAL CHỌN KHU VỰC CỘNG ĐỒNG -->
     <div id="community-area-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
@@ -89,6 +89,17 @@
                 <button id="comm-confirm-btn" onclick="confirmCommunityArea()" class="w-full bg-travelPrimary hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow hidden">Xác Nhận Chọn Khu Vực</button>
             </div>
         </div>
+    </div>
+
+    <!-- LIGHTBOX XEM ẢNH TOÀN MÀN HÌNH (VUỐT TRƯỢT NGANG / LÊN XUỐNG) -->
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex flex-col items-center justify-center p-2 touch-none">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-2xl bg-white/20 hover:bg-white/30 w-10 h-10 rounded-full flex items-center justify-center transition z-50"><i class="fa-solid fa-xmark"></i></button>
+        <div id="lightbox-container-box" class="relative max-w-4xl w-full flex items-center justify-center px-10 h-[85vh]">
+            <button onclick="prevLightboxImage()" class="absolute left-0 text-white text-xl bg-white/20 hover:bg-white/40 w-10 h-10 rounded-full flex items-center justify-center transition z-40"><i class="fa-solid fa-chevron-left"></i></button>
+            <img id="lightbox-img-el" src="" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl transition-transform duration-200">
+            <button onclick="nextLightboxImage()" class="absolute right-0 text-white text-xl bg-white/20 hover:bg-white/40 w-10 h-10 rounded-full flex items-center justify-center transition z-40"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <p id="lightbox-counter" class="text-white text-xs mt-2 font-semibold"></p>
     </div>
 
     <!-- KHUNG CHÍNH ỨNG DỤNG -->
@@ -155,23 +166,56 @@
                 <div id="news-feed-list" class="grid grid-cols-1 gap-3"></div>
             </div>
 
+            <!-- PHẦN PHẢN ÁNH ĐƯỢC CHIA 2 PHẦN CHO CỘNG ĐỒNG VÀ HIỆN DANH SÁCH CHO CHI BỘ -->
             <div id="tab-phananh" class="tab-content hidden space-y-4">
-                <div class="bg-teal-50 dark:bg-gray-800 p-4 rounded-3xl border border-teal-100 dark:border-gray-700 space-y-3 shadow-sm">
-                    <h3 class="font-bold text-xs text-travelPrimary dark:text-teal-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Gửi Phản Ánh Trực Tuyến</h3>
-                    <form id="form-phan-anh" onsubmit="submitPhanAnh(event)" class="space-y-2.5 text-xs">
-                        <input type="text" id="pa-hoten" required placeholder="Họ và tên bắt buộc..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
-                        <input type="tel" id="pa-sdt" required placeholder="Số điện thoại bắt buộc..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
-                        <input type="text" id="pa-diachi" required placeholder="Địa chỉ..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
-                        <textarea id="pa-noidung" required maxlength="1000" rows="3" placeholder="Nội dung phản ánh..." class="w-full bg-white dark:bg-gray-900 border rounded-xl p-3 outline-none"></textarea>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-red-600 mb-1">Đính kèm ít nhất 1 hình ảnh minh chứng *</label>
-                            <input type="file" id="pa-images" multiple accept="image/*" onchange="handlePaImages(event)" class="text-[11px]" required>
-                            <div id="pa-image-preview" class="flex gap-1.5 mt-2 flex-wrap"></div>
-                        </div>
-                        <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl transition shadow">Gửi Phản Ánh</button>
-                    </form>
+                <div id="community-pa-nav-buttons" class="flex gap-2 hidden">
+                    <button onclick="switchPaSubTab('viet')" id="btn-pasub-viet" class="flex-1 bg-travelPrimary text-white font-bold py-2 rounded-xl text-xs shadow">Viết Phản Ánh</button>
+                    <button onclick="switchPaSubTab('xem')" id="btn-pasub-xem" class="flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition">Xem Phản Ánh</button>
                 </div>
-                <div id="phan-anh-list-container" class="space-y-3"></div>
+
+                <div id="subtab-pa-viet" class="space-y-4">
+                    <div class="bg-teal-50 dark:bg-gray-800 p-4 rounded-3xl border border-teal-100 dark:border-gray-700 space-y-3 shadow-sm">
+                        <h3 class="font-bold text-xs text-travelPrimary dark:text-teal-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Gửi Phản Ánh Trực Tuyến</h3>
+                        <form id="form-phan-anh" onsubmit="submitPhanAnh(event)" class="space-y-2.5 text-xs">
+                            <input type="text" id="pa-hoten" required placeholder="Họ và tên bắt buộc..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
+                            <input type="tel" id="pa-sdt" required placeholder="Số điện thoại bắt buộc (dùng để sửa/xóa bài)..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
+                            <input type="text" id="pa-diachi" required placeholder="Địa chỉ hiện tại..." class="w-full bg-white dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none">
+                            <textarea id="pa-noidung" required maxlength="1000" rows="3" placeholder="Nội dung phản ánh..." class="w-full bg-white dark:bg-gray-900 border rounded-xl p-3 outline-none"></textarea>
+                            
+                            <!-- LẤY ĐỊNH VỊ GPS -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="captureMyLocation()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-3 py-2 rounded-xl text-[11px] transition flex items-center gap-1.5 shrink-0">
+                                    <i class="fa-solid fa-location-crosshairs"></i> Gửi Định Vị GPS
+                                </button>
+                                <span id="pa-gps-status" class="text-[11px] text-gray-500 font-medium truncate">Chưa có định vị (bắt buộc lấy GPS)</span>
+                                <input type="hidden" id="pa-lat" value="">
+                                <input type="hidden" id="pa-lng" value="">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-red-600 mb-1">Đính kèm ít nhất 1 hình ảnh minh chứng *</label>
+                                <input type="file" id="pa-images" multiple accept="image/*" onchange="handlePaImages(event)" class="text-[11px]">
+                                <div id="pa-image-preview" class="flex gap-2 mt-2 flex-wrap"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl transition shadow">Đăng Bài Phản Ánh</button>
+                        </form>
+                    </div>
+
+                    <!-- KHUNG XÓA HOẶC SỬA BÀI PHẢN ÁNH DÀNH CHO CỘNG ĐỒNG -->
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-3xl border shadow-sm space-y-2">
+                        <h4 class="font-bold text-xs text-travelPrimary"><i class="fa-solid fa-pen-to-square mr-1"></i> Quản Lý Bài Phản Ánh Của Bạn</h4>
+                        <p class="text-[11px] text-gray-500">Nhập số điện thoại đã gửi bài để tìm và thực hiện sửa/xóa bài phản ánh:</p>
+                        <div class="flex gap-2">
+                            <input type="tel" id="manage-pa-phone" placeholder="Nhập SĐT của bạn..." class="flex-grow bg-gray-50 dark:bg-gray-900 border rounded-xl px-3 py-2 outline-none text-xs">
+                            <button type="button" onclick="loadMyPhanAnhList()" class="bg-travelPrimary text-white px-3.5 py-2 rounded-xl font-bold text-xs">Tìm Bài</button>
+                        </div>
+                        <div id="my-phananh-manage-container" class="space-y-2 pt-2"></div>
+                    </div>
+                </div>
+
+                <div id="subtab-pa-xem" class="space-y-3">
+                    <div id="phan-anh-list-container" class="space-y-3"></div>
+                </div>
             </div>
 
             <div id="tab-thutuc" class="tab-content hidden space-y-4">
@@ -228,9 +272,8 @@
                 </div>
             </div>
 
-            <!-- PHẦN QUẢN LÝ / ĐĂNG NHẬP -->
+            <!-- PHẦN QUẢN LÝ -->
             <div id="tab-quanly" class="tab-content hidden space-y-4">
-                <!-- Hiển thị khi CHƯA đăng nhập -->
                 <div id="logged-out-manager-view" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <div class="text-center space-y-2">
                         <i class="fa-solid fa-user-shield text-3xl text-travelPrimary"></i>
@@ -253,7 +296,6 @@
                     </form>
                 </div>
 
-                <!-- Hiển thị khi ĐÃ đăng nhập -->
                 <div id="logged-in-manager-view" class="hidden bg-white dark:bg-gray-800 p-4 rounded-3xl border space-y-4 text-xs shadow-sm">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-sm text-travelPrimary">Quản Lý Tài Khoản & Giao Diện</h3>
@@ -262,7 +304,6 @@
                         </button>
                     </div>
 
-                    <!-- THAY ĐỔI TÊN ĐĂNG NHẬP & MẬT KHẨU CÁ NHÂN -->
                     <div id="change-credentials-box" class="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border space-y-2">
                         <h4 class="font-bold text-travelPrimary"><i class="fa-solid fa-key mr-1"></i> Thay Đổi Tên Đăng Nhập & Mật Khẩu Cá Nhân</h4>
                         <form onsubmit="updateMyCredentials(event)" class="space-y-2">
@@ -277,7 +318,6 @@
                         </form>
                     </div>
 
-                    <!-- CHỈNH SỬA TÊN KHU VỰC, PHƯỜNG XÃ, TỈNH THÀNH (DÀNH CHO CẢ 2 TÀI KHOẢN CHỦ) -->
                     <div id="chu-edit-area-details-box" class="hidden p-3 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-2">
                         <h4 class="font-bold text-emerald-900"><i class="fa-solid fa-pen-to-square mr-1"></i> [Cấp Quyền] Chỉnh Sửa Tên Khu Vực & Địa Chỉ</h4>
                         <form onsubmit="promptSaveAreaDetails(event)" class="space-y-2">
@@ -297,7 +337,6 @@
                         </form>
                     </div>
 
-                    <!-- THAY ĐỔI VÀ LIÊN KẾT EMAIL (XÁC THỰC OTP) -->
                     <div id="handover-section" class="hidden p-3 bg-teal-50 rounded-2xl border border-teal-200 space-y-2">
                         <h4 class="font-bold text-teal-900"><i class="fa-solid fa-envelope mr-1"></i> Quản Lý & Thay Đổi Email (Xác Thực OTP)</h4>
                         <form onsubmit="verifyHandoverOtp(event)" class="space-y-2">
@@ -329,7 +368,6 @@
                         </form>
                     </div>
 
-                    <!-- PHÂN CẤP CHỌN KHU VỰC GIÁM SÁT CHO TÀI KHOẢN CẤP QUYỀN -->
                     <div id="chu-monitor-box" class="hidden p-3 bg-purple-50 rounded-2xl border border-purple-200 space-y-2.5">
                         <h4 class="font-bold text-purple-900"><i class="fa-solid fa-eye mr-1"></i> Tài Khoản Cấp Quyền: Chọn Khu Vực Giám Sát</h4>
                         <div class="space-y-2">
@@ -413,7 +451,7 @@
 
     </div>
 
-    <!-- MODAL XÁC NHẬN CHUNG (CÓ / KHÔNG) -->
+    <!-- MODAL XÁC NHẬN CHUNG -->
     <div id="custom-confirm-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[30px] p-6 max-w-xs w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div id="confirm-icon-box" class="w-14 h-14 bg-teal-100 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
@@ -454,16 +492,42 @@
         </div>
     </div>
 
+    <!-- MODAL ĐĂNG / SỬA BÀI TIN TỨC -->
     <div id="news-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative max-h-[85vh] overflow-y-auto shadow-2xl">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative max-h-[85vh] overflow-y-auto shadow-2xl text-xs">
             <button onclick="closeNewsModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-base">Đăng Bài Tin Tức Số Hóa Đầu Làng</h3>
-            <form onsubmit="submitNewsArticle(event)" class="space-y-3 text-xs">
+            <h3 id="news-modal-title" class="font-bold text-base text-travelPrimary">Đăng Bài Tin Tức Số Hóa Đầu Làng</h3>
+            <form onsubmit="submitNewsArticle(event)" class="space-y-3">
+                <input type="hidden" id="edit-news-id" value="">
                 <input type="text" id="news-title" required placeholder="Tiêu đề..." class="w-full border rounded-xl px-3 py-2">
                 <textarea id="news-content" required rows="5" placeholder="Nội dung..." class="w-full border rounded-xl p-3"></textarea>
-                <input type="file" id="news-images" multiple accept="image/*" onchange="handleNewsImages(event)" class="text-xs">
-                <div id="news-image-preview" class="flex gap-2 flex-wrap"></div>
-                <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl">Đăng Bài</button>
+                <div>
+                    <label class="block font-semibold mb-1">Tải lên hình ảnh tin tức (Có thể chọn nhiều):</label>
+                    <input type="file" id="news-images" multiple accept="image/*" onchange="handleNewsImages(event)">
+                </div>
+                <div id="news-image-preview" class="flex gap-2 flex-wrap pt-1"></div>
+                <button type="submit" id="news-submit-btn" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl">Đăng Bài</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA BÀI PHẢN ÁNH CHO CỘNG ĐỒNG -->
+    <div id="edit-pa-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full space-y-3 relative max-h-[85vh] overflow-y-auto shadow-2xl text-xs">
+            <button onclick="closeEditPaModal()" class="absolute top-4 right-4 text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="font-bold text-base text-travelPrimary">Chỉnh Sửa Bài Phản Ánh</h3>
+            <form onsubmit="submitEditPhanAnh(event)" class="space-y-3">
+                <input type="hidden" id="edit-pa-id" value="">
+                <input type="text" id="edit-pa-hoten" required placeholder="Họ và tên..." class="w-full border rounded-xl px-3 py-2">
+                <input type="tel" id="edit-pa-sdt" required placeholder="Số điện thoại..." class="w-full border rounded-xl px-3 py-2">
+                <input type="text" id="edit-pa-diachi" required placeholder="Địa chỉ..." class="w-full border rounded-xl px-3 py-2">
+                <textarea id="edit-pa-noidung" required rows="3" placeholder="Nội dung..." class="w-full border rounded-xl p-3"></textarea>
+                <div>
+                    <label class="block font-semibold mb-1">Hình ảnh đính kèm:</label>
+                    <input type="file" id="edit-pa-images" multiple accept="image/*" onchange="handleEditPaImages(event)">
+                </div>
+                <div id="edit-pa-image-preview" class="flex gap-2 flex-wrap pt-1"></div>
+                <button type="submit" class="w-full bg-travelPrimary text-white font-bold py-2.5 rounded-xl">Đăng Bài (Lưu Thay Đổi)</button>
             </form>
         </div>
     </div>
