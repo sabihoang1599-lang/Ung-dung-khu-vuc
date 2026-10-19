@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    <!-- MODAL CHỌN KHU VỰC PHÂN CẤP CỘNG ĐỒNG (TỈNH -> PHƯỜNG -> KHU VỰC + NÚT XÁC NHẬN) -->
+    <!-- MODAL CHỌN KHU VỰC PHÂN CẤP CỘNG ĐỒNG (TỈNH -> PHƯỜNG -> KHU VỰC) -->
     <div id="community-area-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-[35px] p-6 max-w-sm w-full space-y-4 text-center shadow-2xl border border-gray-200 dark:border-gray-800">
             <div class="w-14 h-14 bg-teal-50 text-travelPrimary rounded-full flex items-center justify-center mx-auto text-xl">
@@ -58,6 +58,7 @@
             <div id="community-selector-list" class="space-y-2 max-h-48 overflow-y-auto text-xs pr-1"></div>
             <div class="flex gap-2 pt-2">
                 <button onclick="backCommunityStep()" id="comm-back-btn" class="w-1/2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold py-2.5 rounded-xl text-xs transition hidden">Quay Lại</button>
+                <button onclick="exitToRoleModalFromProvince()" id="comm-exit-btn" class="w-1/2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-red-600 font-bold py-2.5 rounded-xl text-xs transition">Thoát</button>
                 <button id="comm-confirm-btn" onclick="confirmCommunityArea()" class="w-full bg-travelPrimary hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow hidden">Xác Nhận Chọn Khu Vực</button>
             </div>
         </div>
@@ -86,7 +87,6 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <!-- Nút Đổi Khu Vực dành riêng cho Cộng Đồng (Thay thế nút thoát cũ) -->
                         <button id="header-change-area-btn" onclick="openCommunityProvinceStep()" class="bg-white/15 hover:bg-white/25 text-white px-2.5 py-1.5 rounded-xl transition text-[11px] font-bold flex items-center gap-1" title="Đổi khu vực sinh sống">
                             <i class="fa-solid fa-map-location-dot"></i> Đổi Khu Vực
                         </button>
