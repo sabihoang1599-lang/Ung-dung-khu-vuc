@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkRolePermissions();
     initChuMonitorSelects();
     applyPortalUIVisibility();
+    setupLightboxGestures();
     
     if(!portalRole) {
         let roleModal = document.getElementById('welcome-role-modal');
@@ -122,15 +123,42 @@ function applyPortalUIVisibility() {
     const btnHopChiBo = document.getElementById('btn-tab-hopchibo');
     const btnQuanLy = document.getElementById('tab-btn-quanly');
     const changeAreaBtn = document.getElementById('header-change-area-btn');
+    const paNavButtons = document.getElementById('community-pa-nav-buttons');
+    const subTabViet = document.getElementById('subtab-pa-viet');
+    const subTabXem = document.getElementById('subtab-pa-xem');
 
     if (portalRole === 'congdong') {
         if(btnHopChiBo) btnHopChiBo.style.display = 'none';
         if(btnQuanLy) btnQuanLy.style.display = 'none';
         if(changeAreaBtn) changeAreaBtn.style.display = 'flex';
+        if(paNavButtons) paNavButtons.classList.remove('hidden');
+        switchPaSubTab('viet');
     } else if (portalRole === 'chibo') {
         if(btnHopChiBo) btnHopChiBo.style.display = 'block';
         if(btnQuanLy) btnQuanLy.style.display = 'block';
         if(changeAreaBtn) changeAreaBtn.style.display = 'none';
+        if(paNavButtons) paNavButtons.classList.add('hidden');
+        if(subTabViet) subTabViet.classList.remove('hidden');
+        if(subTabXem) subTabXem.classList.remove('hidden');
+    }
+}
+
+function switchPaSubTab(tab) {
+    const subTabViet = document.getElementById('subtab-pa-viet');
+    const subTabXem = document.getElementById('subtab-pa-xem');
+    const btnViet = document.getElementById('btn-pasub-viet');
+    const btnXem = document.getElementById('btn-pasub-xem');
+
+    if(tab === 'viet') {
+        if(subTabViet) subTabViet.classList.remove('hidden');
+        if(subTabXem) subTabXem.classList.add('hidden');
+        if(btnViet) btnViet.className = "flex-1 bg-travelPrimary text-white font-bold py-2 rounded-xl text-xs shadow";
+        if(btnXem) btnXem.className = "flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition";
+    } else {
+        if(subTabViet) subTabViet.classList.add('hidden');
+        if(subTabXem) subTabXem.classList.remove('hidden');
+        if(btnViet) btnViet.className = "flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition";
+        if(btnXem) btnXem.className = "flex-1 bg-travelPrimary text-white font-bold py-2 rounded-xl text-xs shadow";
     }
 }
 
@@ -813,6 +841,7 @@ function checkRolePermissions() {
     const changeCredentialsBox = document.getElementById('change-credentials-box');
     const loggedOutManagerView = document.getElementById('logged-out-manager-view');
     const loggedInManagerView = document.getElementById('logged-in-manager-view');
+    const subTabViet = document.getElementById('subtab-pa-viet');
 
     if(addNewsContainer) addNewsContainer.innerHTML = '';
     if(addHopContainer) addHopContainer.innerHTML = '';
@@ -832,6 +861,9 @@ function checkRolePermissions() {
     if(currentUser) {
         if(loggedOutManagerView) loggedOutManagerView.classList.add('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.remove('hidden');
+
+        // PHẦN PHẢN ÁNH: CHI BỘ KHÔNG HIỆN FORM ĐIỀN, CHỈ HIỆN DANH SÁCH BÀI
+        if(subTabViet) subTabViet.classList.add('hidden');
 
         if(currentUser.type === 'chu' || currentUser.type === 'andanh') {
             if(chuCreateAreaBox) chuCreateAreaBox.classList.remove('hidden');
@@ -865,6 +897,7 @@ function checkRolePermissions() {
     } else {
         if(loggedOutManagerView) loggedOutManagerView.classList.remove('hidden');
         if(loggedInManagerView) loggedInManagerView.classList.add('hidden');
+        if(subTabViet) subTabViet.classList.remove('hidden');
         if(activeBqTab === 'noibo') {
             switchBqTab('congdong');
         }
@@ -1219,7 +1252,7 @@ function openNewsModal(id = null) {
         let item = db.news.find(n => n.id === id);
         if(item) {
             if(titleEl) titleEl.innerText = "Chỉnh Sửa Bài Tin Tức";
-            if(submitBtn) submitBtn.innerText = "Lưu Thay Đổi";
+            if(submitBtn) submitBtn.innerText = "Đăng Lại Bài Sửa";
             if(editIdInput) editIdInput.value = item.id;
             document.getElementById('news-title').value = item.title;
             document.getElementById('news-content').value = item.content;
@@ -1291,7 +1324,7 @@ function submitNewsArticle(e) {
             item.content = content;
             item.images = [...tempNewsImages];
         }
-        showCustomConfirm("Thành Công", "Đã cập nhật bài viết tin tức!", false, () => {});
+        showCustomConfirm("Thành Công", "Đã sửa bài và đăng lại thành công!", false, () => {});
     } else {
         db.news.unshift({
             id: Date.now(),
@@ -1309,7 +1342,7 @@ function submitNewsArticle(e) {
 }
 
 function promptDeleteNews(id) {
-    showCustomConfirm("Xác Nhận Xóa", "Bạn có chắc chắn muốn xóa bài viết này không?", true, (isYes) => {
+    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có chắc chắn muốn xóa bài viết thô tục hoặc không đúng thẩm quyền này không?", true, (isYes) => {
         if(isYes) {
             db.news = db.news.filter(n => n.id !== id);
             saveDB();
@@ -1343,7 +1376,7 @@ function renderNews(filter = "") {
         if(currentUser && currentUser.type === 'cap1') {
             officerActions = `
                 <div class="flex gap-2 pt-2 border-t">
-                    <button onclick="openNewsModal(${n.id})" class="text-teal-700 font-bold hover:underline"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                    <button onclick="openNewsModal(${n.id})" class="text-teal-700 font-bold hover:underline"><i class="fa-solid fa-pen-to-square"></i> Sửa bài</button>
                     <button onclick="promptDeleteNews(${n.id})" class="text-red-500 font-bold hover:underline"><i class="fa-solid fa-trash"></i> Xóa</button>
                 </div>
             `;
@@ -1427,7 +1460,7 @@ function removeTempPaImage(idx) {
 function submitPhanAnh(e) {
     e.preventDefault();
     if(tempPaImages.length < 1) { showCustomConfirm("Lỗi", "Bắt buộc đính kèm ít nhất 1 hình ảnh minh chứng!", false, () => {}); return; }
-    if(!currentGpsLat || !currentGpsLng) { showCustomConfirm("Lỗi", "Vui lòng bấm nút 'Gửi Định Vị GPS' trước khi gửi phản ánh!", false, () => {}); return; }
+    if(!currentGpsLat || !currentGpsLng) { showCustomConfirm("Lỗi", "Vui lòng bấm nút 'Gửi Định Vị GPS' trước khi đăng bài!", false, () => {}); return; }
 
     db.phanAnh.unshift({
         id: Date.now(),
@@ -1452,7 +1485,12 @@ function submitPhanAnh(e) {
     if(preview) preview.innerHTML = '';
     const statusEl = document.getElementById('pa-gps-status');
     if(statusEl) statusEl.innerText = "Chưa có định vị (bắt buộc lấy GPS)";
-    showCustomConfirm("Thành Công", "Đã gửi phản ánh thành công!", false, () => {});
+    
+    showCustomConfirm("Thành Công", "Đã đăng bài phản ánh thành công!", false, () => {
+        if(portalRole === 'congdong') {
+            switchPaSubTab('xem');
+        }
+    });
 }
 
 function loadMyPhanAnhList() {
@@ -1504,7 +1542,7 @@ function deleteMyPhanAnh(id, phone) {
 let tempEditPaImages = [];
 function openEditPaModal(id, phone) {
     let item = db.phanAnh.find(p => p.id === id && p.sdt === phone);
-    if(!item) { showCustomConfirm("Lỗi", "Không tìm thấy bài phản ánh khớp SĐT!", false, () => {}); return; }
+    if(!item) { showCustomConfirm("Lỗi", "Số điện thoại không khớp, không thể sửa bài!", false, () => {}); return; }
 
     const m = document.getElementById('edit-pa-modal');
     if(!m) return;
@@ -1567,12 +1605,12 @@ function submitEditPhanAnh(e) {
         saveDB();
         renderPhanAnh();
         closeEditPaModal();
-        showCustomConfirm("Thành Công", "Đã cập nhật bài phản ánh thành công!", false, () => {});
+        showCustomConfirm("Thành Công", "Đã đăng bài phản ánh sau khi sửa thành công!", false, () => {});
     }
 }
 
 function promptDeletePhanAnh(id) {
-    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có muốn xóa bài phản ánh không đúng lĩnh vực/không hợp lệ này không?", true, (isYes) => {
+    showCustomConfirm("Xác Nhận Xóa", "Cán bộ Cấp 1: Bạn có muốn xóa bài phản ánh thô tục hoặc không đúng lĩnh vực này không?", true, (isYes) => {
         if(isYes) {
             db.phanAnh = db.phanAnh.filter(p => p.id !== id);
             saveDB();
@@ -1651,9 +1689,11 @@ function renderPhanAnh() {
     });
 }
 
-// ================= LIGHTBOX XEM ẢNH TRƯỢT NGANG =================
+// ================= LIGHTBOX XEM ẢNH TOÀN MÀN HÌNH & GESTURES =================
 let lightboxImagesArray = [];
 let lightboxCurrentIndex = 0;
+let touchStartX = 0;
+let touchStartY = 0;
 
 function openLightboxFromGallery(encodedJsonStr, index) {
     try {
@@ -1692,6 +1732,40 @@ function closeLightbox() {
     const lb = document.getElementById('lightbox-modal');
     if(lb) lb.classList.add('hidden');
     lightboxImagesArray = [];
+}
+
+function setupLightboxGestures() {
+    const box = document.getElementById('lightbox-container-box');
+    if(!box) return;
+
+    box.addEventListener('touchstart', (e) => {
+        if(e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }
+    }, {passive: true});
+
+    box.addEventListener('touchend', (e) => {
+        if(e.changedTouches.length === 1) {
+            let touchEndX = e.changedTouches[0].clientX;
+            let touchEndY = e.changedTouches[0].clientY;
+            let diffX = touchEndX - touchStartX;
+            let diffY = touchEndY - touchStartY;
+
+            // Kéo sang trái / phải xem ảnh kế tiếp
+            if(Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+                if(diffX < 0) {
+                    nextLightboxImage();
+                } else {
+                    prevLightboxImage();
+                }
+            }
+            // Trượt lên / xuống để thoát trạng thái xem ảnh
+            else if(Math.abs(diffY) > 80 && Math.abs(diffY) > Math.abs(diffX)) {
+                closeLightbox();
+            }
+        }
+    }, {passive: true});
 }
 
 // ================= CÁC TÍNH NĂNG KHÁC =================
