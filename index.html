@@ -590,6 +590,14 @@
         </div>
     </div>
 
+    <!-- Firebase CDN SDK (Module) nhúng trực tiếp trên trình duyệt điện thoại -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        // Gắn vào window để script.js gọi thoải mái
+        window.firebaseModules = { initializeApp, getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs };
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
